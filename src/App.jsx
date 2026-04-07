@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrowserRouter, NavLink, Routes, Route, Link } from 'react-router-dom';
 import { isSupabaseConfigured, supabase, supabaseConfigError } from './lib/supabaseClient';
+import { fetchLatestYouTubeVideos } from './lib/youtubeApi';
 
 const CALENDAR_FOCUS_KEY = 'douha_calendar_focus_v1';
 const PHOTOS_STORAGE_KEY = 'douha_site_photos_v1';
@@ -99,79 +100,53 @@ const YOUTUBE_API_KEY = String(import.meta.env.VITE_YOUTUBE_API_KEY || '').trim(
 const YOUTUBE_CHANNEL_ID = String(import.meta.env.VITE_YOUTUBE_CHANNEL_ID || '').trim();
 const YOUTUBE_FEED_CARDS = 4;
 const YOUTUBE_TOPICS_ROWS = 6;
-const YOUTUBE_FETCH_COUNT = 6;
+/** Quantidade pedida na API (grade + lista de titulos); max. 50 por requisicao. */
+const YOUTUBE_FETCH_COUNT = 12;
 
 const tracks = [
   {
+    videoId: 'dQw4w9WgXcQ',
     title: 'DOUHA CLUB LIVE 001',
     thumb: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
     videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     platform: 'YOUTUBE',
   },
   {
+    videoId: '3JZ_D3ELwOQ',
     title: 'DOUHA RADIO 002',
     thumb: 'https://i.ytimg.com/vi/3JZ_D3ELwOQ/hqdefault.jpg',
     videoUrl: 'https://www.youtube.com/watch?v=3JZ_D3ELwOQ',
     platform: 'YOUTUBE',
   },
   {
+    videoId: 'oRdxUFDoQe0',
     title: 'GUEST MIX 003',
     thumb: 'https://i.ytimg.com/vi/oRdxUFDoQe0/hqdefault.jpg',
     videoUrl: 'https://www.youtube.com/watch?v=oRdxUFDoQe0',
     platform: 'YOUTUBE',
   },
   {
+    videoId: '2Vv-BfVoq4g',
     title: 'LIVE FROM SAO PAULO',
     thumb: 'https://i.ytimg.com/vi/2Vv-BfVoq4g/hqdefault.jpg',
     videoUrl: 'https://www.youtube.com/watch?v=2Vv-BfVoq4g',
     platform: 'YOUTUBE',
   },
   {
+    videoId: 'JGwWNGJdvx8',
     title: 'DOUHA CLUB LIVE 005',
     thumb: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg',
     videoUrl: 'https://www.youtube.com/watch?v=JGwWNGJdvx8',
     platform: 'YOUTUBE',
   },
   {
+    videoId: 'fLexgOxsZu0',
     title: 'DOUHA RADIO 006',
     thumb: 'https://i.ytimg.com/vi/fLexgOxsZu0/hqdefault.jpg',
     videoUrl: 'https://www.youtube.com/watch?v=fLexgOxsZu0',
     platform: 'YOUTUBE',
   },
 ];
-
-async function fetchLatestYouTubeVideos({ apiKey, channelId, maxResults = 4 }) {
-  if (!apiKey || !channelId) throw new Error('YouTube API nao configurada');
-  const params = new URLSearchParams({
-    key: apiKey,
-    channelId,
-    part: 'snippet',
-    order: 'date',
-    type: 'video',
-    maxResults: String(maxResults),
-  });
-  const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`);
-  if (!res.ok) throw new Error(`YouTube API status ${res.status}`);
-  const json = await res.json();
-  const items = Array.isArray(json?.items) ? json.items : [];
-  return items
-    .map((item) => {
-      const id = item?.id?.videoId;
-      const snippet = item?.snippet || {};
-      if (!id) return null;
-      return {
-        title: String(snippet.title || 'Video Douha'),
-        thumb:
-          String(snippet?.thumbnails?.high?.url || '')
-          || String(snippet?.thumbnails?.medium?.url || '')
-          || String(snippet?.thumbnails?.default?.url || ''),
-        videoUrl: `https://www.youtube.com/watch?v=${id}`,
-        platform: 'YOUTUBE',
-      };
-    })
-    .filter(Boolean)
-    .slice(0, maxResults);
-}
 
 const gallery = ['/brand/elements/01.png', '/brand/elements/02.png', '/brand/elements/03.png', '/brand/elements/05.png'];
 const MONTH_LABELS = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
@@ -1337,6 +1312,7 @@ function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calend
   }, [heroPhotoStrip]);
 
   useEffect(() => {
+    if (!YOUTUBE_API_KEY || !YOUTUBE_CHANNEL_ID) return undefined;
     let active = true;
     const loadYouTube = async () => {
       try {
@@ -1346,9 +1322,12 @@ function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calend
           maxResults: YOUTUBE_FETCH_COUNT,
         });
         if (!active) return;
-        if (latest.length) setVideoCards(latest);
-      } catch {
+        setVideoCards(latest);
+      } catch (err) {
         if (!active) return;
+        if (import.meta.env.DEV) {
+          console.warn('[Douha] YouTube API (usando placeholders):', err?.message || err);
+        }
         setVideoCards(tracks.slice(0, YOUTUBE_FETCH_COUNT));
       }
     };
@@ -1548,7 +1527,7 @@ function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calend
           </div>
           <div className="sets-video-grid">
             {videoCards.slice(0, YOUTUBE_FEED_CARDS).map((track) => (
-              <a key={track.title} className="sets-video-card" href={track.videoUrl} target="_blank" rel="noreferrer">
+              <a key={track.videoId} className="sets-video-card" href={track.videoUrl} target="_blank" rel="noreferrer">
                 <div className="sets-video-thumb">
                   <img src={track.thumb} alt={`Thumb do set ${track.title}`} />
                   <span className="sets-play-badge" aria-hidden="true">▶</span>
@@ -1564,7 +1543,7 @@ function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calend
             </div>
             <div className="sets-topic-list">
               {videoCards.slice(0, YOUTUBE_TOPICS_ROWS).map((track) => (
-                <a key={`home-topic-${track.title}`} className="sets-topic-row" href={track.videoUrl} target="_blank" rel="noreferrer">
+                <a key={`home-topic-${track.videoId}`} className="sets-topic-row" href={track.videoUrl} target="_blank" rel="noreferrer">
                   <span className="sets-topic-play" aria-hidden="true">▶</span>
                   <p>{track.title}</p>
                   <span className="sets-topic-platform">{track.platform || 'YOUTUBE'}</span>
@@ -1740,6 +1719,7 @@ function SetsPage() {
   const [videoCards, setVideoCards] = useState(() => tracks.slice(0, YOUTUBE_FETCH_COUNT));
 
   useEffect(() => {
+    if (!YOUTUBE_API_KEY || !YOUTUBE_CHANNEL_ID) return undefined;
     let active = true;
     const loadYouTube = async () => {
       try {
@@ -1749,9 +1729,12 @@ function SetsPage() {
           maxResults: YOUTUBE_FETCH_COUNT,
         });
         if (!active) return;
-        if (latest.length) setVideoCards(latest);
-      } catch {
+        setVideoCards(latest);
+      } catch (err) {
         if (!active) return;
+        if (import.meta.env.DEV) {
+          console.warn('[Douha] YouTube API (usando placeholders):', err?.message || err);
+        }
         setVideoCards(tracks.slice(0, YOUTUBE_FETCH_COUNT));
       }
     };
@@ -1787,7 +1770,7 @@ function SetsPage() {
           </div>
           <div className="sets-video-grid">
             {videoCards.slice(0, YOUTUBE_FEED_CARDS).map((track) => (
-              <a key={track.title} className="sets-video-card" href={track.videoUrl} target="_blank" rel="noreferrer">
+              <a key={track.videoId} className="sets-video-card" href={track.videoUrl} target="_blank" rel="noreferrer">
                 <div className="sets-video-thumb">
                   <img src={track.thumb} alt={`Thumb do set ${track.title}`} />
                   <span className="sets-play-badge" aria-hidden="true">▶</span>
@@ -1802,7 +1785,7 @@ function SetsPage() {
             </div>
             <div className="sets-topic-list">
               {videoCards.slice(0, YOUTUBE_TOPICS_ROWS).map((track) => (
-                <a key={`sets-topic-${track.title}`} className="sets-topic-row" href={track.videoUrl} target="_blank" rel="noreferrer">
+                <a key={`sets-topic-${track.videoId}`} className="sets-topic-row" href={track.videoUrl} target="_blank" rel="noreferrer">
                   <span className="sets-topic-play" aria-hidden="true">▶</span>
                   <p>{track.title}</p>
                   <span className="sets-topic-platform">{track.platform || 'YOUTUBE'}</span>

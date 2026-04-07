@@ -1,36 +1,16 @@
-# Douha Club — site (landing)
+# React + Vite
 
-Front-end em **React + Vite** para o site do Douha Club (agenda, galeria, editorial, admin).
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Desenvolvimento
+Currently, two official plugins are available:
 
-```bash
-cp .env.example .env   # preencha as chaves do Supabase
-npm install
-npm run dev              # http://localhost:5180
-```
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-```bash
-npm run build
-npm run lint
-```
+## React Compiler
 
-## Repositório no GitHub (só este projeto)
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-Este diretório é o **repositório Git próprio** do site Douha (fora do monorepo `dj-booking-saas`).
+## Expanding the ESLint configuration
 
-1. Crie um repositório **vazio** na org/conta Douha no GitHub (sem README se for o primeiro push).
-2. Na pasta deste projeto:
-
-```bash
-cd c:\Users\Vini_\douha-club-landing
-git remote add origin https://github.com/SEU_USUARIO_OU_ORG/douha-club-landing.git
-git branch -M main
-git push -u origin main
-```
-
-3. Configure o deploy (Vercel, Netlify, Cloudflare Pages, etc.) apontando para esse repo, build `npm run build`, pasta de saída `dist`.
-
-## Variáveis de ambiente
-
-Copie `.env.example` para `.env` e defina as URLs/chaves do Supabase usadas pelo app. **Não commite** o arquivo `.env`.
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
