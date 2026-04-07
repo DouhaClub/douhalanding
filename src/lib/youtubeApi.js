@@ -229,3 +229,41 @@ export async function fetchLatestYouTubeVideos({ apiKey, channelId, maxResults =
   }
   return videos;
 }
+
+/**
+ * Foto de perfil e titulo do canal (header). Mesma chave/API dos videos.
+ * @returns {{ avatarUrl: string, title: string } | null}
+ */
+export async function fetchYoutubeChannelBranding({ apiKey, channelIdOrHandle }) {
+  if (!String(apiKey || '').trim()) return null;
+  const raw = String(channelIdOrHandle || '').trim();
+  if (!raw) return null;
+  try {
+    const uc = await resolveChannelIdToUc(apiKey, channelIdOrHandle);
+    const params = new URLSearchParams({
+      key: apiKey.trim(),
+      part: 'snippet',
+      id: uc,
+    });
+    const res = await fetch(`${YT_API}/channels?${params.toString()}`);
+    const json = await res.json();
+    if (!res.ok) {
+      if (import.meta.env.DEV) {
+        console.warn('[Douha] channels.list (branding):', parseYouTubeApiError(json) || res.status);
+      }
+      return null;
+    }
+    const s = json?.items?.[0]?.snippet;
+    if (!s) return null;
+    const th = s.thumbnails || {};
+    const avatarUrl = String(
+      th.high?.url || th.medium?.url || th.default?.url || '',
+    ).trim();
+    const title = String(s.title || '').trim();
+    if (!avatarUrl) return null;
+    return { avatarUrl, title };
+  } catch (err) {
+    console.warn('[Douha] fetchYoutubeChannelBranding:', err?.message || err);
+    return null;
+  }
+}

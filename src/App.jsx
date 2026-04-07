@@ -1,7 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrowserRouter, NavLink, Routes, Route, Link } from 'react-router-dom';
-import { isSupabaseConfigured, supabase, supabaseConfigError } from './lib/supabaseClient';
-import { fetchLatestYouTubeVideos } from './lib/youtubeApi';
+import {
+  formatSupabaseStorageUploadError,
+  getSupabaseProjectRef,
+  isSupabaseConfigured,
+  supabase,
+  supabaseConfigError,
+} from './lib/supabaseClient';
+import { fetchLatestYouTubeVideos, fetchYoutubeChannelBranding } from './lib/youtubeApi';
+import { CookieConsentBanner } from './components/CookieConsentBanner';
+import { hasAcceptedOptionalStorage } from './lib/consentStorage';
+import { registerServiceWorkerIfAccepted } from './lib/registerServiceWorker';
 
 const CALENDAR_FOCUS_KEY = 'douha_calendar_focus_v1';
 const PHOTOS_STORAGE_KEY = 'douha_site_photos_v1';
@@ -195,7 +204,7 @@ const defaultSiteContent = {
   socialSoundCloudHandle: '@douhaclub',
   socialSoundCloudUrl: 'https://soundcloud.com/',
   socialYouTubeHandle: '@douhaclub',
-  socialYouTubeUrl: 'https://youtube.com/',
+  socialYouTubeUrl: 'https://www.youtube.com/@douhaclub',
   /** URL da faixa visual acima de "Conheca a experiencia Douha" na Home (vazio = fundo padrao) */
   experienceHeroImageUrl: '',
 };
@@ -208,8 +217,6 @@ const faq = [
 
 /** Referencia de tamanho para exportar arquivos (alinha com o layout do site) */
 const IMAGE_SPEC = {
-  heroStrip:
-    'Faixa alta na página: cada foto preenche um card (pode cortar um pouco nas bordas). No admin, marque "foto larga" ao enviar para uma imagem ocupar 2 cards lado a lado. Use arquivos grandes (ex.: 2400 px de largura). Proporção 3:4 ou 2:3 funciona bem.',
   agendaPoster: `Tamanho sugerido para poster na agenda: 1080×1620 px (proporcao 2:3, retrato). Tamanho maximo recomendado: ${POSTER_MAX_LABEL}.`,
   gallery:
     'Tamanho sugerido para galeria: largura minima 1200 px; proporcao livre (imagem inteira). Foto larga: panoramas ou banners largos ocupam 2 colunas no carrossel.',
@@ -622,7 +629,7 @@ async function uploadPosterToSupabaseStorage(file) {
     .storage
     .from(SUPABASE_POSTERS_BUCKET)
     .upload(path, file, { upsert: false, contentType: file.type || `image/${safeExt}` });
-  if (uploadError) throw uploadError;
+  if (uploadError) throw new Error(formatSupabaseStorageUploadError(uploadError));
   const { data } = supabase.storage.from(SUPABASE_POSTERS_BUCKET).getPublicUrl(path);
   if (!data?.publicUrl) throw new Error('Falha ao gerar URL publica do poster.');
   return data.publicUrl;
@@ -638,7 +645,7 @@ async function uploadGalleryImageToSupabaseStorage(file) {
     .storage
     .from(SUPABASE_GALLERY_BUCKET)
     .upload(path, file, { upsert: false, contentType: file.type || `image/${safeExt}` });
-  if (uploadError) throw uploadError;
+  if (uploadError) throw new Error(formatSupabaseStorageUploadError(uploadError));
   const { data } = supabase.storage.from(SUPABASE_GALLERY_BUCKET).getPublicUrl(path);
   if (!data?.publicUrl) throw new Error('Falha ao gerar URL publica da galeria.');
   return data.publicUrl;
@@ -654,7 +661,7 @@ async function uploadRolePhotoToSupabaseStorage(file) {
     .storage
     .from(SUPABASE_ROLE_PHOTOS_BUCKET)
     .upload(path, file, { upsert: false, contentType: file.type || `image/${safeExt}` });
-  if (uploadError) throw uploadError;
+  if (uploadError) throw new Error(formatSupabaseStorageUploadError(uploadError));
   const { data } = supabase.storage.from(SUPABASE_ROLE_PHOTOS_BUCKET).getPublicUrl(path);
   if (!data?.publicUrl) throw new Error('Falha ao gerar URL publica da foto do role.');
   return data.publicUrl;
@@ -693,7 +700,68 @@ async function withTimeout(promise, ms, timeoutMessage) {
   }
 }
 
-function AppShell({ children, isAdminLoggedIn, onAdminLogout, siteContent }) {
+/** Link publico do canal: usa URL salva no site ou o @douhaclub padrao. */
+function resolvePublicYoutubeChannelUrl(siteContent) {
+  const u = String(siteContent?.socialYouTubeUrl || '').trim();
+  if (
+    u.startsWith('http')
+    && u.length > 28
+    && !/^https?:\/\/(www\.)?youtube\.com\/?$/i.test(u)
+  ) {
+    return u;
+  }
+  return youtubeChannelUrl;
+}
+
+function HeaderYouTubeIcon() {
+  return (
+    <svg className="header-youtube-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+      />
+    </svg>
+  );
+}
+
+/** Faixa acima dos cards de sets (Home e /sets): mesma foto do canal e botao YouTube do header. */
+function SetsFeedHeaderRow({ branding, channelHref }) {
+  const avatarUrl = branding?.avatarUrl;
+  const title = branding?.title;
+  return (
+    <div className="sets-feed-header">
+      <div className="sets-feed-channel">
+        {avatarUrl ? (
+          <img
+            className="sets-feed-avatar-img"
+            src={avatarUrl}
+            alt=""
+            width={40}
+            height={40}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <span className="sets-feed-avatar-img sets-feed-avatar-img--placeholder" aria-hidden="true" />
+        )}
+        <strong>{title || 'Douha Club'}</strong>
+      </div>
+      <a
+        className="header-youtube-cta sets-feed-youtube-cta"
+        href={channelHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={title ? `Canal ${title} no YouTube` : 'Canal Douha Club no YouTube'}
+      >
+        <HeaderYouTubeIcon />
+        <span className="header-youtube-label">YouTube</span>
+      </a>
+    </div>
+  );
+}
+
+function AppShell({ children, isAdminLoggedIn, onAdminLogout, siteContent, youtubeChannelBranding }) {
   const [prints, setPrints] = useState([]);
   const [isCursorFine, setIsCursorFine] = useState(true);
   const printIdRef = useRef(0);
@@ -776,6 +844,8 @@ function AppShell({ children, isAdminLoggedIn, onAdminLogout, siteContent }) {
     },
   ];
 
+  const publicYoutubeUrl = resolvePublicYoutubeChannelUrl(siteContent);
+
   const renderSocialIcon = (id) => {
     if (id === 'instagram') {
       return (
@@ -848,11 +918,29 @@ function AppShell({ children, isAdminLoggedIn, onAdminLogout, siteContent }) {
       )}
 
       <header className="header">
-        <div className="container row">
-          <Link to="/" className="logo-wrap" aria-label="Douha Club home">
-            <img src="/brand/logos/v8.svg" className="logo-image" alt="Douha Club" />
+        <div className="container header-inner">
+          <Link to="/" className="header-brand" aria-label="Douha Club home">
+            {youtubeChannelBranding?.avatarUrl ? (
+              <img
+                className="header-channel-avatar"
+                src={youtubeChannelBranding.avatarUrl}
+                alt=""
+                width={44}
+                height={44}
+                loading="lazy"
+                decoding="async"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span className="header-channel-avatar header-channel-avatar--placeholder" aria-hidden="true" />
+            )}
+            <img
+              src="/brand/logos/v8.svg"
+              className="logo-image logo-image--header"
+              alt="Douha Club"
+            />
           </Link>
-          <nav className="nav">
+          <nav className="nav nav--header">
             <NavLink to="/" end className={({ isActive }) => (isActive ? 'is-active' : '')}>HOME</NavLink>
             <NavLink to="/quem-somos" className={({ isActive }) => (isActive ? 'is-active' : '')}>QUEM SOMOS</NavLink>
             <NavLink to="/calendario" className={({ isActive }) => (isActive ? 'is-active' : '')}>CALENDARIO</NavLink>
@@ -862,6 +950,16 @@ function AppShell({ children, isAdminLoggedIn, onAdminLogout, siteContent }) {
             <NavLink to="/editorial" className={({ isActive }) => (isActive ? 'is-active' : '')}>EDITORIAL</NavLink>
             <NavLink to="/contato" className={({ isActive }) => (isActive ? 'is-active' : '')}>CONTATO</NavLink>
           </nav>
+          <a
+            className="header-youtube-cta"
+            href={publicYoutubeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={youtubeChannelBranding?.title ? `Canal ${youtubeChannelBranding.title} no YouTube` : 'Canal Douha Club no YouTube'}
+          >
+            <HeaderYouTubeIcon />
+            <span className="header-youtube-label">YouTube</span>
+          </a>
         </div>
       </header>
       {isAdminLoggedIn && (
@@ -1175,6 +1273,16 @@ function AgendaCalendarSection({
 /** Metade da faixa duplicada em loop (mais lento que a animacao CSS antiga de 48s). */
 const HERO_MARQUEE_HALF_LOOP_SEC = 72;
 
+/** Carrossel: prioriza primeiras imagens; demais lazy para aliviar rede e decode. */
+function heroCarouselImageProps(index) {
+  const eager = index < 6;
+  return {
+    loading: eager ? 'eager' : 'lazy',
+    fetchPriority: index < 2 ? 'high' : 'low',
+    decoding: 'async',
+  };
+}
+
 /** Faixa pos-experiencia: cards em colunas (repetimos URLs pra preencher). */
 const ROLE_STRIP_LANES = 12;
 const ROLE_STRIP_MIN_CARDS = 24;
@@ -1205,20 +1313,32 @@ function getRoleStripCardCount(photoCount) {
   return Math.min(ROLE_STRIP_MAX_CARDS, Math.max(ROLE_STRIP_MIN_CARDS, Math.round(photoCount * 2.8)));
 }
 
-function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calendarFocus, onFocusConsumed, siteContent }) {
+function HomePage({
+  agendaEvents,
+  sitePhotos,
+  rolePhotos,
+  editorialPosts,
+  calendarFocus,
+  onFocusConsumed,
+  siteContent,
+  youtubeChannelBranding,
+  youtubeChannelHref,
+}) {
   const photos = sitePhotos.length ? sitePhotos : gallery;
   const parsedHeroPhotos = useMemo(
     () => photos.map(parsePhotoEntry).filter((item) => item.primary),
     [photos],
   );
   const heroPhotoStrip = useMemo(
-    () => [...parsedHeroPhotos, ...parsedHeroPhotos, ...parsedHeroPhotos, ...parsedHeroPhotos],
+    () => [...parsedHeroPhotos, ...parsedHeroPhotos],
     [parsedHeroPhotos],
   );
   const heroShellRef = useRef(null);
   const draggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, scrollLeft: 0 });
   const heroDragCleanupRef = useRef(null);
+  const heroMarqueeOffscreenRef = useRef(false);
+  const reduceMotionRef = useRef(false);
   const [heroDragging, setHeroDragging] = useState(false);
   const [videoCards, setVideoCards] = useState(() => tracks.slice(0, YOUTUBE_FETCH_COUNT));
   const rolePhotoPlaceholders = useMemo(
@@ -1275,8 +1395,32 @@ function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calend
   };
 
   useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    reduceMotionRef.current = mq.matches;
+    const onMq = () => {
+      reduceMotionRef.current = mq.matches;
+    };
+    mq.addEventListener('change', onMq);
+    return () => mq.removeEventListener('change', onMq);
+  }, []);
+
+  useEffect(() => {
     const el = heroShellRef.current;
-    if (!el) return;
+    if (!el) return undefined;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        heroMarqueeOffscreenRef.current = !entry.isIntersecting || entry.intersectionRatio < 0.04;
+      },
+      { root: null, threshold: [0, 0.04, 0.1] },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [heroPhotoStrip]);
+
+  useEffect(() => {
+    const el = heroShellRef.current;
+    if (!el) return undefined;
 
     let rafId = 0;
     let last = performance.now();
@@ -1291,7 +1435,12 @@ function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calend
     const tick = (now) => {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      if (!draggingRef.current && el.scrollWidth > el.clientWidth) {
+      const paused =
+        draggingRef.current
+        || reduceMotionRef.current
+        || document.visibilityState !== 'visible'
+        || heroMarqueeOffscreenRef.current;
+      if (!paused && el.scrollWidth > el.clientWidth) {
         const half = el.scrollWidth / 2;
         const speed = half / HERO_MARQUEE_HALF_LOOP_SEC;
         el.scrollLeft += speed * dt;
@@ -1390,7 +1539,7 @@ function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calend
       <section className="hero hero-fotos">
         <div
           className="hero-fotos-marquee-outer"
-          aria-label={`Carrossel de fotos do Douha Club. ${IMAGE_SPEC.heroStrip}`}
+          aria-label="Carrossel de fotos do Douha Club"
         >
           <div
             ref={heroShellRef}
@@ -1404,9 +1553,9 @@ function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calend
                     <img
                       src={photo.primary}
                       alt=""
-                      title={IMAGE_SPEC.heroStrip}
                       draggable={false}
                       onDragStart={(ev) => ev.preventDefault()}
+                      {...heroCarouselImageProps(idx)}
                     />
                   </figure>
                 ) : photo.mode === 'double' ? (
@@ -1415,18 +1564,18 @@ function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calend
                       <img
                         src={photo.primary}
                         alt=""
-                        title={IMAGE_SPEC.heroStrip}
                         draggable={false}
                         onDragStart={(ev) => ev.preventDefault()}
+                        {...heroCarouselImageProps(idx)}
                       />
                     </div>
                     <div className="hero-double-slot">
                       <img
                         src={photo.secondary}
                         alt=""
-                        title={IMAGE_SPEC.heroStrip}
                         draggable={false}
                         onDragStart={(ev) => ev.preventDefault()}
+                        {...heroCarouselImageProps(idx)}
                       />
                     </div>
                   </figure>
@@ -1435,9 +1584,9 @@ function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calend
                     <img
                       src={photo.primary}
                       alt=""
-                      title={IMAGE_SPEC.heroStrip}
                       draggable={false}
                       onDragStart={(ev) => ev.preventDefault()}
+                      {...heroCarouselImageProps(idx)}
                     />
                   </figure>
                 )
@@ -1515,21 +1664,18 @@ function HomePage({ agendaEvents, sitePhotos, rolePhotos, editorialPosts, calend
 
       <section className="section">
         <div className="container music-block">
-          <div className="sets-feed-header">
-            <div className="sets-feed-channel">
-              <span className="sets-feed-avatar" aria-hidden="true">⬤</span>
-              <strong>Douha Club</strong>
-            </div>
-            <a className="sets-channel-link" href={youtubeChannelUrl} target="_blank" rel="noreferrer">
-              <span className="sets-channel-icon" aria-hidden="true">▶</span>
-              <span>YouTube</span>
-            </a>
-          </div>
+          <SetsFeedHeaderRow branding={youtubeChannelBranding} channelHref={youtubeChannelHref} />
           <div className="sets-video-grid">
-            {videoCards.slice(0, YOUTUBE_FEED_CARDS).map((track) => (
+            {videoCards.slice(0, YOUTUBE_FEED_CARDS).map((track, thumbIdx) => (
               <a key={track.videoId} className="sets-video-card" href={track.videoUrl} target="_blank" rel="noreferrer">
                 <div className="sets-video-thumb">
-                  <img src={track.thumb} alt={`Thumb do set ${track.title}`} />
+                  <img
+                    src={track.thumb}
+                    alt={`Thumb do set ${track.title}`}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority={thumbIdx < 2 ? 'high' : 'low'}
+                  />
                   <span className="sets-play-badge" aria-hidden="true">▶</span>
                 </div>
                 <p>{track.title}</p>
@@ -1715,7 +1861,7 @@ function FotosPage({ sitePhotos, setSitePhotos, isAdminLoggedIn }) {
   );
 }
 
-function SetsPage() {
+function SetsPage({ youtubeChannelBranding, youtubeChannelHref }) {
   const [videoCards, setVideoCards] = useState(() => tracks.slice(0, YOUTUBE_FETCH_COUNT));
 
   useEffect(() => {
@@ -1758,21 +1904,18 @@ function SetsPage() {
       </section>
       <section className="section">
         <div className="container music-block">
-          <div className="sets-feed-header">
-            <div className="sets-feed-channel">
-              <span className="sets-feed-avatar" aria-hidden="true">⬤</span>
-              <strong>Douha Club</strong>
-            </div>
-            <a className="sets-channel-link" href={youtubeChannelUrl} target="_blank" rel="noreferrer">
-              <span className="sets-channel-icon" aria-hidden="true">▶</span>
-              <span>YouTube</span>
-            </a>
-          </div>
+          <SetsFeedHeaderRow branding={youtubeChannelBranding} channelHref={youtubeChannelHref} />
           <div className="sets-video-grid">
-            {videoCards.slice(0, YOUTUBE_FEED_CARDS).map((track) => (
+            {videoCards.slice(0, YOUTUBE_FEED_CARDS).map((track, thumbIdx) => (
               <a key={track.videoId} className="sets-video-card" href={track.videoUrl} target="_blank" rel="noreferrer">
                 <div className="sets-video-thumb">
-                  <img src={track.thumb} alt={`Thumb do set ${track.title}`} />
+                  <img
+                    src={track.thumb}
+                    alt={`Thumb do set ${track.title}`}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority={thumbIdx < 2 ? 'high' : 'low'}
+                  />
                   <span className="sets-play-badge" aria-hidden="true">▶</span>
                 </div>
                 <p>{track.title}</p>
@@ -1926,6 +2069,7 @@ function AdminPage({
   onEventSavedFocus,
   agendaSyncError,
   supabaseSetupError,
+  supabaseConnectionHint,
 }) {
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
@@ -2603,6 +2747,7 @@ function AdminPage({
 
           {saveHint && <p className="admin-save-hint" role="status">{saveHint}</p>}
           {supabaseSetupError && <p className="admin-error">{supabaseSetupError}</p>}
+          {supabaseConnectionHint ? <p className="admin-warning">{supabaseConnectionHint}</p> : null}
           {agendaSyncError && <p className="admin-error">{agendaSyncError}</p>}
 
           <article id="admin-overview" className="admin-panel-card admin-panel-card-highlight">
@@ -3070,6 +3215,11 @@ function AdminPage({
 }
 
 export default function App() {
+  const supabaseProjectRef = isSupabaseConfigured ? getSupabaseProjectRef() : '';
+  const supabaseConnectionHint = supabaseProjectRef
+    ? `Esta versao publicada usa o projeto Supabase "${supabaseProjectRef}". No Amplify, variaveis VITE_* so entram no site apos um novo build/deploy. No painel do Supabase, confira se e este mesmo projeto (Settings > API) e se Storage tem os buckets e o SQL de setup foi aplicado.`
+    : '';
+
   const [agendaEvents, setAgendaEvents] = useState(() => [...defaultAgenda]);
   const [sitePhotos, setSitePhotos] = useState(() => loadStoredPhotos());
   const [rolePhotos, setRolePhotos] = useState(() => loadStoredRolePhotos());
@@ -3078,6 +3228,27 @@ export default function App() {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => localStorage.getItem(ADMIN_AUTH_KEY) === 'ok');
   const [calendarFocus, setCalendarFocus] = useState(null);
   const [agendaSyncError, setAgendaSyncError] = useState('');
+  const [youtubeChannelBranding, setYoutubeChannelBranding] = useState(null);
+
+  const youtubeChannelHref = useMemo(
+    () => resolvePublicYoutubeChannelUrl(siteContent),
+    [siteContent],
+  );
+
+  useEffect(() => {
+    if (!YOUTUBE_API_KEY || !YOUTUBE_CHANNEL_ID) return undefined;
+    let active = true;
+    (async () => {
+      const data = await fetchYoutubeChannelBranding({
+        apiKey: YOUTUBE_API_KEY,
+        channelIdOrHandle: YOUTUBE_CHANNEL_ID,
+      });
+      if (active && data) setYoutubeChannelBranding(data);
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -3234,6 +3405,12 @@ export default function App() {
     else safeRemoveLocalStorage(ADMIN_AUTH_KEY);
   }, [isAdminLoggedIn]);
 
+  useEffect(() => {
+    if (hasAcceptedOptionalStorage()) {
+      registerServiceWorkerIfAccepted();
+    }
+  }, []);
+
   const onResetAgenda = async () => {
     try {
       if (isSupabaseConfigured && supabase) {
@@ -3266,7 +3443,12 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <AppShell isAdminLoggedIn={isAdminLoggedIn} onAdminLogout={onAdminLogout} siteContent={siteContent}>
+      <AppShell
+        isAdminLoggedIn={isAdminLoggedIn}
+        onAdminLogout={onAdminLogout}
+        siteContent={siteContent}
+        youtubeChannelBranding={youtubeChannelBranding}
+      >
         <Routes>
           <Route
             path="/"
@@ -3279,6 +3461,8 @@ export default function App() {
                 calendarFocus={calendarFocus}
                 onFocusConsumed={() => setCalendarFocus(null)}
                 siteContent={siteContent}
+                youtubeChannelBranding={youtubeChannelBranding}
+                youtubeChannelHref={youtubeChannelHref}
               />
             )}
           />
@@ -3293,7 +3477,15 @@ export default function App() {
           />
           <Route path="/tickets" element={<TicketsPage />} />
           <Route path="/fotos" element={<FotosPage sitePhotos={sitePhotos} setSitePhotos={setSitePhotos} isAdminLoggedIn={isAdminLoggedIn} />} />
-          <Route path="/sets" element={<SetsPage />} />
+          <Route
+            path="/sets"
+            element={(
+              <SetsPage
+                youtubeChannelBranding={youtubeChannelBranding}
+                youtubeChannelHref={youtubeChannelHref}
+              />
+            )}
+          />
           <Route path="/editorial" element={<EditorialPage editorialPosts={editorialPosts} />} />
           <Route path="/contato" element={<ContactPage siteContent={siteContent} />} />
           <Route
@@ -3320,11 +3512,13 @@ export default function App() {
                     ? `Revise o .env do Douha: ${supabaseConfigError}`
                     : ''
                 }
+                supabaseConnectionHint={supabaseConnectionHint}
               />
             )}
           />
         </Routes>
       </AppShell>
+      <CookieConsentBanner />
     </BrowserRouter>
   );
 }
