@@ -102,26 +102,29 @@ a {
   min-width: 0;
 }
 
-.header-channel-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  object-fit: cover;
+.header-brand-block {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px 14px;
   flex-shrink: 0;
-  border: 1px solid rgba(45, 41, 22, 0.12);
-  background: #fff;
+  min-width: 0;
 }
 
-.header-channel-avatar--placeholder {
-  display: inline-block;
-  background: linear-gradient(135deg, #e8e4d8, #d4cfc0);
+.header-wordmark {
+  font-family: inherit;
+  font-size: clamp(1.05rem, 2.8vw, 1.35rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2d2916;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
-.logo-image--header {
-  max-height: 40px;
+.header-logo-img {
+  height: clamp(22px, 3.2vw, 32px);
   width: auto;
-  height: auto;
-  max-width: min(200px, 42vw);
+  display: block;
 }
 
 .nav--header {
@@ -129,7 +132,8 @@ a {
   justify-content: center;
 }
 
-.header-youtube-cta {
+/* Botao vermelho YouTube: so bloco de sets (.sets-feed-header), nao o header do site */
+.sets-youtube-cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -147,22 +151,22 @@ a {
   margin-left: auto;
 }
 
-.header-youtube-cta:hover {
+.sets-youtube-cta:hover {
   background: #e62117;
   color: #fff;
 }
 
-.header-youtube-cta:focus-visible {
+.sets-youtube-cta:focus-visible {
   outline: 2px solid #2d2916;
   outline-offset: 2px;
 }
 
-.header-youtube-icon {
+.sets-youtube-icon {
   flex-shrink: 0;
   display: block;
 }
 
-.header-youtube-label {
+.sets-youtube-label {
   line-height: 1;
 }
 
@@ -326,14 +330,22 @@ a {
 
 .experience-highlight-copy {
   background:
-    linear-gradient(90deg, rgba(45, 41, 22, 0.96) 0%, rgba(45, 41, 22, 0.9) 55%, rgba(45, 41, 22, 0.96) 100%),
-    radial-gradient(120% 180% at 20% 50%, rgba(197, 58, 52, 0.2) 0%, rgba(197, 58, 52, 0.02) 55%, transparent 100%);
-  color: #fff;
+    linear-gradient(90deg, rgba(225, 187, 42, 0.98) 0%, rgba(225, 187, 42, 0.93) 55%, rgba(225, 187, 42, 0.98) 100%),
+    radial-gradient(120% 180% at 20% 50%, rgba(255, 247, 204, 0.35) 0%, rgba(255, 247, 204, 0.06) 55%, transparent 100%);
+  color: #2d2916;
   padding: 24px 0 72px;
 }
 
+/* Titulo + texto colados no canto esquerdo (container global e centrado por padrao). */
+.experience-highlight-copy .container {
+  margin-left: 0;
+  margin-right: auto;
+  padding-left: clamp(10px, 2.2vw, 18px);
+  padding-right: 24px;
+}
+
 .experience-highlight-copy h2 {
-  color: #fff;
+  color: #2d2916;
   margin: 0 0 8px;
   font-size: clamp(1.3rem, 4.2vw, 2.8rem);
   letter-spacing: 0.04em;
@@ -342,7 +354,7 @@ a {
 }
 
 .experience-highlight-copy h2 span {
-  background: rgba(12, 11, 7, 0.4);
+  background: rgba(255, 249, 225, 0.62);
   border-radius: 4px;
   padding: 1px 6px;
 }
@@ -358,7 +370,7 @@ a {
 }
 
 .experience-highlight-copy p strong {
-  background: rgba(12, 11, 7, 0.38);
+  background: rgba(255, 249, 225, 0.62);
   border-radius: 4px;
   padding: 1px 4px;
 }
@@ -394,37 +406,79 @@ a {
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  background: linear-gradient(180deg, rgba(247, 245, 240, 0.94) 0%, rgba(247, 245, 240, 0.86) 100%);
+  background-color: #ede6d8;
   position: relative;
   overflow: hidden;
   padding: 0;
 }
 
+/* Ilustracoes Douha (coqueiros, personagens, etc.) em camadas atras das fotos */
+.people-role-photos-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #f2ebe0;
+  background-image:
+    linear-gradient(
+      165deg,
+      rgba(255, 252, 246, 0.94) 0%,
+      rgba(245, 236, 218, 0.72) 42%,
+      rgba(232, 222, 200, 0.88) 100%
+    ),
+    url('/brand/elements/01.png'),
+    url('/brand/elements/05.png'),
+    url('/brand/elements/03.png'),
+    url('/brand/elements/06.png'),
+    url('/brand/elements/02.png');
+  background-position:
+    0 0,
+    left -5% bottom -12%,
+    right -6% top -2%,
+    12% 55%,
+    78% 68%,
+    52% 8%;
+  background-size:
+    auto,
+    min(52vw, 500px) auto,
+    min(44vw, 420px) auto,
+    min(30vw, 260px) auto,
+    min(26vw, 240px) auto,
+    min(22vw, 200px) auto;
+  background-repeat: no-repeat;
+}
+
 .people-role-photos-diagonal {
   position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   min-height: inherit;
 }
 
+/* Mosaico: 7 trilhos (0..6), passo 84%/6 ~14%; 3:4. Delays no JS evitam periodo 4*9.5s = 38s = duracao antiga (sobreposicao). */
 .role-photo-card {
-  --lane-max: 11;
-  --lane-unit: calc(96% / var(--lane-max));
+  --lane-max: 6;
+  --lane-unit: calc(84% / var(--lane-max));
   position: absolute;
   top: 0;
-  left: calc(2% + (var(--role-lane, 0) * var(--lane-unit)));
+  left: calc(8% + (var(--role-lane, 0) * var(--lane-unit)));
   margin: 0;
-  width: min(
-    clamp(76px, 6.4vw, 104px),
-    calc((100vw - 32px) / 12 - 5px)
-  );
-  aspect-ratio: 3 / 4.6;
-  border: 1px solid rgba(45, 41, 22, 0.25);
-  background: linear-gradient(180deg, rgba(45, 41, 22, 0.18) 0%, rgba(45, 41, 22, 0.08) 100%);
-  box-shadow: 0 8px 24px rgba(45, 41, 22, 0.15);
+  width: min(clamp(120px, 12.5vw, 198px), calc((100vw - 40px) / 7.2));
+  max-width: calc(14vw - 26px);
+  aspect-ratio: 3 / 4;
+  border-radius: 11px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 252, 248, 0.98);
+  background: #14110e;
+  box-shadow:
+    0 0 0 1px rgba(45, 41, 22, 0.12),
+    0 10px 28px rgba(25, 18, 10, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
   z-index: var(--role-lane, 0);
   transform: translate(calc(-50% + 0px), calc(-100% - 52vh));
-  animation: rolePhotosDiagonal var(--role-duration, 36s) linear infinite;
+  animation: rolePhotosDiagonal var(--role-duration, 40s) linear infinite;
   animation-delay: var(--role-delay, 0s);
   display: grid;
   place-items: center;
@@ -435,7 +489,7 @@ a {
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(45, 41, 22, 0.6);
+  color: rgba(245, 240, 230, 0.55);
 }
 
 .role-photo-card img {
@@ -445,28 +499,10 @@ a {
   display: block;
 }
 
-.role-photo-card.is-tall {
-  aspect-ratio: 2.8 / 5.2;
-  width: min(
-    clamp(78px, 6.6vw, 108px),
-    calc((100vw - 32px) / 12 - 5px)
-  );
-}
-
-.role-photo-card.is-medium {
-  width: min(
-    clamp(80px, 6.75vw, 110px),
-    calc((100vw - 32px) / 12 - 5px)
-  );
-  aspect-ratio: 3 / 4.2;
-}
-
-.role-photo-card.is-thin {
-  width: min(
-    clamp(72px, 6.2vw, 100px),
-    calc((100vw - 32px) / 12 - 5px)
-  );
-  aspect-ratio: 2.3 / 5.1;
+@media (prefers-reduced-motion: reduce) {
+  .role-photo-card {
+    animation-duration: 160s;
+  }
 }
 
 .agenda-calendar-section {
@@ -1200,23 +1236,29 @@ button:disabled,
 
 .sets-banner {
   background:
-    linear-gradient(90deg, rgba(45, 41, 22, 0.96) 0%, rgba(45, 41, 22, 0.9) 55%, rgba(45, 41, 22, 0.96) 100%),
-    radial-gradient(120% 180% at 20% 50%, rgba(197, 58, 52, 0.22) 0%, rgba(197, 58, 52, 0.03) 55%, transparent 100%);
-  color: #f9f6ee;
+    linear-gradient(90deg, rgba(225, 187, 42, 0.98) 0%, rgba(225, 187, 42, 0.93) 55%, rgba(225, 187, 42, 0.98) 100%),
+    radial-gradient(120% 180% at 20% 50%, rgba(255, 247, 204, 0.35) 0%, rgba(255, 247, 204, 0.06) 55%, transparent 100%);
+  color: #2d2916;
   padding: 0;
   border-top: 1px solid rgba(45, 41, 22, 0.18);
   border-bottom: 1px solid rgba(45, 41, 22, 0.2);
 }
 
 .sets-banner .container {
-  min-height: 360px;
+  min-height: 0;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  margin-left: 0;
+  margin-right: auto;
+  padding-left: clamp(10px, 2.2vw, 18px);
+  padding-top: 44px;
+  padding-bottom: 44px;
 }
 
 .sets-banner-copy {
   width: clamp(290px, 40vw, 560px);
-  margin-left: clamp(8px, 4vw, 56px);
+  margin-left: 0;
   font-weight: 800;
   font-size: 0.95rem;
   letter-spacing: 0.035em;
@@ -1226,7 +1268,7 @@ button:disabled,
 
 .sets-banner-copy strong {
   font-weight: 900;
-  background: rgba(12, 11, 7, 0.46);
+  background: rgba(255, 249, 225, 0.62);
   border-radius: 4px;
   padding: 1px 4px;
 }
@@ -1246,10 +1288,13 @@ button:disabled,
   margin-bottom: 10px;
 }
 
+/* Mesma logica do cabecalho de canal no YouTube: avatar 40px + nome na mesma linha, centro vertical. */
 .sets-feed-channel {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
+  column-gap: 12px;
+  min-width: 0;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   font-size: 0.92rem;
@@ -1263,11 +1308,23 @@ button:disabled,
   flex-shrink: 0;
   border: 1px solid rgba(45, 41, 22, 0.12);
   background: #fff;
+  box-sizing: border-box;
+  align-self: center;
 }
 
 .sets-feed-avatar-img--placeholder {
-  display: inline-block;
+  display: block;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  align-self: center;
   background: linear-gradient(135deg, #e8e4d8, #d4cfc0);
+}
+
+.sets-feed-channel strong {
+  margin: 0;
+  font-weight: 800;
+  line-height: 1.2;
+  align-self: center;
 }
 
 .sets-feed-youtube-cta {
@@ -1842,6 +1899,32 @@ button:disabled,
 .admin-form textarea {
   min-height: 94px;
   resize: vertical;
+}
+
+.admin-form-field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-form-field > label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: rgba(45, 41, 22, 0.88);
+}
+
+.admin-form-pair-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  align-items: start;
+}
+
+@media (max-width: 700px) {
+  .admin-form-pair-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .admin-subheading {

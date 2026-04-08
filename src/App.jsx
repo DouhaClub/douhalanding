@@ -2,20 +2,46 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrowserRouter, NavLink, Routes, Route, Link } from 'react-router-dom';
 import {
   formatSupabaseStorageUploadError,
-  getSupabaseProjectRef,
   isSupabaseConfigured,
   supabase,
   supabaseConfigError,
 } from './lib/supabaseClient';
-import { fetchLatestYouTubeVideos, fetchYoutubeChannelBranding } from './lib/youtubeApi';
+import {
+  fetchLatestYouTubeVideosResilient,
+  fetchYoutubeChannelBrandingResilient,
+  isLikelyYoutubeChannelId,
+  normalizeYoutubeApiKey,
+  normalizeYoutubeChannelEnv,
+  resolveYoutubeChannelWebUrl,
+} from './lib/youtubeApi';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { hasAcceptedOptionalStorage } from './lib/consentStorage';
 import { registerServiceWorkerIfAccepted } from './lib/registerServiceWorker';
 
 const CALENDAR_FOCUS_KEY = 'douha_calendar_focus_v1';
 const PHOTOS_STORAGE_KEY = 'douha_site_photos_v1';
-const ROLE_PHOTOS_STORAGE_KEY = 'douha_role_photos_v1';
+const ROLE_PHOTOS_STORAGE_KEY = 'douha_role_photos_v2';
+const ROLE_PHOTOS_LEGACY_KEY = 'douha_role_photos_v1';
 const SITE_CONTENT_STORAGE_KEY = 'douha_site_content_v1';
+
+/** Fotos do role: so URL; no site todas em celula 3:4 (uploads 3:4 ou 4:3 com object-fit cover). */
+function normalizeRolePhotoEntry(raw) {
+  if (raw == null) return null;
+  if (typeof raw === 'string') {
+    const url = raw.trim();
+    return url ? { url } : null;
+  }
+  if (typeof raw === 'object') {
+    const url = String(raw.url || '').trim();
+    return url ? { url } : null;
+  }
+  return null;
+}
+
+function rolePhotoEntryUrl(entry) {
+  const n = normalizeRolePhotoEntry(entry);
+  return n ? n.url : '';
+}
 const ADMIN_AUTH_KEY = 'douha_admin_auth_v1';
 const ADMIN_USERNAME = 'adm';
 const ADMIN_PASSWORD = 'senhadouha';
@@ -104,9 +130,13 @@ const defaultEditorialPosts = editorial.map((item, idx) => ({
   position: idx,
 }));
 
-const youtubeChannelUrl = 'https://www.youtube.com/@douhaclub';
-const YOUTUBE_API_KEY = String(import.meta.env.VITE_YOUTUBE_API_KEY || '').trim();
-const YOUTUBE_CHANNEL_ID = String(import.meta.env.VITE_YOUTUBE_CHANNEL_ID || '').trim();
+/** Canal oficial no YouTube (sem @ publico — so /channel/UC...). */
+const youtubeChannelUrl = 'https://www.youtube.com/channel/UCOzUfp-FC2acGvWiCijckbA';
+const YOUTUBE_API_KEY = normalizeYoutubeApiKey(import.meta.env.VITE_YOUTUBE_API_KEY);
+const YOUTUBE_CHANNEL_ID = normalizeYoutubeChannelEnv(import.meta.env.VITE_YOUTUBE_CHANNEL_ID);
+/** Videos: API + canal, ou so ID UC... (RSS no dev via proxy Vite). */
+const CAN_LOAD_YOUTUBE_FEED = Boolean(YOUTUBE_CHANNEL_ID)
+  && (Boolean(YOUTUBE_API_KEY) || isLikelyYoutubeChannelId(YOUTUBE_CHANNEL_ID));
 const YOUTUBE_FEED_CARDS = 4;
 const YOUTUBE_TOPICS_ROWS = 6;
 /** Quantidade pedida na API (grade + lista de titulos); max. 50 por requisicao. */
@@ -157,6 +187,28 @@ const tracks = [
   },
 ];
 
+/** Vindos do canal primeiro; `tracks` so completa a lista se faltar item (sem chamadas extras a API). */
+function mergeYoutubeFeedWithPlaceholders(live, placeholders, maxCount) {
+  const cap = Math.min(50, Math.max(1, Number(maxCount) || 12));
+  const seen = new Set();
+  const out = [];
+  const add = (item) => {
+    const id = item?.videoId;
+    if (!id || seen.has(id)) return;
+    seen.add(id);
+    out.push(item);
+  };
+  for (const item of live || []) {
+    add(item);
+    if (out.length >= cap) return out;
+  }
+  for (const item of placeholders || []) {
+    add(item);
+    if (out.length >= cap) break;
+  }
+  return out;
+}
+
 const gallery = ['/brand/elements/01.png', '/brand/elements/02.png', '/brand/elements/03.png', '/brand/elements/05.png'];
 const MONTH_LABELS = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
 const MAX_EVENTS_PER_MONTH = 4;
@@ -179,6 +231,8 @@ const SUPABASE_GALLERY_BUCKET = SUPABASE_POSTERS_BUCKET;
 const SUPABASE_EDITORIAL_TABLE = 'douha_editorial_posts';
 const SUPABASE_ROLE_PHOTOS_TABLE = 'douha_role_photos';
 const SUPABASE_ROLE_PHOTOS_BUCKET = 'douha-role-photos';
+const SUPABASE_SITE_CONTENT_TABLE = 'douha_site_content';
+const SUPABASE_SITE_CONTENT_ROW_ID = 'default';
 const DOUBLE_PHOTO_PREFIX = 'double::';
 /** Uma imagem so, largura de 2 cards no carrossel (marcado no upload no admin) */
 const WIDE_PHOTO_PREFIX = 'wide::';
@@ -203,8 +257,8 @@ const defaultSiteContent = {
   socialTikTokUrl: 'https://www.tiktok.com/',
   socialSoundCloudHandle: '@douhaclub',
   socialSoundCloudUrl: 'https://soundcloud.com/',
-  socialYouTubeHandle: '@douhaclub',
-  socialYouTubeUrl: 'https://www.youtube.com/@douhaclub',
+  socialYouTubeHandle: 'Douha',
+  socialYouTubeUrl: 'https://www.youtube.com/channel/UCOzUfp-FC2acGvWiCijckbA',
   /** URL da faixa visual acima de "Conheca a experiencia Douha" na Home (vazio = fundo padrao) */
   experienceHeroImageUrl: '',
 };
@@ -290,13 +344,17 @@ function loadStoredPhotos() {
 
 function loadStoredRolePhotos() {
   try {
-    const raw = localStorage.getItem(ROLE_PHOTOS_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map((item) => String(item || '').trim())
-      .filter(Boolean);
+    const parseList = (raw) => {
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return null;
+      const list = parsed.map(normalizeRolePhotoEntry).filter(Boolean);
+      return list.length ? list : null;
+    };
+    const v2 = parseList(localStorage.getItem(ROLE_PHOTOS_STORAGE_KEY));
+    if (v2) return v2;
+    const legacy = parseList(localStorage.getItem(ROLE_PHOTOS_LEGACY_KEY));
+    return legacy || [];
   } catch {
     return [];
   }
@@ -351,6 +409,13 @@ function isMissingRolePhotosTableError(message) {
   const text = String(message || '').toLowerCase();
   return text.includes("could not find the table 'public.douha_role_photos'")
     || text.includes('douha_role_photos')
+    || text.includes('schema cache');
+}
+
+function isMissingSiteContentTableError(message) {
+  const text = String(message || '').toLowerCase();
+  return text.includes("could not find the table 'public.douha_site_content'")
+    || text.includes('douha_site_content')
     || text.includes('schema cache');
 }
 
@@ -700,7 +765,7 @@ async function withTimeout(promise, ms, timeoutMessage) {
   }
 }
 
-/** Link publico do canal: usa URL salva no site ou o @douhaclub padrao. */
+/** Link publico do canal: URL no conteudo do site ou canal padrao acima. */
 function resolvePublicYoutubeChannelUrl(siteContent) {
   const u = String(siteContent?.socialYouTubeUrl || '').trim();
   if (
@@ -713,9 +778,10 @@ function resolvePublicYoutubeChannelUrl(siteContent) {
   return youtubeChannelUrl;
 }
 
-function HeaderYouTubeIcon() {
+/** SVG do logo YouTube — so na faixa de sets (Home /sets), nao no header global. */
+function SetsYoutubeIcon() {
   return (
-    <svg className="header-youtube-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+    <svg className="sets-youtube-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
       <path
         fill="currentColor"
         d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
@@ -724,14 +790,19 @@ function HeaderYouTubeIcon() {
   );
 }
 
-/** Faixa acima dos cards de sets (Home e /sets): mesma foto do canal e botao YouTube do header. */
+/** Bloco YouTube (API): avatar + nome do canal + CTA; independente do header do site. */
 function SetsFeedHeaderRow({ branding, channelHref }) {
   const avatarUrl = branding?.avatarUrl;
   const title = branding?.title;
+  const [avatarBroken, setAvatarBroken] = useState(false);
+  useEffect(() => {
+    setAvatarBroken(false);
+  }, [avatarUrl]);
+  const showAvatarImg = Boolean(avatarUrl) && !avatarBroken;
   return (
     <div className="sets-feed-header">
       <div className="sets-feed-channel">
-        {avatarUrl ? (
+        {showAvatarImg ? (
           <img
             className="sets-feed-avatar-img"
             src={avatarUrl}
@@ -741,6 +812,7 @@ function SetsFeedHeaderRow({ branding, channelHref }) {
             loading="lazy"
             decoding="async"
             referrerPolicy="no-referrer"
+            onError={() => setAvatarBroken(true)}
           />
         ) : (
           <span className="sets-feed-avatar-img sets-feed-avatar-img--placeholder" aria-hidden="true" />
@@ -748,20 +820,25 @@ function SetsFeedHeaderRow({ branding, channelHref }) {
         <strong>{title || 'Douha Club'}</strong>
       </div>
       <a
-        className="header-youtube-cta sets-feed-youtube-cta"
+        className="sets-youtube-cta sets-feed-youtube-cta"
         href={channelHref}
         target="_blank"
         rel="noopener noreferrer"
         title={title ? `Canal ${title} no YouTube` : 'Canal Douha Club no YouTube'}
       >
-        <HeaderYouTubeIcon />
-        <span className="header-youtube-label">YouTube</span>
+        <SetsYoutubeIcon />
+        <span className="sets-youtube-label">YouTube</span>
       </a>
     </div>
   );
 }
 
-function AppShell({ children, isAdminLoggedIn, onAdminLogout, siteContent, youtubeChannelBranding }) {
+function AppShell({
+  children,
+  isAdminLoggedIn,
+  onAdminLogout,
+  siteContent,
+}) {
   const [prints, setPrints] = useState([]);
   const [isCursorFine, setIsCursorFine] = useState(true);
   const printIdRef = useRef(0);
@@ -844,8 +921,6 @@ function AppShell({ children, isAdminLoggedIn, onAdminLogout, siteContent, youtu
     },
   ];
 
-  const publicYoutubeUrl = resolvePublicYoutubeChannelUrl(siteContent);
-
   const renderSocialIcon = (id) => {
     if (id === 'instagram') {
       return (
@@ -919,27 +994,11 @@ function AppShell({ children, isAdminLoggedIn, onAdminLogout, siteContent, youtu
 
       <header className="header">
         <div className="container header-inner">
-          <Link to="/" className="header-brand" aria-label="Douha Club home">
-            {youtubeChannelBranding?.avatarUrl ? (
-              <img
-                className="header-channel-avatar"
-                src={youtubeChannelBranding.avatarUrl}
-                alt=""
-                width={44}
-                height={44}
-                loading="lazy"
-                decoding="async"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <span className="header-channel-avatar header-channel-avatar--placeholder" aria-hidden="true" />
-            )}
-            <img
-              src="/brand/logos/v8.svg"
-              className="logo-image logo-image--header"
-              alt="Douha Club"
-            />
-          </Link>
+          <div className="header-brand-block">
+            <Link to="/" className="header-brand" aria-label="Douha Club home">
+              <img className="header-logo-img" src="/brand/logos/header-v9.svg" alt="Douha Club" />
+            </Link>
+          </div>
           <nav className="nav nav--header">
             <NavLink to="/" end className={({ isActive }) => (isActive ? 'is-active' : '')}>HOME</NavLink>
             <NavLink to="/quem-somos" className={({ isActive }) => (isActive ? 'is-active' : '')}>QUEM SOMOS</NavLink>
@@ -950,16 +1009,6 @@ function AppShell({ children, isAdminLoggedIn, onAdminLogout, siteContent, youtu
             <NavLink to="/editorial" className={({ isActive }) => (isActive ? 'is-active' : '')}>EDITORIAL</NavLink>
             <NavLink to="/contato" className={({ isActive }) => (isActive ? 'is-active' : '')}>CONTATO</NavLink>
           </nav>
-          <a
-            className="header-youtube-cta"
-            href={publicYoutubeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={youtubeChannelBranding?.title ? `Canal ${youtubeChannelBranding.title} no YouTube` : 'Canal Douha Club no YouTube'}
-          >
-            <HeaderYouTubeIcon />
-            <span className="header-youtube-label">YouTube</span>
-          </a>
         </div>
       </header>
       {isAdminLoggedIn && (
@@ -1283,15 +1332,38 @@ function heroCarouselImageProps(index) {
   };
 }
 
-/** Faixa pos-experiencia: cards em colunas (repetimos URLs pra preencher). */
-const ROLE_STRIP_LANES = 12;
-const ROLE_STRIP_MIN_CARDS = 24;
-const ROLE_STRIP_MAX_CARDS = 100;
+/** Faixa pos-experiencia: mosaico denso em "trilhos"; repetimos entradas pra preencher o loop. */
+const ROLE_STRIP_LANES = 7;
+const ROLE_STRIP_MIN_CARDS = 21;
+const ROLE_STRIP_MAX_CARDS = 120;
 
-function shuffleRolePhotosDeterministic(urls) {
-  const arr = [...urls];
+function getRoleLaneDurationSec(lane) {
+  return 41 + (lane % 4) * 2.5;
+}
+
+/**
+ * Distribui os cards de forma uniforme dentro de cada trilho.
+ * Evita colisao por modulo de delay (quando o loop volta no mesmo ponto).
+ */
+function buildRoleCardStyle(lane, slot, cardsInLane, globalIdx) {
+  const durationSec = getRoleLaneDurationSec(lane);
+  const count = Math.max(1, cardsInLane);
+  const gapSec = durationSec / count;
+  const laneOffset = (lane * 0.37) % durationSec;
+  const idxPhase = ((globalIdx * 0.173) % 1.9);
+  return {
+    '--role-lane': `${lane}`,
+    '--role-delay': `${-(laneOffset + (slot * gapSec) + idxPhase)}s`,
+    '--role-duration': `${durationSec}s`,
+    '--role-drift': '0px',
+    '--role-jitter': '0px',
+  };
+}
+
+function shuffleRolePhotoEntriesDeterministic(entries) {
+  const arr = entries.map((e) => ({ ...e }));
   let seed = 2166136261;
-  const key = arr.join('|');
+  const key = arr.map((e) => e.url).join('|');
   for (let i = 0; i < key.length; i += 1) {
     seed ^= key.charCodeAt(i);
     seed = Math.imul(seed, 16777619);
@@ -1310,7 +1382,7 @@ function shuffleRolePhotosDeterministic(urls) {
 
 function getRoleStripCardCount(photoCount) {
   if (!photoCount) return ROLE_STRIP_MIN_CARDS;
-  return Math.min(ROLE_STRIP_MAX_CARDS, Math.max(ROLE_STRIP_MIN_CARDS, Math.round(photoCount * 2.8)));
+  return Math.min(ROLE_STRIP_MAX_CARDS, Math.max(ROLE_STRIP_MIN_CARDS, Math.round(photoCount * 2.2)));
 }
 
 function HomePage({
@@ -1329,10 +1401,12 @@ function HomePage({
     () => photos.map(parsePhotoEntry).filter((item) => item.primary),
     [photos],
   );
-  const heroPhotoStrip = useMemo(
-    () => [...parsedHeroPhotos, ...parsedHeroPhotos],
-    [parsedHeroPhotos],
-  );
+  const heroPhotoStrip = useMemo(() => {
+    const base = parsedHeroPhotos;
+    if (!base.length) return [];
+    /* Pelo menos 4x a lista: em monitores largos 2x ainda deixa scrollWidth <= viewport e o carrossel nao anda. */
+    return [...base, ...base, ...base, ...base];
+  }, [parsedHeroPhotos]);
   const heroShellRef = useRef(null);
   const draggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, scrollLeft: 0 });
@@ -1340,23 +1414,18 @@ function HomePage({
   const heroMarqueeOffscreenRef = useRef(false);
   const reduceMotionRef = useRef(false);
   const [heroDragging, setHeroDragging] = useState(false);
-  const [videoCards, setVideoCards] = useState(() => tracks.slice(0, YOUTUBE_FETCH_COUNT));
+  const [videoCards, setVideoCards] = useState([]);
   const rolePhotoPlaceholders = useMemo(
     () => {
       const lanes = ROLE_STRIP_LANES;
       const total = ROLE_STRIP_MIN_CARDS;
       return Array.from({ length: total }, (_, idx) => {
         const lane = idx % lanes;
-        const wave = Math.floor(idx / lanes);
+        const slot = Math.floor(idx / lanes);
+        const cardsInLane = Math.max(1, Math.ceil((total - lane) / lanes));
         return {
           id: `role-placeholder-${idx}`,
-          shape: lane % 3 === 0 ? 'is-tall' : lane % 3 === 1 ? 'is-medium' : 'is-thin',
-          style: {
-            '--role-lane': `${lane}`,
-            '--role-delay': `${-(wave * 11 + lane * 0.55)}s`,
-            '--role-duration': `${36 + (lane % 3) * 3}s`,
-            '--role-drift': `${4 + lane * 0.35}px`,
-          },
+          style: buildRoleCardStyle(lane, slot, cardsInLane, idx),
         };
       });
     },
@@ -1366,20 +1435,17 @@ function HomePage({
     if (!rolePhotos.length) return rolePhotoPlaceholders.map((item) => ({ ...item, url: '' }));
     const lanes = ROLE_STRIP_LANES;
     const total = getRoleStripCardCount(rolePhotos.length);
-    const shuffled = shuffleRolePhotosDeterministic(rolePhotos);
+    const normalized = rolePhotos.map(normalizeRolePhotoEntry).filter(Boolean);
+    const shuffled = shuffleRolePhotoEntriesDeterministic(normalized);
     return Array.from({ length: total }, (_, idx) => {
       const lane = idx % lanes;
-      const wave = Math.floor(idx / lanes);
+      const slot = Math.floor(idx / lanes);
+      const cardsInLane = Math.max(1, Math.ceil((total - lane) / lanes));
+      const pick = shuffled[idx % shuffled.length];
       return {
         id: `role-photo-${idx}`,
-        url: shuffled[idx % shuffled.length],
-        shape: lane % 3 === 0 ? 'is-tall' : lane % 3 === 1 ? 'is-medium' : 'is-thin',
-        style: {
-          '--role-lane': `${lane}`,
-          '--role-delay': `${-(wave * 11 + lane * 0.55)}s`,
-          '--role-duration': `${36 + (lane % 3) * 3}s`,
-          '--role-drift': `${4 + lane * 0.35}px`,
-        },
+        url: pick.url,
+        style: buildRoleCardStyle(lane, slot, cardsInLane, idx),
       };
     });
   }, [rolePhotos, rolePhotoPlaceholders]);
@@ -1410,9 +1476,11 @@ function HomePage({
     if (!el) return undefined;
     const io = new IntersectionObserver(
       ([entry]) => {
-        heroMarqueeOffscreenRef.current = !entry.isIntersecting || entry.intersectionRatio < 0.04;
+        if (!entry) return;
+        /* So pausa quando o bloco sai totalmente da tela (ratio < 0.04 gerava falso positivo e travava o loop). */
+        heroMarqueeOffscreenRef.current = !entry.isIntersecting;
       },
-      { root: null, threshold: [0, 0.04, 0.1] },
+      { root: null, rootMargin: '80px 0px', threshold: [0, 0.01, 0.25, 0.5] },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -1461,23 +1529,23 @@ function HomePage({
   }, [heroPhotoStrip]);
 
   useEffect(() => {
-    if (!YOUTUBE_API_KEY || !YOUTUBE_CHANNEL_ID) return undefined;
+    if (!CAN_LOAD_YOUTUBE_FEED) return undefined;
     let active = true;
     const loadYouTube = async () => {
       try {
-        const latest = await fetchLatestYouTubeVideos({
+        const latest = await fetchLatestYouTubeVideosResilient({
           apiKey: YOUTUBE_API_KEY,
           channelId: YOUTUBE_CHANNEL_ID,
           maxResults: YOUTUBE_FETCH_COUNT,
         });
         if (!active) return;
-        setVideoCards(latest);
+        setVideoCards(latest.slice(0, YOUTUBE_FETCH_COUNT));
       } catch (err) {
         if (!active) return;
         if (import.meta.env.DEV) {
-          console.warn('[Douha] YouTube API (usando placeholders):', err?.message || err);
+          console.warn('[Douha] YouTube (placeholders):', err?.message || err);
         }
-        setVideoCards(tracks.slice(0, YOUTUBE_FETCH_COUNT));
+        setVideoCards([]);
       }
     };
     loadYouTube();
@@ -1641,7 +1709,7 @@ function HomePage({
             {rolePhotoCards.map((item) => (
               <figure
                 key={item.id}
-                className={`role-photo-card ${item.shape}`}
+                className="role-photo-card"
                 style={item.style}
               >
                 {item.url ? <img src={item.url} alt="" draggable={false} onDragStart={(ev) => ev.preventDefault()} /> : <span>FOTO</span>}
@@ -1862,26 +1930,26 @@ function FotosPage({ sitePhotos, setSitePhotos, isAdminLoggedIn }) {
 }
 
 function SetsPage({ youtubeChannelBranding, youtubeChannelHref }) {
-  const [videoCards, setVideoCards] = useState(() => tracks.slice(0, YOUTUBE_FETCH_COUNT));
+  const [videoCards, setVideoCards] = useState([]);
 
   useEffect(() => {
-    if (!YOUTUBE_API_KEY || !YOUTUBE_CHANNEL_ID) return undefined;
+    if (!CAN_LOAD_YOUTUBE_FEED) return undefined;
     let active = true;
     const loadYouTube = async () => {
       try {
-        const latest = await fetchLatestYouTubeVideos({
+        const latest = await fetchLatestYouTubeVideosResilient({
           apiKey: YOUTUBE_API_KEY,
           channelId: YOUTUBE_CHANNEL_ID,
           maxResults: YOUTUBE_FETCH_COUNT,
         });
         if (!active) return;
-        setVideoCards(latest);
+        setVideoCards(latest.slice(0, YOUTUBE_FETCH_COUNT));
       } catch (err) {
         if (!active) return;
         if (import.meta.env.DEV) {
-          console.warn('[Douha] YouTube API (usando placeholders):', err?.message || err);
+          console.warn('[Douha] YouTube (placeholders):', err?.message || err);
         }
-        setVideoCards(tracks.slice(0, YOUTUBE_FETCH_COUNT));
+        setVideoCards([]);
       }
     };
     loadYouTube();
@@ -2069,7 +2137,7 @@ function AdminPage({
   onEventSavedFocus,
   agendaSyncError,
   supabaseSetupError,
-  supabaseConnectionHint,
+  adminSection = 'geral',
 }) {
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
@@ -2079,7 +2147,7 @@ function AdminPage({
   const [posterUrlInput, setPosterUrlInput] = useState('');
   const [draftSiteContent, setDraftSiteContent] = useState(() => mergeSiteContentWithDefaults(siteContent));
   const [draftPhotos, setDraftPhotos] = useState(() => [...sitePhotos]);
-  const [draftRolePhotos, setDraftRolePhotos] = useState(() => [...rolePhotos]);
+  const [draftRolePhotos, setDraftRolePhotos] = useState(() => rolePhotos.map((r) => normalizeRolePhotoEntry(r)).filter(Boolean));
   const [draftEditorial, setDraftEditorial] = useState(() => ({
     id: '',
     title: '',
@@ -2113,12 +2181,18 @@ function AdminPage({
   const [isSavingGallery, setIsSavingGallery] = useState(false);
   const [isSavingEditorial, setIsSavingEditorial] = useState(false);
   const [isSavingRolePhotos, setIsSavingRolePhotos] = useState(false);
+  const [isSavingSiteContent, setIsSavingSiteContent] = useState(false);
+  const [siteContentSaveError, setSiteContentSaveError] = useState('');
   const [posterUploadError, setPosterUploadError] = useState('');
   const [posterUploadInfo, setPosterUploadInfo] = useState('');
   const formRef = useRef(null);
   const galleryUploadWideRef = useRef(false);
   const [galleryUploadWide, setGalleryUploadWide] = useState(false);
   const sortedAgenda = useMemo(() => [...agendaEvents], [agendaEvents]);
+  const isGeneralSection = adminSection === 'geral';
+  const isPhotosSection = adminSection === 'fotos';
+  const isEditorialSection = adminSection === 'editorial';
+  const isCalendarSection = adminSection === 'calendario';
   const adminStats = useMemo(() => {
     const total = sortedAgenda.length;
     const withTicket = sortedAgenda.filter((item) => String(item.ticketUrl || '').trim()).length;
@@ -2143,7 +2217,7 @@ function AdminPage({
     if (!isAdminLoggedIn) return;
     setDraftSiteContent(mergeSiteContentWithDefaults(siteContent));
     setDraftPhotos([...sitePhotos]);
-    setDraftRolePhotos([...rolePhotos]);
+    setDraftRolePhotos(rolePhotos.map((r) => normalizeRolePhotoEntry(r)).filter(Boolean));
   }, [isAdminLoggedIn, siteContent, sitePhotos, rolePhotos]);
 
   const onLogin = (event) => {
@@ -2391,9 +2465,36 @@ function AdminPage({
     setExperienceHeroPreviewFailed(false);
   };
 
-  const onSaveSiteContent = () => {
-    setSiteContent(mergeSiteContentWithDefaults(draftSiteContent));
-    flashSaved();
+  const onSaveSiteContent = async () => {
+    if (isSavingSiteContent) return;
+    setSiteContentSaveError('');
+    const merged = mergeSiteContentWithDefaults(draftSiteContent);
+    setSiteContent(merged);
+    safeSetLocalStorage(SITE_CONTENT_STORAGE_KEY, JSON.stringify(merged));
+    if (!isSupabaseConfigured || !supabase) {
+      flashSaved();
+      return;
+    }
+    setIsSavingSiteContent(true);
+    try {
+      const { error } = await supabase.from(SUPABASE_SITE_CONTENT_TABLE).upsert(
+        {
+          id: SUPABASE_SITE_CONTENT_ROW_ID,
+          payload: merged,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' },
+      );
+      if (error) throw error;
+      flashSaved();
+    } catch (error) {
+      const msg = isMissingSiteContentTableError(error.message)
+        ? 'Tabela douha_site_content ausente no Supabase. Rode no SQL Editor: supabase/migrations/004_douha_site_content.sql'
+        : `Nao foi possivel salvar conteudo no Supabase: ${error.message || 'erro desconhecido'}`;
+      setSiteContentSaveError(msg);
+    } finally {
+      setIsSavingSiteContent(false);
+    }
   };
 
   const onSaveGallery = async () => {
@@ -2574,7 +2675,7 @@ function AdminPage({
       const reader = new FileReader();
       reader.onload = () => {
         if (typeof reader.result === 'string') {
-          setDraftRolePhotos((prev) => [reader.result, ...prev].slice(0, 120));
+          setDraftRolePhotos((prev) => [{ url: reader.result }, ...prev].slice(0, 120));
         }
       };
       reader.readAsDataURL(file);
@@ -2591,20 +2692,20 @@ function AdminPage({
         throw new Error(supabaseConfigError || 'Supabase nao configurado');
       }
       const normalized = [];
-      for (const src of draftRolePhotos) {
-        const value = String(src || '').trim();
-        if (!value) continue;
-        if (value.startsWith('data:')) {
-          const blob = await (await fetch(value)).blob();
+      for (const raw of draftRolePhotos) {
+        const entry = normalizeRolePhotoEntry(raw);
+        if (!entry) continue;
+        let { url } = entry;
+        if (url.startsWith('data:')) {
+          const blob = await (await fetch(url)).blob();
           const file = new File([blob], `role-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
-          const uploadedUrl = await uploadRolePhotoToSupabaseStorage(file);
-          normalized.push(uploadedUrl);
-        } else {
-          normalized.push(value);
+          url = await uploadRolePhotoToSupabaseStorage(file);
         }
+        normalized.push({ url });
       }
 
-      const removed = rolePhotos.filter((url) => !normalized.includes(url));
+      const nextUrls = new Set(normalized.map((x) => x.url));
+      const removed = rolePhotos.map((r) => rolePhotoEntryUrl(r)).filter((u) => u && !nextUrls.has(u));
       for (const url of removed) {
         try {
           await removeRolePhotoFromStorage(url);
@@ -2616,10 +2717,11 @@ function AdminPage({
       const { error: deleteError } = await supabase.from(SUPABASE_ROLE_PHOTOS_TABLE).delete().neq('id', '');
       if (deleteError) throw deleteError;
       if (normalized.length) {
-        const rows = normalized.map((url, idx) => ({
+        const rows = normalized.map((item, idx) => ({
           id: `role-photo-${idx + 1}`,
-          photo_url: url,
+          photo_url: item.url,
           position: idx,
+          aspect_key: 'r34',
         }));
         const { error: insertError } = await supabase.from(SUPABASE_ROLE_PHOTOS_TABLE).upsert(rows, { onConflict: 'id' });
         if (insertError) throw insertError;
@@ -2710,9 +2812,6 @@ function AdminPage({
               {authError && <p className="admin-error">{authError}</p>}
               <button type="submit" className="pill pill-light">Entrar no painel</button>
             </form>
-            <p className="admin-warning">
-              Ambiente de desenvolvimento: essa senha e no front-end e nao substitui seguranca de servidor.
-            </p>
           </div>
         </section>
       </main>
@@ -2730,27 +2829,18 @@ function AdminPage({
               <button type="button" className="pill pill-light" onClick={onLogout}>Sair</button>
             </div>
           </div>
-          <p className="admin-warning">
-            Painel central de conteudo: tudo que impacta Home/Calendario/Fotos deve ser ajustado aqui.
-          </p>
-
           <nav className="admin-nav">
-            <a className="pill" href="#admin-overview">Visao geral</a>
-            <a className="pill" href="#admin-experience-hero">Faixa experiencia</a>
-            <a className="pill" href="#admin-site-content">Conteudo do site</a>
-            <a className="pill" href="#admin-gallery">Galeria</a>
-            <a className="pill" href="#admin-role-photos">Fotos do role</a>
-            <a className="pill" href="#admin-editorial">Materias</a>
-            <a className="pill" href="#admin-calendar">Calendario</a>
-            <a className="pill" href="#admin-event-form">Formulario de evento</a>
+            <Link className="pill" to="/admin">Conteudo do site</Link>
+            <Link className="pill" to="/admin/fotos">Fotos</Link>
+            <Link className="pill" to="/admin/editorial">Materias</Link>
+            <Link className="pill" to="/admin/calendario">Agenda / Calendario</Link>
           </nav>
 
           {saveHint && <p className="admin-save-hint" role="status">{saveHint}</p>}
           {supabaseSetupError && <p className="admin-error">{supabaseSetupError}</p>}
-          {supabaseConnectionHint ? <p className="admin-warning">{supabaseConnectionHint}</p> : null}
           {agendaSyncError && <p className="admin-error">{agendaSyncError}</p>}
 
-          <article id="admin-overview" className="admin-panel-card admin-panel-card-highlight">
+          {isGeneralSection ? <article id="admin-overview" className="admin-panel-card admin-panel-card-highlight">
             <h3>Visao geral rapida</h3>
             <div className="admin-kpi-grid">
               <div className="admin-kpi-item"><strong>{adminStats.total}</strong><span>Eventos cadastrados</span></div>
@@ -2758,66 +2848,11 @@ function AdminPage({
               <div className="admin-kpi-item"><strong>{adminStats.withPhotos}</strong><span>Com link de fotos</span></div>
               <div className="admin-kpi-item"><strong>{adminStats.totalPhotos}</strong><span>Fotos na galeria</span></div>
             </div>
-          </article>
+          </article> : null}
 
-          <article id="admin-site-content" className="admin-panel-card">
+          {isGeneralSection ? <article id="admin-site-content" className="admin-panel-card">
             <h3>Conteudo geral do site</h3>
-            <p className="about-copy">Edite os campos e clique em Salvar alteracoes para publicar no site.</p>
             <div className="admin-form">
-              <div id="admin-experience-hero" className="admin-experience-hero-block">
-                <h4 className="admin-subheading">Faixa acima de &quot;Conheca a experiencia Douha&quot; (Home)</h4>
-                <p className="about-copy">
-                  Imagem larga que fica <strong>no topo</strong> dessa secao, acima do titulo. Deixe vazio para o fundo
-                  escuro padrao. Cole uma URL publica ou envie um arquivo (vai para a galeria no Supabase).
-                </p>
-                <label htmlFor="admin-experience-hero-url">URL da imagem</label>
-                <input
-                  id="admin-experience-hero-url"
-                  type="text"
-                  inputMode="url"
-                  autoComplete="off"
-                  placeholder="https://..."
-                  value={draftSiteContent.experienceHeroImageUrl ?? ''}
-                  onChange={(event) => {
-                    setExperienceHeroPreviewFailed(false);
-                    setDraftSiteContent((prev) => ({
-                      ...mergeSiteContentWithDefaults(prev),
-                      experienceHeroImageUrl: event.target.value,
-                    }));
-                  }}
-                />
-                <label htmlFor="admin-experience-hero-file">Enviar imagem do computador</label>
-                <input
-                  id="admin-experience-hero-file"
-                  type="file"
-                  accept="image/*"
-                  onChange={onExperienceHeroUpload}
-                  disabled={isUploadingExperienceHero}
-                />
-                {isUploadingExperienceHero && <p className="admin-save-hint" role="status">Enviando imagem...</p>}
-                {experienceHeroUploadError && <p className="admin-error">{experienceHeroUploadError}</p>}
-                {String(draftSiteContent.experienceHeroImageUrl || '').trim() ? (
-                  <div className="admin-experience-hero-preview">
-                    <p className="about-copy admin-preview-label">Preview (como na Home)</p>
-                    {!experienceHeroPreviewFailed ? (
-                      <img
-                        src={String(draftSiteContent.experienceHeroImageUrl).trim()}
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        onLoad={() => setExperienceHeroPreviewFailed(false)}
-                        onError={() => setExperienceHeroPreviewFailed(true)}
-                      />
-                    ) : (
-                      <p className="admin-error">
-                        Nao foi possivel carregar esta URL. Confira o link, tente outro endereco ou use o upload.
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="about-copy admin-muted">Sem imagem: a Home mostra so o fundo escuro nessa faixa.</p>
-                )}
-              </div>
               <label>Texto principal de Quem Somos</label>
               <textarea
                 value={draftSiteContent.whoWeAreText}
@@ -2838,91 +2873,214 @@ function AdminPage({
                 value={draftSiteContent.contactWhatsApp}
                 onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, contactWhatsApp: event.target.value }))}
               />
-              <label>Newsletter (titulo)</label>
-              <input
-                value={draftSiteContent.communityNewsletterLabel}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityNewsletterLabel: event.target.value }))}
-              />
-              <label>Newsletter (link)</label>
-              <input
-                value={draftSiteContent.communityNewsletterUrl}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityNewsletterUrl: event.target.value }))}
-                placeholder="https://..."
-              />
-              <label>Comunidade WhatsApp (titulo)</label>
-              <input
-                value={draftSiteContent.communityWhatsAppLabel}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityWhatsAppLabel: event.target.value }))}
-              />
-              <label>Comunidade WhatsApp (link)</label>
-              <input
-                value={draftSiteContent.communityWhatsAppUrl}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityWhatsAppUrl: event.target.value }))}
-                placeholder="https://..."
-              />
-              <label>Comunidade Instagram (titulo)</label>
-              <input
-                value={draftSiteContent.communityInstagramLabel}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityInstagramLabel: event.target.value }))}
-              />
-              <label>Comunidade Instagram (link)</label>
-              <input
-                value={draftSiteContent.communityInstagramUrl}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityInstagramUrl: event.target.value }))}
-                placeholder="https://..."
-              />
-              <label>Instagram (perfil @)</label>
-              <input
-                value={draftSiteContent.socialInstagramHandle}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialInstagramHandle: event.target.value }))}
-              />
-              <label>Instagram (link)</label>
-              <input
-                value={draftSiteContent.socialInstagramUrl}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialInstagramUrl: event.target.value }))}
-                placeholder="https://..."
-              />
-              <label>TikTok (perfil @)</label>
-              <input
-                value={draftSiteContent.socialTikTokHandle}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialTikTokHandle: event.target.value }))}
-              />
-              <label>TikTok (link)</label>
-              <input
-                value={draftSiteContent.socialTikTokUrl}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialTikTokUrl: event.target.value }))}
-                placeholder="https://..."
-              />
-              <label>SoundCloud (perfil @)</label>
-              <input
-                value={draftSiteContent.socialSoundCloudHandle}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialSoundCloudHandle: event.target.value }))}
-              />
-              <label>SoundCloud (link)</label>
-              <input
-                value={draftSiteContent.socialSoundCloudUrl}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialSoundCloudUrl: event.target.value }))}
-                placeholder="https://..."
-              />
-              <label>YouTube (perfil @)</label>
-              <input
-                value={draftSiteContent.socialYouTubeHandle}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialYouTubeHandle: event.target.value }))}
-              />
-              <label>YouTube (link)</label>
-              <input
-                value={draftSiteContent.socialYouTubeUrl}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialYouTubeUrl: event.target.value }))}
-                placeholder="https://..."
-              />
+              <div className="admin-form-pair-row">
+                <div className="admin-form-field">
+                  <label htmlFor="site-newsletter-label">Newsletter (titulo)</label>
+                  <input
+                    id="site-newsletter-label"
+                    value={draftSiteContent.communityNewsletterLabel}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityNewsletterLabel: event.target.value }))}
+                  />
+                </div>
+                <div className="admin-form-field">
+                  <label htmlFor="site-newsletter-url">Newsletter (link)</label>
+                  <input
+                    id="site-newsletter-url"
+                    value={draftSiteContent.communityNewsletterUrl}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityNewsletterUrl: event.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+              <div className="admin-form-pair-row">
+                <div className="admin-form-field">
+                  <label htmlFor="site-cm-wa-label">Comunidade WhatsApp (titulo)</label>
+                  <input
+                    id="site-cm-wa-label"
+                    value={draftSiteContent.communityWhatsAppLabel}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityWhatsAppLabel: event.target.value }))}
+                  />
+                </div>
+                <div className="admin-form-field">
+                  <label htmlFor="site-cm-wa-url">Comunidade WhatsApp (link)</label>
+                  <input
+                    id="site-cm-wa-url"
+                    value={draftSiteContent.communityWhatsAppUrl}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityWhatsAppUrl: event.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+              <div className="admin-form-pair-row">
+                <div className="admin-form-field">
+                  <label htmlFor="site-cm-ig-label">Comunidade Instagram (titulo)</label>
+                  <input
+                    id="site-cm-ig-label"
+                    value={draftSiteContent.communityInstagramLabel}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityInstagramLabel: event.target.value }))}
+                  />
+                </div>
+                <div className="admin-form-field">
+                  <label htmlFor="site-cm-ig-url">Comunidade Instagram (link)</label>
+                  <input
+                    id="site-cm-ig-url"
+                    value={draftSiteContent.communityInstagramUrl}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityInstagramUrl: event.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+              <div className="admin-form-pair-row">
+                <div className="admin-form-field">
+                  <label htmlFor="site-soc-ig-handle">Instagram (perfil @)</label>
+                  <input
+                    id="site-soc-ig-handle"
+                    value={draftSiteContent.socialInstagramHandle}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialInstagramHandle: event.target.value }))}
+                  />
+                </div>
+                <div className="admin-form-field">
+                  <label htmlFor="site-soc-ig-url">Instagram (link)</label>
+                  <input
+                    id="site-soc-ig-url"
+                    value={draftSiteContent.socialInstagramUrl}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialInstagramUrl: event.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+              <div className="admin-form-pair-row">
+                <div className="admin-form-field">
+                  <label htmlFor="site-soc-tt-handle">TikTok (perfil @)</label>
+                  <input
+                    id="site-soc-tt-handle"
+                    value={draftSiteContent.socialTikTokHandle}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialTikTokHandle: event.target.value }))}
+                  />
+                </div>
+                <div className="admin-form-field">
+                  <label htmlFor="site-soc-tt-url">TikTok (link)</label>
+                  <input
+                    id="site-soc-tt-url"
+                    value={draftSiteContent.socialTikTokUrl}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialTikTokUrl: event.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+              <div className="admin-form-pair-row">
+                <div className="admin-form-field">
+                  <label htmlFor="site-soc-sc-handle">SoundCloud (perfil @)</label>
+                  <input
+                    id="site-soc-sc-handle"
+                    value={draftSiteContent.socialSoundCloudHandle}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialSoundCloudHandle: event.target.value }))}
+                  />
+                </div>
+                <div className="admin-form-field">
+                  <label htmlFor="site-soc-sc-url">SoundCloud (link)</label>
+                  <input
+                    id="site-soc-sc-url"
+                    value={draftSiteContent.socialSoundCloudUrl}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialSoundCloudUrl: event.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+              <div className="admin-form-pair-row">
+                <div className="admin-form-field">
+                  <label htmlFor="site-soc-yt-handle">YouTube (perfil @)</label>
+                  <input
+                    id="site-soc-yt-handle"
+                    value={draftSiteContent.socialYouTubeHandle}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialYouTubeHandle: event.target.value }))}
+                  />
+                </div>
+                <div className="admin-form-field">
+                  <label htmlFor="site-soc-yt-url">YouTube (link)</label>
+                  <input
+                    id="site-soc-yt-url"
+                    value={draftSiteContent.socialYouTubeUrl}
+                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialYouTubeUrl: event.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+              {siteContentSaveError ? <p className="admin-error">{siteContentSaveError}</p> : null}
               <div className="admin-actions">
-                <button type="button" className="pill pill-light" onClick={onSaveSiteContent}>Salvar alteracoes</button>
-                <button type="button" className="pill" onClick={onResetSiteContentDraft}>Restaurar textos padrao</button>
+                <button type="button" className="pill pill-light" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
+                  {isSavingSiteContent ? 'Salvando...' : 'Salvar alteracoes'}
+                </button>
+                <button type="button" className="pill" onClick={onResetSiteContentDraft} disabled={isSavingSiteContent}>Restaurar textos padrao</button>
+              </div>
+            </div>
+          </article> : null}
+
+          {isPhotosSection ? (
+          <article id="admin-experience-hero" className="admin-panel-card">
+            <h3>Faixa acima de &quot;Conheca a experiencia Douha&quot;</h3>
+            <p className="about-copy">
+              Salvar grava no site e no navegador.
+            </p>
+            <p className="about-copy">
+              Proporcao da arte: <strong>3:1</strong> ou <strong>5:1</strong> (paisagem). Vazio = fundo padrao.
+            </p>
+            <div className="admin-form">
+              <label htmlFor="admin-experience-hero-url">URL da imagem</label>
+              <input
+                id="admin-experience-hero-url"
+                type="text"
+                inputMode="url"
+                autoComplete="off"
+                placeholder="https://..."
+                value={draftSiteContent.experienceHeroImageUrl ?? ''}
+                onChange={(event) => {
+                  setExperienceHeroPreviewFailed(false);
+                  setDraftSiteContent((prev) => ({
+                    ...mergeSiteContentWithDefaults(prev),
+                    experienceHeroImageUrl: event.target.value,
+                  }));
+                }}
+              />
+              <label htmlFor="admin-experience-hero-file">Enviar imagem do computador</label>
+              <input
+                id="admin-experience-hero-file"
+                type="file"
+                accept="image/*"
+                onChange={onExperienceHeroUpload}
+                disabled={isUploadingExperienceHero}
+              />
+              {isUploadingExperienceHero && <p className="admin-save-hint" role="status">Enviando imagem...</p>}
+              {experienceHeroUploadError && <p className="admin-error">{experienceHeroUploadError}</p>}
+              {String(draftSiteContent.experienceHeroImageUrl || '').trim() ? (
+                <div className="admin-experience-hero-preview">
+                  <p className="about-copy admin-preview-label">Preview (como na Home)</p>
+                  {!experienceHeroPreviewFailed ? (
+                    <img
+                      src={String(draftSiteContent.experienceHeroImageUrl).trim()}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      onLoad={() => setExperienceHeroPreviewFailed(false)}
+                      onError={() => setExperienceHeroPreviewFailed(true)}
+                    />
+                  ) : (
+                    <p className="admin-error">Nao foi possivel carregar esta URL. Confira o link, tente outro endereco ou use o upload.</p>
+                  )}
+                </div>
+              ) : (
+                <p className="about-copy admin-muted">Sem imagem: a Home mostra so o fundo padrao nessa faixa.</p>
+              )}
+              <div className="admin-actions">
+                <button type="button" className="pill pill-light" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
+                  {isSavingSiteContent ? 'Salvando...' : 'Salvar faixa'}
+                </button>
               </div>
             </div>
           </article>
+          ) : null}
 
-          <article id="admin-gallery" className="admin-panel-card">
+          {isPhotosSection ? <article id="admin-gallery" className="admin-panel-card">
             <h3>Galeria principal (carrossel do topo + pagina Fotos)</h3>
             <p className="about-copy">
               As fotos daqui alimentam o carrossel inicial do site (topo) e a pagina de Fotos. Esta secao NAO altera a faixa de fotos do bloco pos
@@ -2996,40 +3154,44 @@ function AdminPage({
                 {isSavingGallery ? 'Salvando galeria...' : 'Salvar galeria'}
               </button>
             </div>
-          </article>
+          </article> : null}
 
-          <article id="admin-role-photos" className="admin-panel-card">
+          {isPhotosSection ? <article id="admin-role-photos" className="admin-panel-card">
             <h3>Fotos do role (faixa da home)</h3>
             <p className="about-copy">
-              Fluxo simples nesta fase: upload e remocao. Estas fotos aparecem somente na faixa apos &quot;Conheca a Experiencia Douha&quot; e NAO mexem no
-              carrossel inicial do topo.
+              Envie imagens em proporcao 3:4 (retrato) ou 4:3 (paisagem); no site todas aparecem no mesmo quadro 3:4 com recorte central (object-fit).
+              A faixa rola em diagonal apos &quot;Conheca a Experiencia Douha&quot;; nao altera o carrossel do topo.
             </p>
             {rolePhotosError ? <p className="admin-error">{rolePhotosError}</p> : null}
             <input type="file" accept="image/*" multiple onChange={onRolePhotoUpload} />
             <div className="admin-photo-grid">
-              {draftRolePhotos.map((src, idx) => (
-                <figure key={`admin-role-photo-${idx}`} className="admin-photo-item">
-                  <img src={src} alt="" />
-                  <figcaption>
-                    <button
-                      type="button"
-                      className="pill"
-                      onClick={() => setDraftRolePhotos((prev) => prev.filter((_, photoIdx) => photoIdx !== idx))}
-                    >
-                      Remover
-                    </button>
-                  </figcaption>
-                </figure>
-              ))}
+              {draftRolePhotos.map((raw, idx) => {
+                const entry = normalizeRolePhotoEntry(raw) || { url: '' };
+                const src = entry.url;
+                return (
+                  <figure key={`admin-role-photo-${idx}`} className="admin-photo-item">
+                    <img src={src} alt="" />
+                    <figcaption>
+                      <button
+                        type="button"
+                        className="pill"
+                        onClick={() => setDraftRolePhotos((prev) => prev.filter((_, photoIdx) => photoIdx !== idx))}
+                      >
+                        Remover
+                      </button>
+                    </figcaption>
+                  </figure>
+                );
+              })}
             </div>
             <div className="admin-actions">
               <button type="button" className="pill pill-light" onClick={onSaveRolePhotos} disabled={isSavingRolePhotos}>
                 {isSavingRolePhotos ? 'Salvando fotos do role...' : 'Salvar fotos do role'}
               </button>
             </div>
-          </article>
+          </article> : null}
 
-          <article id="admin-editorial" className="admin-panel-card">
+          {isEditorialSection ? <article id="admin-editorial" className="admin-panel-card">
             <h3>Materias / Editorial</h3>
             <p className="about-copy">Crie e atualize materias para aparecer no Home e na pagina Editorial.</p>
             {editorialError ? <p className="admin-error">{editorialError}</p> : null}
@@ -3111,9 +3273,9 @@ function AdminPage({
                 </article>
               ))}
             </div>
-          </article>
+          </article> : null}
 
-          <article id="admin-calendar" className="admin-panel-card">
+          {isCalendarSection ? <article id="admin-calendar" className="admin-panel-card">
             <h3>Calendario do Admin</h3>
             <p className="about-copy">Aqui todos os meses ficam ativos. Clique em "Criar evento" no slot livre ou em "Editar" num evento existente.</p>
             <AgendaCalendarSection
@@ -3126,18 +3288,18 @@ function AdminPage({
               onCreateEvent={onCreateFromCalendar}
               embedded
             />
-          </article>
+          </article> : null}
 
-          <div className="admin-actions">
+          {isCalendarSection ? <div className="admin-actions">
             <button type="button" className="pill pill-light" onClick={() => onCreateFromCalendar({ year: draftYear, monthIndex: draftMonthIndex })}>
               Novo evento manual
             </button>
             {showEventForm ? (
               <button type="button" className="pill" onClick={() => setShowEventForm(false)}>Fechar formulario</button>
             ) : null}
-          </div>
+          </div> : null}
 
-          {showEventForm ? (
+          {isCalendarSection && showEventForm ? (
             <form id="admin-event-form" ref={formRef} className="admin-form" onSubmit={onSave}>
               <h3>Formulario de evento</h3>
               {agendaSaveError && <p className="admin-error">{agendaSaveError}</p>}
@@ -3215,11 +3377,6 @@ function AdminPage({
 }
 
 export default function App() {
-  const supabaseProjectRef = isSupabaseConfigured ? getSupabaseProjectRef() : '';
-  const supabaseConnectionHint = supabaseProjectRef
-    ? `Esta versao publicada usa o projeto Supabase "${supabaseProjectRef}". No Amplify, variaveis VITE_* so entram no site apos um novo build/deploy. No painel do Supabase, confira se e este mesmo projeto (Settings > API) e se Storage tem os buckets e o SQL de setup foi aplicado.`
-    : '';
-
   const [agendaEvents, setAgendaEvents] = useState(() => [...defaultAgenda]);
   const [sitePhotos, setSitePhotos] = useState(() => loadStoredPhotos());
   const [rolePhotos, setRolePhotos] = useState(() => loadStoredRolePhotos());
@@ -3230,16 +3387,18 @@ export default function App() {
   const [agendaSyncError, setAgendaSyncError] = useState('');
   const [youtubeChannelBranding, setYoutubeChannelBranding] = useState(null);
 
-  const youtubeChannelHref = useMemo(
-    () => resolvePublicYoutubeChannelUrl(siteContent),
-    [siteContent],
-  );
+  const youtubeChannelHref = useMemo(() => {
+    const fromEnv = resolveYoutubeChannelWebUrl(YOUTUBE_CHANNEL_ID);
+    if (fromEnv) return fromEnv;
+    return resolvePublicYoutubeChannelUrl(siteContent);
+  }, [siteContent]);
 
+  /* Branding do bloco Sets: API ou titulo via RSS (UC... + proxy). */
   useEffect(() => {
-    if (!YOUTUBE_API_KEY || !YOUTUBE_CHANNEL_ID) return undefined;
+    if (!CAN_LOAD_YOUTUBE_FEED) return undefined;
     let active = true;
     (async () => {
-      const data = await fetchYoutubeChannelBranding({
+      const data = await fetchYoutubeChannelBrandingResilient({
         apiKey: YOUTUBE_API_KEY,
         channelIdOrHandle: YOUTUBE_CHANNEL_ID,
       });
@@ -3338,8 +3497,10 @@ export default function App() {
         if (!active) return;
         const rows = Array.isArray(data) ? data : [];
         const normalized = rows
-          .map((row) => String(row.photo_url || '').trim())
-          .filter(Boolean);
+          .map((row) => ({
+            url: String(row.photo_url || '').trim(),
+          }))
+          .filter((x) => x.url);
         if (!normalized.length) return;
         setRolePhotos(normalized);
         safeSetLocalStorage(ROLE_PHOTOS_STORAGE_KEY, JSON.stringify(normalized));
@@ -3386,6 +3547,53 @@ export default function App() {
 
     loadGalleryFromSupabase();
     return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadSiteContentFromSupabase = async () => {
+      if (!isSupabaseConfigured || !supabase) return;
+      try {
+        const { data, error } = await supabase
+          .from(SUPABASE_SITE_CONTENT_TABLE)
+          .select('payload')
+          .eq('id', SUPABASE_SITE_CONTENT_ROW_ID)
+          .maybeSingle();
+        if (error) throw error;
+        if (!active) return;
+        const local = mergeSiteContentWithDefaults(loadStoredSiteContent());
+        const remote = data?.payload;
+        const merged = mergeSiteContentWithDefaults(
+          remote && typeof remote === 'object' ? { ...local, ...remote } : local,
+        );
+        setSiteContent(merged);
+        safeSetLocalStorage(SITE_CONTENT_STORAGE_KEY, JSON.stringify(merged));
+      } catch (error) {
+        if (!active) return;
+        const msg = isMissingSiteContentTableError(error.message)
+          ? 'Tabela douha_site_content ausente no Supabase (rode supabase/migrations/004_douha_site_content.sql).'
+          : `Nao foi possivel carregar conteudo do site: ${error.message || error}`;
+        console.warn(msg);
+      }
+    };
+
+    loadSiteContentFromSupabase();
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key !== SITE_CONTENT_STORAGE_KEY || e.newValue == null) return;
+      try {
+        const parsed = JSON.parse(e.newValue);
+        setSiteContent(mergeSiteContentWithDefaults(parsed));
+      } catch {
+        /* ignore */
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
   useEffect(() => {
@@ -3447,7 +3655,6 @@ export default function App() {
         isAdminLoggedIn={isAdminLoggedIn}
         onAdminLogout={onAdminLogout}
         siteContent={siteContent}
-        youtubeChannelBranding={youtubeChannelBranding}
       >
         <Routes>
           <Route
@@ -3512,7 +3719,91 @@ export default function App() {
                     ? `Revise o .env do Douha: ${supabaseConfigError}`
                     : ''
                 }
-                supabaseConnectionHint={supabaseConnectionHint}
+                adminSection="geral"
+              />
+            )}
+          />
+          <Route
+            path="/admin/fotos"
+            element={(
+              <AdminPage
+                agendaEvents={agendaEvents}
+                setAgendaEvents={setAgendaEvents}
+                onResetAgenda={onResetAgenda}
+                isAdminLoggedIn={isAdminLoggedIn}
+                setIsAdminLoggedIn={setIsAdminLoggedIn}
+                sitePhotos={sitePhotos}
+                setSitePhotos={setSitePhotos}
+                rolePhotos={rolePhotos}
+                setRolePhotos={setRolePhotos}
+                editorialPosts={editorialPosts}
+                setEditorialPosts={setEditorialPosts}
+                siteContent={siteContent}
+                setSiteContent={setSiteContent}
+                onEventSavedFocus={(focus) => setCalendarFocus(focus)}
+                agendaSyncError={agendaSyncError}
+                supabaseSetupError={
+                  !isSupabaseConfigured && supabaseConfigError
+                    ? `Revise o .env do Douha: ${supabaseConfigError}`
+                    : ''
+                }
+                adminSection="fotos"
+              />
+            )}
+          />
+          <Route
+            path="/admin/editorial"
+            element={(
+              <AdminPage
+                agendaEvents={agendaEvents}
+                setAgendaEvents={setAgendaEvents}
+                onResetAgenda={onResetAgenda}
+                isAdminLoggedIn={isAdminLoggedIn}
+                setIsAdminLoggedIn={setIsAdminLoggedIn}
+                sitePhotos={sitePhotos}
+                setSitePhotos={setSitePhotos}
+                rolePhotos={rolePhotos}
+                setRolePhotos={setRolePhotos}
+                editorialPosts={editorialPosts}
+                setEditorialPosts={setEditorialPosts}
+                siteContent={siteContent}
+                setSiteContent={setSiteContent}
+                onEventSavedFocus={(focus) => setCalendarFocus(focus)}
+                agendaSyncError={agendaSyncError}
+                supabaseSetupError={
+                  !isSupabaseConfigured && supabaseConfigError
+                    ? `Revise o .env do Douha: ${supabaseConfigError}`
+                    : ''
+                }
+                adminSection="editorial"
+              />
+            )}
+          />
+          <Route
+            path="/admin/calendario"
+            element={(
+              <AdminPage
+                agendaEvents={agendaEvents}
+                setAgendaEvents={setAgendaEvents}
+                onResetAgenda={onResetAgenda}
+                isAdminLoggedIn={isAdminLoggedIn}
+                setIsAdminLoggedIn={setIsAdminLoggedIn}
+                sitePhotos={sitePhotos}
+                setSitePhotos={setSitePhotos}
+                rolePhotos={rolePhotos}
+                setRolePhotos={setRolePhotos}
+                editorialPosts={editorialPosts}
+                setEditorialPosts={setEditorialPosts}
+                siteContent={siteContent}
+                setSiteContent={setSiteContent}
+                onEventSavedFocus={(focus) => setCalendarFocus(focus)}
+                agendaSyncError={agendaSyncError}
+                supabaseSetupError={
+                  !isSupabaseConfigured && supabaseConfigError
+                    ? `Revise o .env do Douha: ${supabaseConfigError}`
+                    : ''
+                }
+                adminSection="calendario"
               />
             )}
           />
