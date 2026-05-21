@@ -1269,6 +1269,11 @@ function AgendaCalendarSection({
     return rows.slice(0, MAX_EVENTS_PER_MONTH);
   }, [monthBuckets, selectedMonth, selectedYear]);
   const emptySlots = Math.max(0, MAX_EVENTS_PER_MONTH - monthEvents.length);
+  /** Menos de 4 eventos no mes: centraliza os cards (admin com slots vazios mantem grade cheia). */
+  const sparseCalendarGrid =
+    monthEvents.length > 0
+    && monthEvents.length < MAX_EVENTS_PER_MONTH
+    && !(adminMode && showEmptySlots);
 
   const WrapperTag = embedded ? 'div' : 'section';
   const InnerTag = 'div';
@@ -1310,7 +1315,10 @@ function AgendaCalendarSection({
           </div>
         </div>
 
-        <div className="calendar-event-grid">
+        <div
+          className={`calendar-event-grid${sparseCalendarGrid ? ' calendar-event-grid--sparse' : ''}`}
+          style={sparseCalendarGrid ? { '--calendar-visible-count': monthEvents.length } : undefined}
+        >
           {monthEvents.length ? monthEvents.map((night) => (
             adminMode ? (
               <article key={`calendar-${night.id}`} className="admin-calendar-slot">
