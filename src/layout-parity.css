@@ -234,15 +234,22 @@
   }
 }
 
-/* Calendario: mesmas abas de mes/ano (scroll se precisar) */
+/* Calendario: abas de mes (scroll); anos centralizados (2025, 2026, etc.) */
 .calendar-year-tabs,
 .calendar-month-tabs {
   flex-wrap: nowrap;
-  justify-content: flex-start;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   max-width: 100%;
+}
+
+.calendar-year-tabs {
+  justify-content: center;
+}
+
+.calendar-month-tabs {
+  justify-content: flex-start;
 }
 
 .calendar-year-tabs::-webkit-scrollbar,
