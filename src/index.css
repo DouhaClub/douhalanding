@@ -564,19 +564,21 @@ a {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .calendar-event-grid .agenda-event {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
   border-radius: 10px;
   border: 1px solid rgba(45, 41, 22, 0.2);
   padding: 8px;
   background: transparent;
-  max-width: 300px;
+  max-width: none;
   width: 100%;
-  justify-self: center;
+  justify-self: stretch;
   gap: 10px;
   margin: 0;
   border-top: 1px solid rgba(45, 41, 22, 0.2);
@@ -589,35 +591,58 @@ a {
 .calendar-event-grid .agenda-poster-link,
 .calendar-event-grid .agenda-poster-link-disabled {
   display: block;
+  flex: 0 0 auto;
+  width: 100%;
 }
 
 .calendar-event-grid .agenda-poster {
+  width: 100%;
   max-height: none;
   aspect-ratio: 3 / 4;
+  min-height: 0;
 }
 
 .calendar-event-grid .agenda-event-details {
-  margin-top: 8px;
-  display: grid;
+  flex: 0 0 var(--calendar-card-details-h, 5.25rem);
+  height: var(--calendar-card-details-h, 5.25rem);
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   gap: 6px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .calendar-event-grid .event-date {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: baseline;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  margin: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.78rem;
 }
 
 .calendar-event-grid .event-date span {
   opacity: 0.72;
   letter-spacing: 0.06em;
+  flex-shrink: 0;
 }
 
 .calendar-event-grid .event-lineup {
-  margin-top: 0;
+  margin: 0;
   line-height: 1.35;
+  font-size: 0.8rem;
+  flex: 1;
+  min-height: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
   word-break: break-word;
 }
 
@@ -633,11 +658,15 @@ a {
   border: 1px solid rgba(45, 41, 22, 0.2);
   padding: 12px;
   background: rgba(45, 41, 22, 0.03);
-  display: grid;
-  gap: 6px;
-  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  max-width: none;
   width: 100%;
-  justify-self: center;
+  height: 100%;
+  min-height: 100%;
+  justify-self: stretch;
 }
 
 .admin-calendar-slot-empty {
@@ -1362,23 +1391,6 @@ button:disabled,
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   align-items: start;
-}
-
-@media (max-width: 960px) {
-  .sets-video-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 520px) {
-  .sets-video-grid {
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(200px, 78vw);
-    grid-template-columns: none;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    scrollbar-width: thin;
-  }
 }
 
 .sets-video-card {
@@ -2149,59 +2161,6 @@ button:disabled,
   to {
     transform: translate(calc(-50% + var(--role-drift, 8px)), calc(100% + 58vh));
   }
-}
-
-@media (max-width: 640px) {
-  .hero-fotos-marquee-outer,
-  .hero-fotos-shell,
-  .hero-photo-carousel {
-    min-height: min(70vh, 720px);
-    height: min(70vh, 720px);
-  }
-
-  .photo-frame.hero-photo-frame {
-    width: clamp(150px, 42vw, 280px);
-  }
-
-  .photo-frame.hero-photo-frame.hero-photo-frame-wide {
-    width: calc(2 * clamp(150px, 42vw, 280px));
-  }
-}
-
-@media (max-width: 720px) {
-  .editorial-news-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .editorial-newsroom-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .calendar-event-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .calendar-month-tabs {
-    gap: 8px 12px;
-  }
-
-  .agenda-event {
-    grid-template-columns: 1fr;
-  }
-
-  .agenda-poster {
-    max-height: none;
-    aspect-ratio: 3 / 4;
-  }
-}
-
-@media (max-width: 960px) {
-  .nav {
-    gap: 8px;
-  }
-
-  .nav a { font-size: 0.75rem; }
-  .hero-title { font-size: clamp(2.2rem, 15vw, 5rem); }
 }
 
 /* Banner LGPD: cookies / armazenamento + cache (Service Worker apos aceite) — painel elevado */

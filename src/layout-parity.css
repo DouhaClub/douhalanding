@@ -1,0 +1,181 @@
+/**
+ * Paridade mobile / desktop: mesmo esqueleto visual em qualquer largura.
+ * Grids de 4 colunas com scroll horizontal; hero e header com mesmas medidas.
+ */
+
+:root {
+  --douha-gutter: clamp(16px, 3vw, 24px);
+  --douha-hero-height: min(78vh, 920px);
+  --douha-hero-frame: clamp(220px, 32vw, 400px);
+  --douha-grid-col-min: 240px;
+  --douha-grid-4: repeat(4, minmax(var(--douha-grid-col-min), 1fr));
+  --calendar-card-details-h: 5.25rem;
+}
+
+.container {
+  padding-left: var(--douha-gutter);
+  padding-right: var(--douha-gutter);
+}
+
+/* —— Hero (mesmo tamanho no celular e no PC) —— */
+.hero-fotos-marquee-outer,
+.hero-fotos-shell,
+.hero-photo-carousel {
+  min-height: var(--douha-hero-height);
+  height: var(--douha-hero-height);
+}
+
+.photo-frame.hero-photo-frame {
+  width: var(--douha-hero-frame);
+}
+
+.photo-frame.hero-photo-frame.hero-photo-frame-wide {
+  width: calc(2 * var(--douha-hero-frame));
+}
+
+/* —— Header: mesmos links e tipografia; scroll horizontal se faltar largura —— */
+.header-inner {
+  flex-wrap: nowrap;
+  gap: 12px 16px;
+}
+
+.header-brand-block {
+  flex-shrink: 0;
+}
+
+.nav--header {
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: 4px;
+  padding-bottom: 2px;
+}
+
+.nav--header::-webkit-scrollbar {
+  display: none;
+}
+
+.nav--header a {
+  flex-shrink: 0;
+  font-size: 0.88rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  padding: 8px 4px;
+  min-height: 44px;
+  align-items: center;
+  display: inline-flex;
+}
+
+/* —— Grids 4 colunas: igual ao desktop, desliza no mobile —— */
+.calendar-event-grid,
+.editorial-news-grid,
+.sets-video-grid {
+  grid-template-columns: var(--douha-grid-4) !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: var(--douha-gutter);
+  scrollbar-width: thin;
+}
+
+.calendar-event-grid > *,
+.editorial-news-grid > *,
+.sets-video-grid > * {
+  scroll-snap-align: start;
+}
+
+/* Cards do calendario: mesma celula da grade (sem encolher no centro) */
+.calendar-event-grid {
+  align-items: stretch !important;
+}
+
+.calendar-event-grid .agenda-event,
+.calendar-event-grid .admin-calendar-slot {
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
+}
+
+/* Editorial: manter duas colunas como no desktop */
+.editorial-newsroom-hero {
+  grid-template-columns: minmax(260px, 1.4fr) minmax(220px, 1fr) !important;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+
+/* Lista de agenda (fora do calendario): poster + texto lado a lado */
+.agenda-event {
+  grid-template-columns: minmax(148px, 220px) minmax(0, 1fr) !important;
+}
+
+.agenda-poster {
+  max-height: 340px !important;
+  aspect-ratio: 2 / 3;
+}
+
+/* Posters: hover no mouse; toque no mobile */
+@media (hover: none) {
+  .agenda-poster-link .agenda-poster-overlay {
+    opacity: 0;
+  }
+
+  .agenda-poster-link:active .agenda-poster-overlay,
+  .agenda-poster-link:focus-visible .agenda-poster-overlay {
+    opacity: 1;
+  }
+}
+
+/* Toques: mesma resposta visual dos botoes do desktop */
+@media (hover: none) {
+  button:active,
+  [type='button']:active,
+  [type='submit']:active,
+  a.pill:active,
+  .nav a:active,
+  .calendar-year-tab:active,
+  .calendar-month-tab:active {
+    transform: scale(0.98);
+    opacity: 0.92;
+  }
+}
+
+/* Calendario: mesmas abas de mes/ano (scroll se precisar) */
+.calendar-year-tabs,
+.calendar-month-tabs {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: 100%;
+}
+
+.calendar-year-tabs::-webkit-scrollbar,
+.calendar-month-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.calendar-year-tab,
+.calendar-month-tab {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+
+/* Areas seguras (notch / barra do iPhone) */
+.header {
+  padding-top: max(14px, env(safe-area-inset-top));
+}
+
+.page {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}

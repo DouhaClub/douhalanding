@@ -1193,6 +1193,27 @@ function AgendaCalendarSection({
     return years.includes(current) ? current : years[0];
   });
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const calendarAutoFocusedRef = useRef(false);
+
+  /** Abre no primeiro mes que tiver evento (evita 2026/Maio vazio quando a agenda esta em 2025). */
+  useEffect(() => {
+    if (calendarAutoFocusedRef.current || !agendaEvents.length) return;
+    const currentMonthRows = monthBuckets[selectedYear]?.[selectedMonth] || [];
+    if (currentMonthRows.length > 0) {
+      calendarAutoFocusedRef.current = true;
+      return;
+    }
+    for (const year of yearOptions) {
+      for (let m = 0; m < 12; m += 1) {
+        if ((monthBuckets[year]?.[m] || []).length > 0) {
+          setSelectedYear(year);
+          setSelectedMonth(m);
+          calendarAutoFocusedRef.current = true;
+          return;
+        }
+      }
+    }
+  }, [agendaEvents, monthBuckets, yearOptions]);
 
   useEffect(() => {
     if (!applySavedFocus) return;
@@ -1292,7 +1313,10 @@ function AgendaCalendarSection({
               </article>
             ) : <AgendaEventBlock key={`calendar-${night.id}`} night={night} />
           )) : (
-            <p className="calendar-empty-note">Nenhum evento nesse mes.</p>
+            <p className="calendar-empty-note">
+              Nenhum evento em {MONTH_LABELS[selectedMonth]} {selectedYear}.
+              {yearOptions.length > 1 ? ' Troque o ano (ex.: 2025) ou outro mes.' : ' Escolha outro mes.'}
+            </p>
           )}
           {showEmptySlots ? Array.from({ length: emptySlots }).map((_, idx) => (
             <article key={`empty-slot-${selectedYear}-${selectedMonth}-${idx}`} className="admin-calendar-slot admin-calendar-slot-empty">
