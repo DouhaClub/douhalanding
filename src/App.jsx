@@ -278,14 +278,23 @@ const YELLOW_BANNER_PX = {
 /** Faixa diagonal de fotos do role (fundo atras dos cards). */
 const ROLE_PHOTOS_STAGE_PX = { width: 1920, height: 760 };
 
-function buildYellowBannerBgProps(imageUrl, baseClassName) {
+/** Camada de textura atras do texto nas duas faixas amarelas. */
+function YellowStripBg({ imageUrl }) {
   const url = String(imageUrl || '').trim();
-  if (!url) return { className: baseClassName };
+  if (!url) return null;
   const safe = url.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-  return {
-    className: `${baseClassName} yellow-banner--has-bg`,
-    style: { '--banner-bg-url': `url("${safe}")` },
-  };
+  return (
+    <div
+      className="douha-yellow-strip__bg"
+      aria-hidden="true"
+      style={{ backgroundImage: `url("${safe}")` }}
+    />
+  );
+}
+
+function yellowStripClassName(baseClassName, imageUrl) {
+  const url = String(imageUrl || '').trim();
+  return url ? `${baseClassName} douha-yellow-strip douha-yellow-strip--has-bg` : `${baseClassName} douha-yellow-strip`;
 }
 
 function buildRoleStageBgProps(imageUrl) {
@@ -1737,12 +1746,8 @@ function HomePage({
             </>
           ) : null}
         </div>
-        <div
-          {...buildYellowBannerBgProps(
-            siteContent?.experienceCopyBannerBgUrl,
-            'experience-highlight-copy',
-          )}
-        >
+        <div className={yellowStripClassName('experience-highlight-copy', siteContent?.experienceCopyBannerBgUrl)}>
+          <YellowStripBg imageUrl={siteContent?.experienceCopyBannerBgUrl} />
           <div className="container">
             <h2>
               <span>CONHECA A EXPERIENCIA DOUHA</span>
@@ -1771,9 +1776,8 @@ function HomePage({
         </div>
       </section>
 
-      <section
-        {...buildYellowBannerBgProps(siteContent?.setsBannerBgUrl, 'sets-banner')}
-      >
+      <section className={yellowStripClassName('sets-banner', siteContent?.setsBannerBgUrl)}>
+        <YellowStripBg imageUrl={siteContent?.setsBannerBgUrl} />
         <div className="container">
           <p className="sets-banner-copy">
             <span>Sinta o Douha alem das paredes do club.</span>{' '}
@@ -1948,9 +1952,8 @@ function SetsPage({ siteContent, youtubeChannelBranding, youtubeChannelHref }) {
 
   return (
     <main>
-      <section
-        {...buildYellowBannerBgProps(siteContent?.setsBannerBgUrl, 'sets-banner')}
-      >
+      <section className={yellowStripClassName('sets-banner', siteContent?.setsBannerBgUrl)}>
+        <YellowStripBg imageUrl={siteContent?.setsBannerBgUrl} />
         <div className="container">
           <p className="sets-banner-copy">
             <span>Sinta o Douha alem das paredes do club.</span>{' '}
@@ -3074,15 +3077,17 @@ function AdminPage({
                 </div>
               </div>
               <div className="admin-yellow-banners-block">
-                <h4 className="admin-subheading">Faixas amarelas — textura de fundo (2º plano)</h4>
-                <p className="about-copy image-spec-note">{IMAGE_SPEC.experienceCopyBanner}</p>
-                <p className="about-copy image-spec-note">{IMAGE_SPEC.setsBanner}</p>
+                <h4 className="admin-subheading">Faixas amarelas (2) — textura atras do texto</h4>
                 <p className="about-copy">
-                  A imagem fica <strong>atras da escrita</strong>. Vazio = amarelo padrao do site. Depois de enviar, clique em
-                  {' '}<strong>Salvar alteracoes</strong> abaixo.
+                  Sao <strong>duas faixas separadas</strong> na Home. Cada uma tem seu upload. Vazio = amarelo padrao.
+                  Depois de enviar as duas, clique em <strong>Salvar alteracoes</strong>.
                 </p>
+              </div>
+              <article className="admin-panel-card admin-yellow-strip-card">
+                <h3>Faixa 1 — Conheca a experiencia Douha</h3>
+                <p className="about-copy image-spec-note">{IMAGE_SPEC.experienceCopyBanner}</p>
                 <div className="admin-form">
-                  <label htmlFor="admin-experience-copy-banner-url">Faixa &quot;Conheca a experiencia&quot; — URL</label>
+                  <label htmlFor="admin-experience-copy-banner-url">URL da textura</label>
                   <input
                     id="admin-experience-copy-banner-url"
                     type="text"
@@ -3110,15 +3115,18 @@ function AdminPage({
                     <p className="admin-error">{experienceCopyBannerUploadError}</p>
                   ) : null}
                   {String(draftSiteContent.experienceCopyBannerBgUrl || '').trim() ? (
-                    <div
-                      className="admin-yellow-banner-preview experience-highlight-copy yellow-banner--has-bg"
-                      style={{ '--banner-bg-url': `url("${String(draftSiteContent.experienceCopyBannerBgUrl).trim().replace(/"/g, '\\"')}")` }}
-                    >
-                      <span>Preview fundo — texto fica por cima no site</span>
+                    <div className="admin-yellow-banner-preview experience-highlight-copy douha-yellow-strip douha-yellow-strip--has-bg">
+                      <YellowStripBg imageUrl={draftSiteContent.experienceCopyBannerBgUrl} />
+                      <span>Preview faixa 1</span>
                     </div>
                   ) : null}
-
-                  <label htmlFor="admin-sets-banner-url">Faixa Sets — URL</label>
+                </div>
+              </article>
+              <article className="admin-panel-card admin-yellow-strip-card">
+                <h3>Faixa 2 — Sets (antes dos videos)</h3>
+                <p className="about-copy image-spec-note">{IMAGE_SPEC.setsBanner}</p>
+                <div className="admin-form">
+                  <label htmlFor="admin-sets-banner-url">URL da textura</label>
                   <input
                     id="admin-sets-banner-url"
                     type="text"
@@ -3144,14 +3152,17 @@ function AdminPage({
                   ) : null}
                   {setsBannerUploadError ? <p className="admin-error">{setsBannerUploadError}</p> : null}
                   {String(draftSiteContent.setsBannerBgUrl || '').trim() ? (
-                    <div
-                      className="admin-yellow-banner-preview sets-banner yellow-banner--has-bg"
-                      style={{ '--banner-bg-url': `url("${String(draftSiteContent.setsBannerBgUrl).trim().replace(/"/g, '\\"')}")` }}
-                    >
-                      <span>Preview fundo — texto fica por cima no site</span>
+                    <div className="admin-yellow-banner-preview sets-banner douha-yellow-strip douha-yellow-strip--has-bg">
+                      <YellowStripBg imageUrl={draftSiteContent.setsBannerBgUrl} />
+                      <span>Preview faixa 2</span>
                     </div>
                   ) : null}
                 </div>
+              </article>
+              <div className="admin-yellow-banners-block">
+                <p className="about-copy admin-yellow-banners-save-hint">
+                  Lembre de <strong>Salvar alteracoes</strong> no bloco de textos/links acima para gravar as duas faixas no site.
+                </p>
               </div>
               {siteContentSaveError ? <p className="admin-error">{siteContentSaveError}</p> : null}
               <div className="admin-actions">

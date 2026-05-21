@@ -126,8 +126,12 @@
   width: 100%;
   max-width: none;
   justify-self: stretch;
-  height: 100%;
-  min-height: 100%;
+  height: auto;
+  min-height: 0;
+}
+
+.calendar-event-grid {
+  align-items: start !important;
 }
 
 /* Conteudo interno: sempre alinhado ao topo/esquerda; bloco de texto com altura fixa */
