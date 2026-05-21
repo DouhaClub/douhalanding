@@ -334,6 +334,37 @@ a {
     radial-gradient(120% 180% at 20% 50%, rgba(255, 247, 204, 0.35) 0%, rgba(255, 247, 204, 0.06) 55%, transparent 100%);
   color: #2d2916;
   padding: 24px 0 72px;
+  min-height: 220px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Textura/imagem de fundo das faixas amarelas: sempre atras do texto (2º plano). */
+.yellow-banner--has-bg {
+  isolation: isolate;
+}
+
+.yellow-banner--has-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--banner-bg-url);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.experience-highlight-copy.yellow-banner--has-bg {
+  background: rgba(225, 187, 42, 0.42);
+}
+
+.experience-highlight-copy .container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
 }
 
 /* Titulo + texto colados no canto esquerdo (container global e centrado por padrao). */
@@ -403,6 +434,7 @@ a {
 
 .people-role-photos-stage {
   min-height: clamp(440px, 58vw, 760px);
+  height: clamp(440px, 58vw, 760px);
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
@@ -410,6 +442,7 @@ a {
   position: relative;
   overflow: hidden;
   padding: 0;
+  isolation: isolate;
 }
 
 /* Ilustracoes Douha (coqueiros, personagens, etc.) em camadas atras das fotos */
@@ -446,6 +479,15 @@ a {
     min(30vw, 260px) auto,
     min(26vw, 240px) auto,
     min(22vw, 200px) auto;
+  background-repeat: no-repeat;
+}
+
+/* Fundo customizado (admin): substitui ilustracoes; cards do role ficam no 1º plano */
+.people-role-photos-stage.role-stage--has-bg::before {
+  background-color: #f2ebe0;
+  background-image: var(--role-stage-bg-url);
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
 }
 
@@ -565,6 +607,7 @@ a {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   align-items: stretch;
+  justify-items: stretch;
 }
 
 .calendar-event-grid .agenda-event {
@@ -960,9 +1003,11 @@ button:disabled,
 
 .cities {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 22px;
+  align-items: stretch;
+  justify-items: stretch;
 }
 
 .city-card {
@@ -970,6 +1015,13 @@ button:disabled,
   border-radius: 10px;
   background: rgba(45, 41, 22, 0.03);
   padding: 14px;
+  width: 100%;
+  height: 100%;
+  min-height: var(--douha-card-min-h, 11.5rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .city-card h3 {
@@ -1116,13 +1168,20 @@ button:disabled,
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
+  align-items: stretch;
+  justify-items: stretch;
 }
 
 .editorial-news-card {
   border-top: 1px solid rgba(45, 41, 22, 0.16);
   padding-top: 10px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  text-align: left;
 }
 
 .editorial-news-kicker {
@@ -1271,10 +1330,18 @@ button:disabled,
   padding: 0;
   border-top: 1px solid rgba(45, 41, 22, 0.18);
   border-bottom: 1px solid rgba(45, 41, 22, 0.2);
+  min-height: 150px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sets-banner.yellow-banner--has-bg {
+  background: rgba(225, 187, 42, 0.42);
 }
 
 .sets-banner .container {
-  min-height: 0;
+  min-height: 150px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -1283,6 +1350,76 @@ button:disabled,
   padding-left: clamp(10px, 2.2vw, 18px);
   padding-top: 44px;
   padding-bottom: 44px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.admin-yellow-banners-block {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(45, 41, 22, 0.14);
+}
+
+.admin-yellow-banner-preview {
+  min-height: 80px;
+  border: 1px dashed rgba(45, 41, 22, 0.28);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 12px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.admin-yellow-banner-preview.experience-highlight-copy {
+  min-height: 72px;
+  padding: 10px 12px;
+}
+
+.admin-yellow-banner-preview span {
+  position: relative;
+  z-index: 1;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(255, 249, 225, 0.72);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.admin-role-stage-bg-block {
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(45, 41, 22, 0.14);
+}
+
+.admin-role-stage-preview {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  min-height: 140px;
+  height: 140px;
+  border: 1px dashed rgba(45, 41, 22, 0.28);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+
+.admin-role-stage-preview span {
+  position: relative;
+  z-index: 2;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(255, 249, 225, 0.85);
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 .sets-banner-copy {
@@ -1390,7 +1527,8 @@ button:disabled,
   width: 100%;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  align-items: start;
+  align-items: stretch;
+  justify-items: stretch;
 }
 
 .sets-video-card {
@@ -1398,9 +1536,14 @@ button:disabled,
   border-radius: 6px;
   background: rgba(45, 41, 22, 0.02);
   overflow: hidden;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
   padding-bottom: 6px;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  text-align: left;
 }
 
 .sets-video-thumb {
@@ -1711,8 +1854,10 @@ button:disabled,
 .ticket-grid,
 .contact-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+  align-items: stretch;
+  justify-items: stretch;
 }
 
 .ticket-card,
@@ -1721,6 +1866,13 @@ button:disabled,
   border-radius: 10px;
   background: rgba(45, 41, 22, 0.03);
   padding: 16px;
+  width: 100%;
+  height: 100%;
+  min-height: var(--douha-card-min-h, 11.5rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .ticket-card h3,

@@ -10,6 +10,7 @@
   --douha-grid-col-min: 240px;
   --douha-grid-4: repeat(4, minmax(var(--douha-grid-col-min), 1fr));
   --calendar-card-details-h: 5.25rem;
+  --douha-card-min-h: 11.5rem;
 }
 
 .container {
@@ -72,11 +73,16 @@
   display: inline-flex;
 }
 
-/* —— Grids 4 colunas: igual ao desktop, desliza no mobile —— */
+/* —— Grids de cards: mesma celula, mesma altura na linha, sem centralizar no meio —— */
 .calendar-event-grid,
 .editorial-news-grid,
-.sets-video-grid {
+.sets-video-grid,
+.ticket-grid,
+.contact-grid,
+.cities {
   grid-template-columns: var(--douha-grid-4) !important;
+  align-items: stretch !important;
+  justify-items: stretch !important;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
@@ -88,20 +94,91 @@
 
 .calendar-event-grid > *,
 .editorial-news-grid > *,
-.sets-video-grid > * {
+.sets-video-grid > *,
+.ticket-grid > *,
+.contact-grid > *,
+.cities > * {
   scroll-snap-align: start;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  justify-self: stretch;
+  align-self: stretch;
+}
+
+.calendar-event-grid > .calendar-empty-note {
+  grid-column: 1 / -1;
+  text-align: left;
 }
 
 /* Cards do calendario: mesma celula da grade (sem encolher no centro) */
-.calendar-event-grid {
-  align-items: stretch !important;
-}
-
 .calendar-event-grid .agenda-event,
 .calendar-event-grid .admin-calendar-slot {
   width: 100%;
   max-width: none;
   justify-self: stretch;
+  height: 100%;
+  min-height: 100%;
+}
+
+/* Conteudo interno: sempre alinhado ao topo/esquerda; bloco de texto com altura fixa */
+.calendar-event-grid .agenda-event-details,
+.editorial-news-card,
+.sets-video-card,
+.city-card,
+.ticket-card,
+.contact-card,
+.admin-calendar-slot {
+  text-align: left;
+}
+
+.editorial-news-card,
+.sets-video-card,
+.city-card,
+.ticket-card,
+.contact-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: var(--douha-card-min-h);
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.sets-video-card {
+  min-height: 0;
+}
+
+.sets-video-card .sets-video-thumb {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+.sets-video-card p {
+  flex: 1 1 auto;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  min-height: 3.2em;
+}
+
+.editorial-news-card h3,
+.editorial-news-card p {
+  text-align: left;
+}
+
+.editorial-news-card p {
+  flex: 1 1 auto;
+}
+
+.ticket-card h3,
+.ticket-card p,
+.contact-card h3,
+.contact-card p,
+.city-card h3,
+.city-card p {
+  text-align: left;
 }
 
 /* Editorial: manter duas colunas como no desktop */

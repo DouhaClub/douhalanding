@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BrowserRouter, NavLink, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, NavLink, Routes, Route, Link, Navigate } from 'react-router-dom';
 import {
   formatSupabaseStorageUploadError,
   isSupabaseConfigured,
@@ -261,7 +261,42 @@ const defaultSiteContent = {
   socialYouTubeUrl: 'https://www.youtube.com/channel/UCOzUfp-FC2acGvWiCijckbA',
   /** URL da faixa visual acima de "Conheca a experiencia Douha" na Home (vazio = fundo padrao) */
   experienceHeroImageUrl: '',
+  /** Textura/fundo da faixa amarela "Conheca a experiencia" (2º plano; texto por cima) */
+  experienceCopyBannerBgUrl: '',
+  /** Textura/fundo da faixa amarela Sets (2º plano; texto por cima) */
+  setsBannerBgUrl: '',
+  /** Textura/fundo da faixa diagonal de fotos do role (2º plano; cards FOTO por cima) */
+  rolePhotosStageBgUrl: '',
 };
+
+/** Medidas de exportacao das faixas amarelas (largura x altura em px). */
+const YELLOW_BANNER_PX = {
+  experienceCopy: { width: 1920, height: 220 },
+  sets: { width: 1920, height: 150 },
+};
+
+/** Faixa diagonal de fotos do role (fundo atras dos cards). */
+const ROLE_PHOTOS_STAGE_PX = { width: 1920, height: 760 };
+
+function buildYellowBannerBgProps(imageUrl, baseClassName) {
+  const url = String(imageUrl || '').trim();
+  if (!url) return { className: baseClassName };
+  const safe = url.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return {
+    className: `${baseClassName} yellow-banner--has-bg`,
+    style: { '--banner-bg-url': `url("${safe}")` },
+  };
+}
+
+function buildRoleStageBgProps(imageUrl) {
+  const url = String(imageUrl || '').trim();
+  if (!url) return { className: 'people-role-photos-stage' };
+  const safe = url.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return {
+    className: 'people-role-photos-stage role-stage--has-bg',
+    style: { '--role-stage-bg-url': `url("${safe}")` },
+  };
+}
 
 const faq = [
   { q: 'Como compro ingresso?', a: 'Use a pagina Ingressos. Cada card redireciona para a plataforma oficial.' },
@@ -274,6 +309,9 @@ const IMAGE_SPEC = {
   agendaPoster: `Tamanho sugerido para poster na agenda: 1080×1620 px (proporcao 2:3, retrato). Tamanho maximo recomendado: ${POSTER_MAX_LABEL}.`,
   gallery:
     'Tamanho sugerido para galeria: largura minima 1200 px; proporcao livre (imagem inteira). Foto larga: panoramas ou banners largos ocupam 2 colunas no carrossel.',
+  experienceCopyBanner: `Faixa amarela "Conheca a experiencia": ${YELLOW_BANNER_PX.experienceCopy.width}×${YELLOW_BANNER_PX.experienceCopy.height} px (paisagem). A imagem fica atras do texto.`,
+  setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). A imagem fica atras do texto.`,
+  rolePhotosStage: `Fundo da faixa de fotos do role: ${ROLE_PHOTOS_STAGE_PX.width}×${ROLE_PHOTOS_STAGE_PX.height} px (paisagem). A imagem fica atras dos cards FOTO.`,
 };
 
 function normalizeAgendaItem(item, idx = 0) {
@@ -490,29 +528,7 @@ function loadStoredSiteContent() {
     const raw = localStorage.getItem(SITE_CONTENT_STORAGE_KEY);
     if (!raw) return { ...defaultSiteContent };
     const parsed = JSON.parse(raw);
-    return {
-      whoWeAreText: String(parsed?.whoWeAreText || defaultSiteContent.whoWeAreText),
-      whoWeAreInstagram: String(parsed?.whoWeAreInstagram || defaultSiteContent.whoWeAreInstagram),
-      contactEmail: String(parsed?.contactEmail || defaultSiteContent.contactEmail),
-      contactWhatsApp: String(parsed?.contactWhatsApp || defaultSiteContent.contactWhatsApp),
-      communityNewsletterLabel: String(parsed?.communityNewsletterLabel || defaultSiteContent.communityNewsletterLabel),
-      communityNewsletterUrl: String(parsed?.communityNewsletterUrl || defaultSiteContent.communityNewsletterUrl),
-      communityWhatsAppLabel: String(parsed?.communityWhatsAppLabel || defaultSiteContent.communityWhatsAppLabel),
-      communityWhatsAppUrl: String(parsed?.communityWhatsAppUrl || defaultSiteContent.communityWhatsAppUrl),
-      communityInstagramLabel: String(parsed?.communityInstagramLabel || defaultSiteContent.communityInstagramLabel),
-      communityInstagramUrl: String(parsed?.communityInstagramUrl || defaultSiteContent.communityInstagramUrl),
-      socialInstagramHandle: String(parsed?.socialInstagramHandle || defaultSiteContent.socialInstagramHandle),
-      socialInstagramUrl: String(parsed?.socialInstagramUrl || defaultSiteContent.socialInstagramUrl),
-      socialTikTokHandle: String(parsed?.socialTikTokHandle || defaultSiteContent.socialTikTokHandle),
-      socialTikTokUrl: String(parsed?.socialTikTokUrl || defaultSiteContent.socialTikTokUrl),
-      socialSoundCloudHandle: String(parsed?.socialSoundCloudHandle || defaultSiteContent.socialSoundCloudHandle),
-      socialSoundCloudUrl: String(parsed?.socialSoundCloudUrl || defaultSiteContent.socialSoundCloudUrl),
-      socialYouTubeHandle: String(parsed?.socialYouTubeHandle || defaultSiteContent.socialYouTubeHandle),
-      socialYouTubeUrl: String(parsed?.socialYouTubeUrl || defaultSiteContent.socialYouTubeUrl),
-      experienceHeroImageUrl: String(
-        parsed?.experienceHeroImageUrl ?? defaultSiteContent.experienceHeroImageUrl,
-      ),
-    };
+    return mergeSiteContentWithDefaults(parsed && typeof parsed === 'object' ? parsed : {});
   } catch {
     return { ...defaultSiteContent };
   }
@@ -1004,7 +1020,6 @@ function AppShell({
             <NavLink to="/quem-somos" className={({ isActive }) => (isActive ? 'is-active' : '')}>QUEM SOMOS</NavLink>
             <NavLink to="/calendario" className={({ isActive }) => (isActive ? 'is-active' : '')}>CALENDARIO</NavLink>
             <NavLink to="/tickets" className={({ isActive }) => (isActive ? 'is-active' : '')}>INGRESSOS</NavLink>
-            <NavLink to="/fotos" className={({ isActive }) => (isActive ? 'is-active' : '')}>FOTOS</NavLink>
             <NavLink to="/sets" className={({ isActive }) => (isActive ? 'is-active' : '')}>SETS</NavLink>
             <NavLink to="/editorial" className={({ isActive }) => (isActive ? 'is-active' : '')}>EDITORIAL</NavLink>
             <NavLink to="/contato" className={({ isActive }) => (isActive ? 'is-active' : '')}>CONTATO</NavLink>
@@ -1714,7 +1729,12 @@ function HomePage({
             </>
           ) : null}
         </div>
-        <div className="experience-highlight-copy">
+        <div
+          {...buildYellowBannerBgProps(
+            siteContent?.experienceCopyBannerBgUrl,
+            'experience-highlight-copy',
+          )}
+        >
           <div className="container">
             <h2>
               <span>CONHECA A EXPERIENCIA DOUHA</span>
@@ -1728,7 +1748,7 @@ function HomePage({
       </section>
 
       <section className="people-role-photos" aria-label="Espaco reservado para fotos do role">
-        <div className="people-role-photos-stage">
+        <div {...buildRoleStageBgProps(siteContent?.rolePhotosStageBgUrl)}>
           <div className="people-role-photos-diagonal" aria-hidden="true">
             {rolePhotoCards.map((item) => (
               <figure
@@ -1743,7 +1763,9 @@ function HomePage({
         </div>
       </section>
 
-      <section className="sets-banner">
+      <section
+        {...buildYellowBannerBgProps(siteContent?.setsBannerBgUrl, 'sets-banner')}
+      >
         <div className="container">
           <p className="sets-banner-copy">
             <span>Sinta o Douha alem das paredes do club.</span>{' '}
@@ -1887,73 +1909,7 @@ function TicketsPage() {
   );
 }
 
-function FotosPage({ sitePhotos, setSitePhotos, isAdminLoggedIn }) {
-  const uploadedPhotos = sitePhotos.length ? sitePhotos : gallery;
-  const parsedUploadedPhotos = useMemo(() => uploadedPhotos.map(parsePhotoEntry), [uploadedPhotos]);
-
-  const onFilesChange = (event) => {
-    const files = Array.from(event.target.files ?? []);
-    if (files.length === 0) return;
-    const mapped = files.map((file) => ({
-      id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2, 7)}`,
-      url: URL.createObjectURL(file),
-      name: file.name,
-    }));
-    setSitePhotos((prev) => [...mapped.map((item) => item.url), ...prev].slice(0, 60));
-  };
-
-  return (
-    <main>
-      <section className="section">
-        <div className="container">
-          <div className="section-head">
-            <h2>Nossas Fotos</h2>
-          </div>
-          <p className="about-copy">
-            Espaco para subir as fotos de cada dia. Neste esboco, as imagens aparecem localmente no navegador.
-          </p>
-          <p className="about-copy image-spec-note">{IMAGE_SPEC.gallery}</p>
-          <label className="upload-box" htmlFor="daily-photo-upload">
-            <span>Selecionar fotos do dia</span>
-            <small>JPG, PNG, WEBP - multiplos arquivos</small>
-          </label>
-          <input
-            id="daily-photo-upload"
-            type="file"
-            accept="image/*"
-            multiple
-            className="file-input"
-            onChange={onFilesChange}
-          />
-
-          <div className="uploaded-gallery">
-            {parsedUploadedPhotos.map((photo, idx) => (
-              <figure
-                key={`photo-${idx}-${photo.primary.slice(0, 24)}`}
-                className={`uploaded-card${photo.mode === 'wide' ? ' uploaded-card-wide' : ''}`}
-              >
-                <img src={photo.primary} alt="Foto do Douha Club" title={IMAGE_SPEC.gallery} />
-                <figcaption>
-                  {isAdminLoggedIn ? (
-                    <button
-                      type="button"
-                      className="pill"
-                      onClick={() => setSitePhotos((prev) => prev.filter((_, photoIdx) => photoIdx !== idx))}
-                    >
-                      Remover foto
-                    </button>
-                  ) : 'Foto da galeria'}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function SetsPage({ youtubeChannelBranding, youtubeChannelHref }) {
+function SetsPage({ siteContent, youtubeChannelBranding, youtubeChannelHref }) {
   const [videoCards, setVideoCards] = useState([]);
 
   useEffect(() => {
@@ -1984,7 +1940,9 @@ function SetsPage({ youtubeChannelBranding, youtubeChannelHref }) {
 
   return (
     <main>
-      <section className="sets-banner">
+      <section
+        {...buildYellowBannerBgProps(siteContent?.setsBannerBgUrl, 'sets-banner')}
+      >
         <div className="container">
           <p className="sets-banner-copy">
             <span>Sinta o Douha alem das paredes do club.</span>{' '}
@@ -2202,6 +2160,12 @@ function AdminPage({
   const [isUploadingExperienceHero, setIsUploadingExperienceHero] = useState(false);
   const [experienceHeroUploadError, setExperienceHeroUploadError] = useState('');
   const [experienceHeroPreviewFailed, setExperienceHeroPreviewFailed] = useState(false);
+  const [isUploadingExperienceCopyBannerBg, setIsUploadingExperienceCopyBannerBg] = useState(false);
+  const [isUploadingSetsBannerBg, setIsUploadingSetsBannerBg] = useState(false);
+  const [isUploadingRoleStageBg, setIsUploadingRoleStageBg] = useState(false);
+  const [experienceCopyBannerUploadError, setExperienceCopyBannerUploadError] = useState('');
+  const [setsBannerUploadError, setSetsBannerUploadError] = useState('');
+  const [roleStageBgUploadError, setRoleStageBgUploadError] = useState('');
   const [isSavingGallery, setIsSavingGallery] = useState(false);
   const [isSavingEditorial, setIsSavingEditorial] = useState(false);
   const [isSavingRolePhotos, setIsSavingRolePhotos] = useState(false);
@@ -2366,6 +2330,41 @@ function AdminPage({
     }
   };
 
+  const uploadYellowBannerBackground = async (file, fieldKey, setBusy, setError) => {
+    if (!file) return;
+    try {
+      if (!isSupabaseConfigured || !supabase) {
+        throw new Error(supabaseConfigError || 'Supabase nao configurado para upload.');
+      }
+      setBusy(true);
+      setError('');
+      const rawDataUrl = await readFileAsDataUrl(file);
+      if (typeof rawDataUrl !== 'string') throw new Error('Arquivo invalido.');
+      const maxWidth = fieldKey === 'setsBannerBgUrl'
+        ? YELLOW_BANNER_PX.sets.width
+        : fieldKey === 'rolePhotosStageBgUrl'
+          ? ROLE_PHOTOS_STAGE_PX.width
+          : YELLOW_BANNER_PX.experienceCopy.width;
+      const compressed = await compressDataUrlImage(rawDataUrl, { maxWidth, quality: 0.86 });
+      const compressedBlob = await (await fetch(String(compressed))).blob();
+      const fileForUpload = new File([compressedBlob], file.name || 'faixa-amarela.jpg', {
+        type: 'image/jpeg',
+      });
+      const publicUrl = await withTimeout(
+        uploadGalleryImageToSupabaseStorage(fileForUpload),
+        20000,
+        'Timeout ao enviar textura da faixa (20s).',
+      );
+      setDraftSiteContent((prev) =>
+        mergeSiteContentWithDefaults({ ...prev, [fieldKey]: String(publicUrl) }),
+      );
+    } catch (error) {
+      setError(error.message || 'Nao foi possivel enviar a imagem.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const onExperienceHeroUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -2397,6 +2396,42 @@ function AdminPage({
     } finally {
       setIsUploadingExperienceHero(false);
     }
+  };
+
+  const onExperienceCopyBannerBgUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = '';
+    await uploadYellowBannerBackground(
+      file,
+      'experienceCopyBannerBgUrl',
+      setIsUploadingExperienceCopyBannerBg,
+      setExperienceCopyBannerUploadError,
+    );
+  };
+
+  const onSetsBannerBgUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = '';
+    await uploadYellowBannerBackground(
+      file,
+      'setsBannerBgUrl',
+      setIsUploadingSetsBannerBg,
+      setSetsBannerUploadError,
+    );
+  };
+
+  const onRoleStageBgUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = '';
+    await uploadYellowBannerBackground(
+      file,
+      'rolePhotosStageBgUrl',
+      setIsUploadingRoleStageBg,
+      setRoleStageBgUploadError,
+    );
   };
 
   const onUsePosterUrl = () => {
@@ -3030,6 +3065,86 @@ function AdminPage({
                   />
                 </div>
               </div>
+              <div className="admin-yellow-banners-block">
+                <h4 className="admin-subheading">Faixas amarelas — textura de fundo (2º plano)</h4>
+                <p className="about-copy image-spec-note">{IMAGE_SPEC.experienceCopyBanner}</p>
+                <p className="about-copy image-spec-note">{IMAGE_SPEC.setsBanner}</p>
+                <p className="about-copy">
+                  A imagem fica <strong>atras da escrita</strong>. Vazio = amarelo padrao do site. Depois de enviar, clique em
+                  {' '}<strong>Salvar alteracoes</strong> abaixo.
+                </p>
+                <div className="admin-form">
+                  <label htmlFor="admin-experience-copy-banner-url">Faixa &quot;Conheca a experiencia&quot; — URL</label>
+                  <input
+                    id="admin-experience-copy-banner-url"
+                    type="text"
+                    inputMode="url"
+                    autoComplete="off"
+                    placeholder="https://..."
+                    value={draftSiteContent.experienceCopyBannerBgUrl ?? ''}
+                    onChange={(event) => setDraftSiteContent((prev) => ({
+                      ...mergeSiteContentWithDefaults(prev),
+                      experienceCopyBannerBgUrl: event.target.value,
+                    }))}
+                  />
+                  <label htmlFor="admin-experience-copy-banner-file">Enviar textura (experiencia)</label>
+                  <input
+                    id="admin-experience-copy-banner-file"
+                    type="file"
+                    accept="image/*"
+                    onChange={onExperienceCopyBannerBgUpload}
+                    disabled={isUploadingExperienceCopyBannerBg}
+                  />
+                  {isUploadingExperienceCopyBannerBg ? (
+                    <p className="admin-save-hint" role="status">Enviando textura da faixa experiencia...</p>
+                  ) : null}
+                  {experienceCopyBannerUploadError ? (
+                    <p className="admin-error">{experienceCopyBannerUploadError}</p>
+                  ) : null}
+                  {String(draftSiteContent.experienceCopyBannerBgUrl || '').trim() ? (
+                    <div
+                      className="admin-yellow-banner-preview experience-highlight-copy yellow-banner--has-bg"
+                      style={{ '--banner-bg-url': `url("${String(draftSiteContent.experienceCopyBannerBgUrl).trim().replace(/"/g, '\\"')}")` }}
+                    >
+                      <span>Preview fundo — texto fica por cima no site</span>
+                    </div>
+                  ) : null}
+
+                  <label htmlFor="admin-sets-banner-url">Faixa Sets — URL</label>
+                  <input
+                    id="admin-sets-banner-url"
+                    type="text"
+                    inputMode="url"
+                    autoComplete="off"
+                    placeholder="https://..."
+                    value={draftSiteContent.setsBannerBgUrl ?? ''}
+                    onChange={(event) => setDraftSiteContent((prev) => ({
+                      ...mergeSiteContentWithDefaults(prev),
+                      setsBannerBgUrl: event.target.value,
+                    }))}
+                  />
+                  <label htmlFor="admin-sets-banner-file">Enviar textura (Sets)</label>
+                  <input
+                    id="admin-sets-banner-file"
+                    type="file"
+                    accept="image/*"
+                    onChange={onSetsBannerBgUpload}
+                    disabled={isUploadingSetsBannerBg}
+                  />
+                  {isUploadingSetsBannerBg ? (
+                    <p className="admin-save-hint" role="status">Enviando textura da faixa Sets...</p>
+                  ) : null}
+                  {setsBannerUploadError ? <p className="admin-error">{setsBannerUploadError}</p> : null}
+                  {String(draftSiteContent.setsBannerBgUrl || '').trim() ? (
+                    <div
+                      className="admin-yellow-banner-preview sets-banner yellow-banner--has-bg"
+                      style={{ '--banner-bg-url': `url("${String(draftSiteContent.setsBannerBgUrl).trim().replace(/"/g, '\\"')}")` }}
+                    >
+                      <span>Preview fundo — texto fica por cima no site</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
               {siteContentSaveError ? <p className="admin-error">{siteContentSaveError}</p> : null}
               <div className="admin-actions">
                 <button type="button" className="pill pill-light" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
@@ -3186,6 +3301,59 @@ function AdminPage({
               Envie imagens em proporcao 3:4 (retrato) ou 4:3 (paisagem); no site todas aparecem no mesmo quadro 3:4 com recorte central (object-fit).
               A faixa rola em diagonal apos &quot;Conheca a Experiencia Douha&quot;; nao altera o carrossel do topo.
             </p>
+            <div className="admin-role-stage-bg-block">
+              <h4 className="admin-subheading">Fundo da faixa (2º plano — atras dos cards)</h4>
+              <p className="about-copy image-spec-note">{IMAGE_SPEC.rolePhotosStage}</p>
+              <p className="about-copy">
+                Substitui o fundo bege/ilustracoes padrao. Os cards <strong>FOTO</strong> continuam por cima. Vazio = visual padrao.
+                Depois de enviar, use <strong>Salvar alteracoes</strong> em Geral ou o botao abaixo.
+              </p>
+              <div className="admin-form">
+                <label htmlFor="admin-role-stage-bg-url">URL do fundo</label>
+                <input
+                  id="admin-role-stage-bg-url"
+                  type="text"
+                  inputMode="url"
+                  autoComplete="off"
+                  placeholder="https://..."
+                  value={draftSiteContent.rolePhotosStageBgUrl ?? ''}
+                  onChange={(event) => setDraftSiteContent((prev) => ({
+                    ...mergeSiteContentWithDefaults(prev),
+                    rolePhotosStageBgUrl: event.target.value,
+                  }))}
+                />
+                <label htmlFor="admin-role-stage-bg-file">Enviar textura / imagem de fundo</label>
+                <input
+                  id="admin-role-stage-bg-file"
+                  type="file"
+                  accept="image/*"
+                  onChange={onRoleStageBgUpload}
+                  disabled={isUploadingRoleStageBg}
+                />
+                {isUploadingRoleStageBg ? (
+                  <p className="admin-save-hint" role="status">Enviando fundo da faixa do role...</p>
+                ) : null}
+                {roleStageBgUploadError ? <p className="admin-error">{roleStageBgUploadError}</p> : null}
+                {String(draftSiteContent.rolePhotosStageBgUrl || '').trim() ? (
+                  <div
+                    className="admin-role-stage-preview people-role-photos-stage role-stage--has-bg"
+                    style={{
+                      '--role-stage-bg-url': `url("${String(draftSiteContent.rolePhotosStageBgUrl).trim().replace(/"/g, '\\"')}")`,
+                    }}
+                  >
+                    <span>Preview — cards FOTO ficam por cima no site</span>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  className="pill"
+                  onClick={onSaveSiteContent}
+                  disabled={isSavingSiteContent}
+                >
+                  {isSavingSiteContent ? 'Salvando...' : 'Salvar fundo no site'}
+                </button>
+              </div>
+            </div>
             {rolePhotosError ? <p className="admin-error">{rolePhotosError}</p> : null}
             <input type="file" accept="image/*" multiple onChange={onRolePhotoUpload} />
             <div className="admin-photo-grid">
@@ -3707,11 +3875,12 @@ export default function App() {
             element={<AgendaPage agendaEvents={agendaEvents} calendarFocus={calendarFocus} onFocusConsumed={() => setCalendarFocus(null)} />}
           />
           <Route path="/tickets" element={<TicketsPage />} />
-          <Route path="/fotos" element={<FotosPage sitePhotos={sitePhotos} setSitePhotos={setSitePhotos} isAdminLoggedIn={isAdminLoggedIn} />} />
+          <Route path="/fotos" element={<Navigate to="/" replace />} />
           <Route
             path="/sets"
             element={(
               <SetsPage
+                siteContent={siteContent}
                 youtubeChannelBranding={youtubeChannelBranding}
                 youtubeChannelHref={youtubeChannelHref}
               />
