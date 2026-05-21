@@ -120,21 +120,28 @@
   justify-content: center;
 }
 
-/* Cards do calendario: mesma celula da grade (sem encolher no centro) */
+/* Cards do calendario: mesma altura na linha da grade */
 .calendar-event-grid .agenda-event,
 .calendar-event-grid .admin-calendar-slot {
   width: 100%;
   max-width: none;
   justify-self: stretch;
-  height: auto;
-  min-height: 0;
+  align-self: stretch;
+  height: 100%;
+  min-height: 100%;
 }
 
-.calendar-event-grid {
-  align-items: start !important;
+/* Conteudo interno: bloco de texto com altura fixa (line-up longo nao estica o card) */
+.calendar-event-grid .agenda-event-details {
+  flex: 0 0 var(--calendar-card-details-h);
+  height: var(--calendar-card-details-h);
+  min-height: var(--calendar-card-details-h);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
 }
 
-/* Conteudo interno: sempre alinhado ao topo/esquerda; bloco de texto com altura fixa */
 .calendar-event-grid .agenda-event-details,
 .editorial-news-card,
 .sets-video-card,
@@ -203,13 +210,29 @@
 }
 
 /* Lista de agenda (fora do calendario): poster + texto lado a lado */
-.agenda-event {
+.agenda-events .agenda-event {
   grid-template-columns: minmax(148px, 220px) minmax(0, 1fr) !important;
 }
 
-.agenda-poster {
+.agenda-events .agenda-poster {
   max-height: 340px !important;
   aspect-ratio: 2 / 3;
+}
+
+/* Calendario: coluna unica (poster em cima, texto embaixo), posters iguais */
+.calendar-event-grid .agenda-event {
+  display: flex !important;
+  flex-direction: column;
+  grid-template-columns: none !important;
+  align-items: stretch;
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+  border-top: none !important;
+}
+
+.calendar-event-grid .agenda-poster {
+  max-height: none !important;
+  aspect-ratio: 3 / 4 !important;
 }
 
 /* Posters: hover no mouse; toque no mobile */

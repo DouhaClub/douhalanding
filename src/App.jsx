@@ -278,16 +278,19 @@ const YELLOW_BANNER_PX = {
 /** Faixa diagonal de fotos do role (fundo atras dos cards). */
 const ROLE_PHOTOS_STAGE_PX = { width: 1920, height: 760 };
 
-/** Camada de textura atras do texto nas duas faixas amarelas. */
+/** Camada de arte da faixa (proporcao fixa; nao usa cover para nao esticar/cortar). */
 function YellowStripBg({ imageUrl }) {
   const url = String(imageUrl || '').trim();
   if (!url) return null;
-  const safe = url.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
   return (
-    <div
+    <img
       className="douha-yellow-strip__bg"
+      src={url}
+      alt=""
       aria-hidden="true"
-      style={{ backgroundImage: `url("${safe}")` }}
+      decoding="async"
+      loading="lazy"
+      draggable={false}
     />
   );
 }
@@ -318,9 +321,9 @@ const IMAGE_SPEC = {
   agendaPoster: `Tamanho sugerido para poster na agenda: 1080×1620 px (proporcao 2:3, retrato). Tamanho maximo recomendado: ${POSTER_MAX_LABEL}.`,
   gallery:
     'Tamanho sugerido para galeria: largura minima 1200 px; proporcao livre (imagem inteira). Foto larga: panoramas ou banners largos ocupam 2 colunas no carrossel.',
-  experienceCopyBanner: `Faixa amarela "Conheca a experiencia": ${YELLOW_BANNER_PX.experienceCopy.width}×${YELLOW_BANNER_PX.experienceCopy.height} px (paisagem). A imagem fica atras do texto.`,
-  setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). A imagem fica atras do texto.`,
-  rolePhotosStage: `Fundo da faixa de fotos do role: ${ROLE_PHOTOS_STAGE_PX.width}×${ROLE_PHOTOS_STAGE_PX.height} px (paisagem). A imagem fica atras dos cards FOTO.`,
+  experienceCopyBanner: `Faixa amarela "Conheca a experiencia": ${YELLOW_BANNER_PX.experienceCopy.width}×${YELLOW_BANNER_PX.experienceCopy.height} px (paisagem). Exporte nessa proporcao; o texto vai na propria imagem.`,
+  setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). Exporte nessa proporcao.`,
+  rolePhotosStage: `Fundo da faixa de fotos do role: ${ROLE_PHOTOS_STAGE_PX.width}×${ROLE_PHOTOS_STAGE_PX.height} px (paisagem). Exporte nessa proporcao; cards FOTO ficam por cima.`,
 };
 
 function normalizeAgendaItem(item, idx = 0) {
@@ -1748,15 +1751,6 @@ function HomePage({
         </div>
         <div className={yellowStripClassName('experience-highlight-copy', siteContent?.experienceCopyBannerBgUrl)}>
           <YellowStripBg imageUrl={siteContent?.experienceCopyBannerBgUrl} />
-          <div className="container">
-            <h2>
-              <span>CONHECA A EXPERIENCIA DOUHA</span>
-            </h2>
-            <p>
-              <span>Uma imersao entre curadoria sonora, visual impactante e energia de pista</span>{' '}
-              <strong>pensada para marcar cada noite.</strong>
-            </p>
-          </div>
         </div>
       </section>
 

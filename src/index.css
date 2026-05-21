@@ -293,7 +293,10 @@ a {
 }
 
 .experience-highlight-image {
-  height: clamp(180px, 28vw, 320px);
+  aspect-ratio: 3 / 1;
+  width: 100%;
+  min-height: clamp(140px, 22vw, 320px);
+  height: auto;
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0.56) 100%),
     radial-gradient(130% 170% at 18% 42%, rgba(197, 58, 52, 0.16) 0%, rgba(197, 58, 52, 0.02) 56%, transparent 100%),
@@ -311,7 +314,7 @@ a {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   display: block;
 }
@@ -333,14 +336,26 @@ a {
     linear-gradient(90deg, rgba(225, 187, 42, 0.98) 0%, rgba(225, 187, 42, 0.93) 55%, rgba(225, 187, 42, 0.98) 100%),
     radial-gradient(120% 180% at 20% 50%, rgba(255, 247, 204, 0.35) 0%, rgba(255, 247, 204, 0.06) 55%, transparent 100%);
   color: #2d2916;
-  padding: 24px 0 72px;
-  min-height: 220px;
+  padding: 0;
+  min-height: 0;
   position: relative;
-  display: flex;
-  align-items: center;
+  display: block;
+  overflow: hidden;
 }
 
-/* Duas faixas amarelas: textura em camada propria (2º plano), texto por cima */
+/* Faixas com arte: altura pela proporcao do export (evita cover esticar/cortar) */
+.experience-highlight-copy.douha-yellow-strip--has-bg {
+  aspect-ratio: 1920 / 220;
+  width: 100%;
+  background: #e1bb2a;
+}
+
+.sets-banner.douha-yellow-strip--has-bg {
+  aspect-ratio: 1920 / 150;
+  width: 100%;
+  background: #e1bb2a;
+}
+
 .douha-yellow-strip {
   position: relative;
   isolation: isolate;
@@ -350,15 +365,16 @@ a {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  object-position: center;
   pointer-events: none;
+  user-select: none;
 }
 
-.douha-yellow-strip--has-bg.experience-highlight-copy,
 .douha-yellow-strip--has-bg.sets-banner {
-  background: rgba(225, 187, 42, 0.38);
+  background: rgba(225, 187, 42, 0.12);
 }
 
 .experience-highlight-copy .container {
@@ -482,11 +498,19 @@ a {
   background-repeat: no-repeat;
 }
 
-/* Fundo customizado (admin): substitui ilustracoes; cards do role ficam no 1º plano */
+/* Fundo customizado (admin): proporcao 1920×760, sem cover que amplia/corta a arte */
+.people-role-photos-stage.role-stage--has-bg {
+  aspect-ratio: 1920 / 760;
+  width: 100vw;
+  height: auto;
+  min-height: clamp(220px, 39.58vw, 760px);
+  max-height: none;
+}
+
 .people-role-photos-stage.role-stage--has-bg::before {
   background-color: #f2ebe0;
   background-image: var(--role-stage-bg-url);
-  background-size: cover;
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
 }
@@ -606,16 +630,17 @@ a {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
-  align-items: start;
+  align-items: stretch;
   justify-items: stretch;
 }
 
-/* Estilo abril: colunas com divisor, poster arredondado, texto compacto embaixo */
+/* Cards iguais na linha: poster 3:4 + bloco de texto com altura fixa */
 .calendar-event-grid .agenda-event {
   display: flex;
   flex-direction: column;
-  height: auto;
-  min-height: 0;
+  height: 100%;
+  min-height: 100%;
+  align-items: stretch;
   border: none;
   border-right: 1px solid rgba(45, 41, 22, 0.16);
   border-radius: 0;
@@ -641,6 +666,7 @@ a {
   display: block;
   flex: 0 0 auto;
   width: 100%;
+  min-width: 0;
   border: none;
   border-radius: 12px;
   overflow: hidden;
@@ -656,6 +682,7 @@ a {
 
 .calendar-event-grid .agenda-poster {
   width: 100%;
+  height: auto;
   max-height: none;
   aspect-ratio: 3 / 4;
   min-height: 0;
@@ -667,18 +694,23 @@ a {
   border-radius: 12px;
 }
 
-.calendar-event-grid .agenda-event-details {
-  flex: 0 0 auto;
-  height: auto;
+.calendar-event-grid .agenda-poster-placeholder {
   min-height: 0;
+  height: 100%;
+}
+
+.calendar-event-grid .agenda-event-details {
+  flex: 0 0 var(--calendar-card-details-h, 5.25rem);
+  height: var(--calendar-card-details-h, 5.25rem);
+  min-height: var(--calendar-card-details-h, 5.25rem);
   margin-top: 10px;
-  display: block;
   min-width: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .calendar-event-grid .event-date {
   display: block;
+  flex-shrink: 0;
   margin: 0;
   font-size: 0.82rem;
   letter-spacing: 0.06em;
@@ -686,6 +718,9 @@ a {
   color: #2d2916;
   opacity: 0.62;
   line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .calendar-event-grid .event-date span {
@@ -705,17 +740,25 @@ a {
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: #2d2916;
-  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
   word-break: break-word;
 }
 
 .calendar-event-grid.calendar-event-grid--sparse {
   gap: 14px;
+  align-items: stretch;
 }
 
 .calendar-event-grid.calendar-event-grid--sparse .agenda-event {
   border-right: none;
-  padding: 0;
+  padding: 0 clamp(10px, 1.4vw, 18px);
+  height: 100%;
+  min-height: 100%;
 }
 
 .calendar-empty-note {
@@ -1363,10 +1406,10 @@ button:disabled,
   position: relative;
   display: flex;
   align-items: center;
+  overflow: hidden;
 }
 
-
-.sets-banner .container {
+.sets-banner:not(.douha-yellow-strip--has-bg) .container {
   min-height: 150px;
   display: flex;
   align-items: center;
@@ -1378,6 +1421,25 @@ button:disabled,
   padding-bottom: 44px;
   position: relative;
   z-index: 1;
+  width: 100%;
+}
+
+.sets-banner.douha-yellow-strip--has-bg {
+  display: block;
+  min-height: 0;
+}
+
+.sets-banner.douha-yellow-strip--has-bg .container {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-left: 0;
+  margin-right: auto;
+  padding: 8px clamp(10px, 2.2vw, 18px);
   width: 100%;
 }
 
@@ -1399,8 +1461,15 @@ button:disabled,
 }
 
 .admin-yellow-banner-preview.experience-highlight-copy {
-  min-height: 72px;
-  padding: 10px 12px;
+  aspect-ratio: 1920 / 220;
+  min-height: 0;
+  padding: 0;
+}
+
+.admin-yellow-banner-preview.sets-banner {
+  aspect-ratio: 1920 / 150;
+  min-height: 0;
+  padding: 0;
 }
 
 .admin-yellow-banner-preview.douha-yellow-strip {
@@ -1430,8 +1499,9 @@ button:disabled,
   max-width: 100%;
   margin-left: 0;
   margin-right: 0;
-  min-height: 140px;
-  height: 140px;
+  aspect-ratio: 1920 / 760;
+  min-height: 0;
+  height: auto;
   border: 1px dashed rgba(45, 41, 22, 0.28);
   border-radius: 8px;
   display: flex;
