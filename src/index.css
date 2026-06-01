@@ -1713,21 +1713,27 @@ button:disabled,
   background: rgba(45, 41, 22, 0.04);
 }
 
-.footer-logo-band {
-  margin-top: 32px;
-  padding-top: 28px;
-  border-top: 1px solid rgba(45, 41, 22, 0.12);
+.footer-col-logo {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  grid-column: 1 / -1;
+  justify-self: center;
+  padding: 4px 0;
 }
 
 .footer-logo-img {
-  width: clamp(112px, 16vw, 200px);
+  width: clamp(104px, 14vw, 176px);
   height: auto;
-  max-height: 200px;
+  max-height: 176px;
   display: block;
   object-fit: contain;
+  background: transparent;
+}
+
+.footer-logo-img.footer-logo-img--lift-black {
+  /* Fallback para JPEG com fundo preto: funde com o creme do site */
+  mix-blend-mode: lighten;
 }
 
 .admin-footer-logo-preview {
@@ -1735,7 +1741,7 @@ button:disabled,
   padding: 20px 16px;
   border: 1px dashed rgba(45, 41, 22, 0.28);
   border-radius: 8px;
-  background: rgba(45, 41, 22, 0.04);
+  background: #f9f6ee;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1746,6 +1752,11 @@ button:disabled,
   width: clamp(96px, 28vw, 160px);
   height: auto;
   object-fit: contain;
+  background: transparent;
+}
+
+.admin-footer-logo-preview img.footer-logo-img--lift-black {
+  mix-blend-mode: lighten;
 }
 
 .footer-grid {
@@ -1856,6 +1867,31 @@ button:disabled,
     grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) minmax(280px, 1.2fr) minmax(180px, 0.8fr);
     column-gap: 14px;
     row-gap: 16px;
+  }
+
+  .footer-grid.footer-grid--has-logo {
+    grid-template-columns:
+      minmax(200px, 1fr)
+      minmax(200px, 1fr)
+      minmax(120px, 200px)
+      minmax(260px, 1.12fr)
+      minmax(160px, 0.85fr);
+  }
+
+  .footer-grid.footer-grid--has-logo .footer-col-logo {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: center;
+    justify-self: center;
+    padding: 0;
+  }
+
+  .footer-grid.footer-grid--has-logo .footer-col-community {
+    grid-column: 4;
+  }
+
+  .footer-grid.footer-grid--has-logo .footer-col-faq {
+    grid-column: 5;
   }
 
   .footer-col-faq {

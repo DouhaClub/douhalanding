@@ -329,7 +329,7 @@ const IMAGE_SPEC = {
   experienceCopyBanner: `Faixa amarela "Conheca a experiencia": ${YELLOW_BANNER_PX.experienceCopy.width}×${YELLOW_BANNER_PX.experienceCopy.height} px (paisagem). Exporte nessa proporcao; o texto vai na propria imagem.`,
   setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). Exporte com o texto ja na imagem (o site nao sobrepoe copy HTML).`,
   rolePhotosStage: `Fundo da faixa de fotos do role: ${ROLE_PHOTOS_STAGE_PX.width}×${ROLE_PHOTOS_STAGE_PX.height} px (paisagem). Exporte nessa proporcao; cards FOTO ficam por cima.`,
-  footerLogo: `Logo do rodape: ${FOOTER_LOGO_PX.size}×${FOOTER_LOGO_PX.size} px (quadrado 1:1). PNG com fundo transparente recomendado.`,
+  footerLogo: `Logo do rodape: ${FOOTER_LOGO_PX.size}×${FOOTER_LOGO_PX.size} px (quadrado 1:1). Use PNG com fundo transparente (obrigatorio para nao aparecer quadrado preto).`,
 };
 
 function normalizeAgendaItem(item, idx = 0) {
@@ -678,7 +678,7 @@ function readFileAsDataUrl(file) {
   });
 }
 
-function compressDataUrlImage(dataUrl, { maxWidth = 1280, quality = 0.82 } = {}) {
+function compressDataUrlImage(dataUrl, { maxWidth = 1280, quality = 0.82, format = 'jpeg' } = {}) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -693,8 +693,13 @@ function compressDataUrlImage(dataUrl, { maxWidth = 1280, quality = 0.82 } = {})
         reject(new Error('Falha ao preparar compressao da imagem.'));
         return;
       }
+      if (format === 'png') {
+        ctx.clearRect(0, 0, width, height);
+      }
       ctx.drawImage(img, 0, 0, width, height);
-      const compressed = canvas.toDataURL('image/jpeg', quality);
+      const compressed = format === 'png'
+        ? canvas.toDataURL('image/png')
+        : canvas.toDataURL('image/jpeg', quality);
       resolve(compressed);
     };
     img.onerror = () => reject(new Error('Falha ao processar a imagem.'));
@@ -1063,7 +1068,9 @@ function AppShell({
       {children}
 
       <footer className="footer">
-        <div className="container footer-grid">
+        <div
+          className={`container footer-grid${String(siteContent.footerLogoUrl || '').trim() ? ' footer-grid--has-logo' : ''}`}
+        >
           <div className="footer-col footer-col-social">
             <p className="eyebrow">SOCIAL</p>
             <ul className="footer-link-list">
@@ -1094,6 +1101,19 @@ function AppShell({
               </li>
             </ul>
           </div>
+          {String(siteContent.footerLogoUrl || '').trim() ? (
+            <div className="footer-col footer-col-logo">
+              <img
+                className={`footer-logo-img${/\.jpe?g($|[?#])/i.test(String(siteContent.footerLogoUrl).trim()) ? ' footer-logo-img--lift-black' : ''}`}
+                src={String(siteContent.footerLogoUrl).trim()}
+                alt="The Douha Club"
+                width={FOOTER_LOGO_PX.size}
+                height={FOOTER_LOGO_PX.size}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          ) : null}
           <div className="footer-col footer-col-community">
             <p className="eyebrow">PARTICIPE DA NOSSA COMUNIDADE</p>
             <div className="footer-community-stack">
@@ -1132,19 +1152,6 @@ function AppShell({
             <p>ALL RIGHTS RESERVED 2026</p>
           </div>
         </div>
-        {String(siteContent.footerLogoUrl || '').trim() ? (
-          <div className="container footer-logo-band">
-            <img
-              className="footer-logo-img"
-              src={String(siteContent.footerLogoUrl).trim()}
-              alt="The Douha Club"
-              width={FOOTER_LOGO_PX.size}
-              height={FOOTER_LOGO_PX.size}
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-        ) : null}
       </footer>
     </div>
   );
@@ -2461,14 +2468,18 @@ function AdminPage({
       setFooterLogoUploadError('');
       const rawDataUrl = await readFileAsDataUrl(file);
       if (typeof rawDataUrl !== 'string') throw new Error('Arquivo invalido.');
+      const usePng = file.type === 'image/png' || /\.png$/i.test(file.name || '');
       const compressed = await compressDataUrlImage(rawDataUrl, {
         maxWidth: FOOTER_LOGO_PX.size,
-        quality: 0.9,
+        quality: 0.92,
+        format: usePng ? 'png' : 'jpeg',
       });
       const compressedBlob = await (await fetch(String(compressed))).blob();
-      const fileForUpload = new File([compressedBlob], file.name || 'douha-footer-logo.png', {
-        type: file.type?.startsWith('image/') ? file.type : 'image/png',
-      });
+      const fileForUpload = new File(
+        [compressedBlob],
+        file.name || (usePng ? 'douha-footer-logo.png' : 'douha-footer-logo.jpg'),
+        { type: usePng ? 'image/png' : 'image/jpeg' },
+      );
       const publicUrl = await withTimeout(
         uploadGalleryImageToSupabaseStorage(fileForUpload),
         20000,
@@ -3217,7 +3228,8 @@ function AdminPage({
           <article id="admin-footer-logo" className="admin-panel-card">
             <h3>Logo do rodape</h3>
             <p className="about-copy">
-              Aparece <strong>centralizada abaixo</strong> das colunas do footer. Vazio = footer como esta hoje (sem espaco extra).
+              Aparece <strong>centralizada no meio do footer</strong> (entre Contato e Comunidade). Vazio = footer como esta hoje.
+              Envie em <strong>PNG com fundo transparente</strong> para nao aparecer o quadrado preto.
             </p>
             <p className="about-copy image-spec-note">{IMAGE_SPEC.footerLogo}</p>
             <div className="admin-form">
