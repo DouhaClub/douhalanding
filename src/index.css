@@ -1403,57 +1403,9 @@ button:disabled,
   overflow: hidden;
 }
 
-.sets-banner:not(.douha-yellow-strip--has-bg) .container {
-  min-height: 150px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-left: 0;
-  margin-right: auto;
-  padding-left: clamp(10px, 2.2vw, 18px);
-  padding-top: 44px;
-  padding-bottom: 44px;
-  position: relative;
-  z-index: 1;
-  width: 100%;
-}
-
 .sets-banner.douha-yellow-strip--has-bg {
   display: block;
   min-height: 0;
-}
-
-.sets-banner-scrim {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    270deg,
-    rgba(45, 41, 22, 0.5) 0%,
-    rgba(45, 41, 22, 0.22) 42%,
-    transparent 68%
-  );
-}
-
-.sets-banner.douha-yellow-strip--has-bg .container {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-left: 0;
-  margin-right: auto;
-  padding: 8px clamp(10px, 2.2vw, 18px);
-  width: 100%;
-}
-
-.sets-banner.douha-yellow-strip--has-bg .sets-banner-copy-shell--on-image {
-  justify-content: flex-end;
-  padding-right: clamp(12px, 2.8vw, 28px);
-  padding-left: clamp(10px, 2.2vw, 18px);
 }
 
 .admin-yellow-banners-block {
@@ -1483,13 +1435,6 @@ button:disabled,
   aspect-ratio: 1920 / 150;
   min-height: 0;
   padding: 0;
-}
-
-.admin-yellow-banner-preview.sets-banner span {
-  position: absolute;
-  right: 12px;
-  bottom: 10px;
-  left: auto;
 }
 
 .admin-yellow-banner-preview.douha-yellow-strip {
@@ -1540,44 +1485,6 @@ button:disabled,
   background: rgba(255, 249, 225, 0.85);
   padding: 4px 8px;
   border-radius: 4px;
-}
-
-.sets-banner-copy {
-  width: clamp(290px, 40vw, 560px);
-  margin-left: 0;
-  font-weight: 800;
-  font-size: 0.95rem;
-  letter-spacing: 0.035em;
-  line-height: 1.4;
-  text-transform: uppercase;
-  color: #2d2916;
-}
-
-.sets-banner-copy strong {
-  font-weight: 900;
-  background: rgba(255, 249, 225, 0.62);
-  border-radius: 4px;
-  padding: 1px 4px;
-}
-
-/* Com textura: texto à direita, chips claros para ler sobre a arte */
-.sets-banner.douha-yellow-strip--has-bg .sets-banner-copy {
-  width: auto;
-  max-width: min(52%, 520px);
-  margin-left: auto;
-  margin-right: 0;
-  text-align: right;
-  font-size: clamp(0.68rem, 1.65vw, 0.92rem);
-  line-height: 1.35;
-}
-
-.sets-banner.douha-yellow-strip--has-bg .sets-banner-copy span,
-.sets-banner.douha-yellow-strip--has-bg .sets-banner-copy strong {
-  background: rgba(255, 249, 225, 0.92);
-  border-radius: 4px;
-  padding: 2px 6px;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
 }
 
 .sets-links {
