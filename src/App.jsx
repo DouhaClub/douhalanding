@@ -629,6 +629,40 @@ function parseAgendaDateParts(value) {
   return null;
 }
 
+/** Mes/ano do calendario mais perto de hoje que tenha eventos (prioriza mes atual). */
+function findDefaultCalendarMonthWithEvents(agendaEvents, now = new Date()) {
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const todayIndex = currentYear * 12 + currentMonth;
+
+  const monthsWithEvents = new Map();
+  for (const item of agendaEvents) {
+    const parsed = parseAgendaDateParts(item.date);
+    if (!parsed) continue;
+    const key = `${parsed.year}-${parsed.monthIndex}`;
+    if (!monthsWithEvents.has(key)) monthsWithEvents.set(key, parsed);
+  }
+  if (!monthsWithEvents.size) return null;
+
+  if (monthsWithEvents.has(`${currentYear}-${currentMonth}`)) {
+    return { year: String(currentYear), monthIndex: currentMonth };
+  }
+
+  let best = null;
+  let bestScore = Infinity;
+  for (const parsed of monthsWithEvents.values()) {
+    const monthIndexLinear = parsed.year * 12 + parsed.monthIndex;
+    const distance = Math.abs(monthIndexLinear - todayIndex);
+    const pastPenalty = monthIndexLinear < todayIndex ? 0.45 : 0;
+    const score = distance + pastPenalty;
+    if (score < bestScore) {
+      bestScore = score;
+      best = { year: String(parsed.year), monthIndex: parsed.monthIndex };
+    }
+  }
+  return best;
+}
+
 /** Ordem do calendario: dia do evento (crescente), depois horario. */
 function compareAgendaEventsByDate(a, b) {
   const pa = parseAgendaDateParts(a?.date);
@@ -1292,25 +1326,24 @@ function AgendaCalendarSection({
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const calendarAutoFocusedRef = useRef(false);
 
-  /** Abre no primeiro mes que tiver evento (evita 2026/Maio vazio quando a agenda esta em 2025). */
+  /** Abre no mes mais proximo de hoje que tenha eventos (ex.: junho/2026 se estamos em junho). */
   useEffect(() => {
-    if (calendarAutoFocusedRef.current || !agendaEvents.length) return;
-    const currentMonthRows = monthBuckets[selectedYear]?.[selectedMonth] || [];
-    if (currentMonthRows.length > 0) {
-      calendarAutoFocusedRef.current = true;
-      return;
-    }
-    for (const year of yearOptions) {
-      for (let m = 0; m < 12; m += 1) {
-        if ((monthBuckets[year]?.[m] || []).length > 0) {
-          setSelectedYear(year);
-          setSelectedMonth(m);
-          calendarAutoFocusedRef.current = true;
-          return;
-        }
+    if (calendarAutoFocusedRef.current || focusTarget) return;
+    if (applySavedFocus) {
+      try {
+        if (localStorage.getItem(CALENDAR_FOCUS_KEY)) return;
+      } catch {
+        /* segue para foco padrao */
       }
     }
-  }, [agendaEvents, monthBuckets, yearOptions]);
+    if (!agendaEvents.length) return;
+    const focus = findDefaultCalendarMonthWithEvents(agendaEvents, now);
+    if (focus && yearOptions.includes(focus.year)) {
+      setSelectedYear(focus.year);
+      setSelectedMonth(focus.monthIndex);
+    }
+    calendarAutoFocusedRef.current = true;
+  }, [agendaEvents, now, focusTarget, applySavedFocus, yearOptions]);
 
   useEffect(() => {
     if (!applySavedFocus) return;
