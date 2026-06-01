@@ -10,6 +10,7 @@
   --douha-grid-col-min: 240px;
   --douha-grid-4: repeat(4, minmax(var(--douha-grid-col-min), 1fr));
   --calendar-card-details-h: 5.25rem;
+  --calendar-card-col-width: calc(100% / 4);
   --douha-card-min-h: 11.5rem;
 }
 
@@ -111,15 +112,24 @@
   text-align: left;
 }
 
-/* Calendario: sempre 4 colunas; 1–3 eventos centralizados via grid-column (sem mudar largura). */
+/* Calendario: grade 4 colunas; 1–3 eventos = flex centralizado, cada card com largura de 1/4. */
 .calendar-event-grid {
   align-items: stretch !important;
 }
 
+.calendar-event-grid.calendar-event-grid--centered {
+  display: flex !important;
+  grid-template-columns: none !important;
+  justify-content: center !important;
+  justify-items: unset !important;
+}
+
 .calendar-event-grid.calendar-event-grid--centered > .agenda-event,
 .calendar-event-grid.calendar-event-grid--centered > .admin-calendar-slot {
-  width: 100%;
-  max-width: none;
+  flex: 0 0 var(--calendar-card-col-width);
+  width: var(--calendar-card-col-width);
+  max-width: var(--calendar-card-col-width);
+  min-width: var(--douha-grid-col-min);
 }
 
 /* Cards do calendario: mesma altura na linha da grade */

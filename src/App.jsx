@@ -1121,7 +1121,7 @@ function AppShell({
   );
 }
 
-function AgendaEventBlock({ night, style }) {
+function AgendaEventBlock({ night }) {
   const hasPoster = Boolean(night.poster?.trim());
   const isPhotosPhase = shouldUseEventPhotosLink(night.date);
   const actionUrl = isPhotosPhase ? String(night.photosUrl || '').trim() : String(night.ticketUrl || '').trim();
@@ -1157,7 +1157,7 @@ function AgendaEventBlock({ night, style }) {
   );
 
   return (
-    <article className="agenda-event" style={style}>
+    <article className="agenda-event">
       {hasActionUrl ? (
         <a
           href={actionUrl}
@@ -1286,9 +1286,6 @@ function AgendaCalendarSection({
     monthEvents.length > 0
     && monthEvents.length < MAX_EVENTS_PER_MONTH
     && !(adminMode && showEmptySlots);
-  const calendarGridStartColumn = centerCalendarEvents
-    ? Math.floor((MAX_EVENTS_PER_MONTH - monthEvents.length) / 2) + 1
-    : 0;
 
   const WrapperTag = embedded ? 'div' : 'section';
   const InnerTag = 'div';
@@ -1333,16 +1330,9 @@ function AgendaCalendarSection({
         <div
           className={`calendar-event-grid${centerCalendarEvents ? ' calendar-event-grid--centered' : ''}`}
         >
-          {monthEvents.length ? monthEvents.map((night, eventIndex) => {
-            const gridColumnStyle = centerCalendarEvents
-              ? { gridColumn: calendarGridStartColumn + eventIndex }
-              : undefined;
-            return adminMode ? (
-              <article
-                key={`calendar-${night.id}`}
-                className="admin-calendar-slot"
-                style={gridColumnStyle}
-              >
+          {monthEvents.length ? monthEvents.map((night) => (
+            adminMode ? (
+              <article key={`calendar-${night.id}`} className="admin-calendar-slot">
                 <p><strong>{night.date}</strong> · {night.time || 'Sem horario'}</p>
                 <p>{night.lineup}</p>
                 <p className="admin-url">
@@ -1355,14 +1345,8 @@ function AgendaCalendarSection({
                   <button type="button" className="pill" onClick={() => onDeleteEvent?.(night.id)}>Excluir</button>
                 </div>
               </article>
-            ) : (
-              <AgendaEventBlock
-                key={`calendar-${night.id}`}
-                night={night}
-                style={gridColumnStyle}
-              />
-            );
-          }) : (
+            ) : <AgendaEventBlock key={`calendar-${night.id}`} night={night} />
+          )) : (
             <p className="calendar-empty-note">
               Nenhum evento em {MONTH_LABELS[selectedMonth]} {selectedYear}.
               {yearOptions.length > 1 ? ' Troque o ano (ex.: 2025) ou outro mes.' : ' Escolha outro mes.'}

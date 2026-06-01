@@ -635,7 +635,9 @@ a {
 }
 
 .calendar-event-grid.calendar-event-grid--centered {
-  justify-items: stretch;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
 }
 
 /* Cards iguais na linha: poster 3:4 + bloco de texto com altura fixa */
