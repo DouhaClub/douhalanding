@@ -213,6 +213,21 @@ const gallery = ['/brand/elements/01.png', '/brand/elements/02.png', '/brand/ele
 const MONTH_LABELS = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
 const CALENDAR_CARDS_PER_ROW = 4;
 const MAX_EVENTS_PER_MONTH = 8;
+
+function countAgendaEventsInMonth(agendaEvents, year, monthIndex, excludeId = '') {
+  const yearKey = String(year);
+  return agendaEvents.filter((item) => {
+    if (excludeId && item.id === excludeId) return false;
+    const parsed = parseAgendaDateParts(item.date);
+    return parsed && String(parsed.year) === yearKey && parsed.monthIndex === monthIndex;
+  }).length;
+}
+
+function describeCalendarSlot(slotIndex) {
+  const slotNum = slotIndex + 1;
+  const row = slotIndex < CALENDAR_CARDS_PER_ROW ? 1 : 2;
+  return { slotNum, row };
+}
 /** 48h apos o fim do dia do evento: ai o card troca ingresso -> link do Drive (fotos). */
 const EVENT_PHOTOS_LINK_DELAY_MS = 2 * 24 * 60 * 60 * 1000;
 const DEFAULT_TIME_OPTIONS = [
@@ -1376,8 +1391,16 @@ function AgendaCalendarSection({
           </div>
         </div>
 
+        {adminMode ? (
+          <p className="calendar-admin-limit-note" role="status">
+            <strong>{monthEvents.length}/{MAX_EVENTS_PER_MONTH}</strong> eventos em{' '}
+            {MONTH_LABELS[selectedMonth]} {selectedYear}. Grade: ate {CALENDAR_CARDS_PER_ROW} na 1ª linha;
+            do {CALENDAR_CARDS_PER_ROW + 1}º ao {MAX_EVENTS_PER_MONTH}º abre a 2ª linha (igual no site publico).
+          </p>
+        ) : null}
+
         <div
-          className={`calendar-event-grid${centerCalendarEvents ? ' calendar-event-grid--centered' : ''}${calendarHasSecondRow ? ' calendar-event-grid--two-rows' : ''}`}
+          className={`calendar-event-grid${centerCalendarEvents ? ' calendar-event-grid--centered' : ''}${calendarHasSecondRow ? ' calendar-event-grid--two-rows' : ''}${adminMode && showEmptySlots ? ' calendar-event-grid--admin-slots' : ''}`}
         >
           {monthEvents.length ? monthEvents.map((night, eventIndex) => {
             const gridColumnStyle = getCalendarCardGridColumn(eventIndex);
@@ -1414,14 +1437,15 @@ function AgendaCalendarSection({
           )}
           {showEmptySlots ? Array.from({ length: emptySlots }).map((_, idx) => {
             const slotIndex = monthEvents.length + idx;
+            const { slotNum, row } = describeCalendarSlot(slotIndex);
             return (
             <article
               key={`empty-slot-${selectedYear}-${selectedMonth}-${idx}`}
               className="admin-calendar-slot admin-calendar-slot-empty"
               style={getCalendarCardGridColumn(slotIndex)}
             >
-              <p><strong>Slot livre</strong></p>
-              <p>Disponivel para criar evento neste mes.</p>
+              <p><strong>Slot {slotNum} livre</strong></p>
+              <p>Linha {row} · max. {MAX_EVENTS_PER_MONTH} por mes ({CALENDAR_CARDS_PER_ROW}+{MAX_EVENTS_PER_MONTH - CALENDAR_CARDS_PER_ROW}).</p>
               {adminMode ? (
                 <button
                   type="button"
@@ -1429,7 +1453,7 @@ function AgendaCalendarSection({
                   onClick={() => onCreateEvent?.({
                     year: Number(selectedYear),
                     monthIndex: selectedMonth,
-                    slotIndex: idx,
+                    slotIndex,
                   })}
                 >
                   Criar evento
@@ -2219,6 +2243,7 @@ function AdminPage({
   const [roleStageBgUploadError, setRoleStageBgUploadError] = useState('');
   const [isUploadingFooterLogo, setIsUploadingFooterLogo] = useState(false);
   const [footerLogoUploadError, setFooterLogoUploadError] = useState('');
+  const [createSlotLabel, setCreateSlotLabel] = useState('');
   const [isSavingGallery, setIsSavingGallery] = useState(false);
   const [isSavingEditorial, setIsSavingEditorial] = useState(false);
   const [isSavingRolePhotos, setIsSavingRolePhotos] = useState(false);
@@ -2300,7 +2325,7 @@ function AdminPage({
     window.setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
   };
 
-  const onCreateFromCalendar = ({ year, monthIndex }) => {
+  const onCreateFromCalendar = ({ year, monthIndex, slotIndex }) => {
     setEditingId('');
     setDraft({ date: '', time: '', lineup: '', ticketUrl: '', photosUrl: '', poster: '' });
     setPosterUrlInput('');
@@ -2310,6 +2335,12 @@ function AdminPage({
     setAgendaSaveError('');
     setPosterUploadError('');
     setPosterUploadInfo('');
+    if (Number.isInteger(slotIndex) && slotIndex >= 0 && slotIndex < MAX_EVENTS_PER_MONTH) {
+      const { slotNum, row } = describeCalendarSlot(slotIndex);
+      setCreateSlotLabel(`Slot ${slotNum} (linha ${row}) em ${MONTH_LABELS[monthIndex]} ${year}`);
+    } else {
+      setCreateSlotLabel('');
+    }
     setShowEventForm(true);
     window.setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
   };
@@ -2323,6 +2354,7 @@ function AdminPage({
     setDraftYear(adminYearOptions.includes(currentYear) ? currentYear : adminYearOptions[0]);
     setPosterUploadError('');
     setPosterUploadInfo('');
+    setCreateSlotLabel('');
   };
 
   const onDelete = async (id) => {
@@ -2562,6 +2594,23 @@ function AdminPage({
       setAgendaSaveError('Preencha data e lineup para salvar o evento.');
       setIsSavingEvent(false);
       return;
+    }
+
+    const targetParts = parseAgendaDateParts(normalizedDate);
+    if (targetParts) {
+      const inMonth = countAgendaEventsInMonth(
+        agendaEvents,
+        targetParts.year,
+        targetParts.monthIndex,
+        editingId,
+      );
+      if (inMonth >= MAX_EVENTS_PER_MONTH) {
+        setAgendaSaveError(
+          `${MONTH_LABELS[targetParts.monthIndex]} ${targetParts.year} ja tem ${MAX_EVENTS_PER_MONTH} eventos (limite do calendario). Edite ou exclua um antes de adicionar outro.`,
+        );
+        setIsSavingEvent(false);
+        return;
+      }
     }
 
     try {
@@ -3625,7 +3674,10 @@ function AdminPage({
 
           {isCalendarSection ? <article id="admin-calendar" className="admin-panel-card">
             <h3>Calendario do Admin</h3>
-            <p className="about-copy">Aqui todos os meses ficam ativos. Clique em "Criar evento" no slot livre ou em "Editar" num evento existente.</p>
+            <p className="about-copy">
+              Ate <strong>{MAX_EVENTS_PER_MONTH} eventos por mes</strong>: {CALENDAR_CARDS_PER_ROW} cards na 1ª linha e, a partir do 5º,
+              mais {MAX_EVENTS_PER_MONTH - CALENDAR_CARDS_PER_ROW} na 2ª linha (mesmo layout do site). Clique em um slot livre ou em Editar.
+            </p>
             <AgendaCalendarSection
               agendaEvents={sortedAgenda}
               title="CALENDARIO INTERNO"
@@ -3650,6 +3702,9 @@ function AdminPage({
           {isCalendarSection && showEventForm ? (
             <form id="admin-event-form" ref={formRef} className="admin-form" onSubmit={onSave}>
               <h3>Formulario de evento</h3>
+              {createSlotLabel ? (
+                <p className="admin-save-hint" role="status">{createSlotLabel}</p>
+              ) : null}
               {agendaSaveError && <p className="admin-error">{agendaSaveError}</p>}
               <label>Data</label>
               <div className="admin-inline admin-date-row">
