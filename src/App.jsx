@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BrowserRouter, NavLink, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter, NavLink, Routes, Route, Link, Navigate, useParams } from 'react-router-dom';
 import {
   formatSupabaseStorageUploadError,
   isSupabaseConfigured,
@@ -141,6 +141,7 @@ const defaultEditorialPosts = editorial.map((item, idx) => ({
   body: '',
   category: String(item.category || ''),
   coverUrl: String(item.coverUrl || ''),
+  sources: [],
   publishedAt: null,
   isPublished: true,
   position: idx,
@@ -366,6 +367,8 @@ const IMAGE_SPEC = {
   setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). Exporte com o texto ja na imagem (o site nao sobrepoe copy HTML).`,
   rolePhotosStage: `Fundo da faixa de fotos do role: ${ROLE_PHOTOS_STAGE_PX.width}×${ROLE_PHOTOS_STAGE_PX.height} px (paisagem). Exporte nessa proporcao; cards FOTO ficam por cima.`,
   footerLogo: `Logo do rodape: ${FOOTER_LOGO_PX.size}×${FOOTER_LOGO_PX.size} px (quadrado 1:1). Use PNG com fundo transparente (obrigatorio para nao aparecer quadrado preto).`,
+  editorialCover:
+    'Capa editorial (mosaico): 1600×1200 px ou maior, paisagem (4:3). Aparece no site somente nas 3 posicoes do mosaico; acervo fica sem imagem ate a pagina da materia.',
 };
 
 function normalizeAgendaItem(item, idx = 0) {
@@ -497,6 +500,11 @@ function isMissingEditorialTableError(message) {
     || text.includes('schema cache');
 }
 
+function isMissingEditorialSourcesColumnError(message) {
+  const text = String(message || '').toLowerCase();
+  return text.includes('sources') && (text.includes('column') || text.includes('schema cache'));
+}
+
 function isMissingRolePhotosTableError(message) {
   const text = String(message || '').toLowerCase();
   return text.includes("could not find the table 'public.douha_role_photos'")
@@ -511,12 +519,62 @@ function isMissingSiteContentTableError(message) {
     || text.includes('schema cache');
 }
 
+function parseEditorialSourcesBulk(raw) {
+  const lines = String(raw || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const items = [];
+  for (const line of lines) {
+    const urlMatch = line.match(/https?:\/\/[^\s<>"']+/i);
+    if (!urlMatch) {
+      if (line) items.push({ label: line, url: '' });
+      continue;
+    }
+    const url = urlMatch[0].replace(/[.,;:!?)]+$/, '');
+    let label = line.replace(urlMatch[0], '').trim();
+    label = label.replace(/^[-–—|•]\s*/, '').replace(/\s*[-–—|]\s*$/, '').trim();
+    items.push({ label: label || url, url });
+  }
+  return items;
+}
+
+function normalizeEditorialSourcesList(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) {
+    return raw
+      .map((item) => ({
+        label: String(item?.label || '').trim(),
+        url: String(item?.url || '').trim(),
+      }))
+      .filter((item) => item.label || item.url);
+  }
+  if (typeof raw === 'string') {
+    const value = raw.trim();
+    if (!value) return [];
+    if (value.startsWith('[')) {
+      try {
+        return normalizeEditorialSourcesList(JSON.parse(value));
+      } catch {
+        return parseEditorialSourcesBulk(value);
+      }
+    }
+    return parseEditorialSourcesBulk(value);
+  }
+  return [];
+}
+
+function serializeEditorialSourcesForDb(sources) {
+  return JSON.stringify(normalizeEditorialSourcesList(sources));
+}
+
 function normalizeEditorialItem(item, idx = 0) {
   return {
     id: String(item?.id || `editorial-${idx + 1}`),
     title: String(item?.title || ''),
     deck: clampEditorialDeck(item?.deck),
     body: String(item?.body || ''),
+    sources: normalizeEditorialSourcesList(item?.sources),
     source: String(item?.source || 'DOUHA CLUB'),
     issue: String(item?.issue || ''),
     category: String(item?.category || ''),
@@ -536,6 +594,7 @@ function mapDbEditorialPostToItem(row, idx = 0) {
       title: row?.title,
       deck: row?.deck,
       body: row?.body,
+      sources: row?.sources,
       source: row?.source,
       issue: row?.issue,
       category: row?.category,
@@ -556,6 +615,7 @@ function mapEditorialItemToDbPost(item) {
     title: String(item.title || ''),
     deck: String(item.deck || ''),
     body: String(item.body || ''),
+    sources: serializeEditorialSourcesForDb(item.sources),
     source: String(item.source || 'DOUHA CLUB'),
     issue: String(item.issue || ''),
     category: String(item.category || ''),
@@ -835,6 +895,22 @@ async function uploadGalleryImageToSupabaseStorage(file) {
   if (uploadError) throw new Error(formatSupabaseStorageUploadError(uploadError));
   const { data } = supabase.storage.from(SUPABASE_GALLERY_BUCKET).getPublicUrl(path);
   if (!data?.publicUrl) throw new Error('Falha ao gerar URL publica da galeria.');
+  return data.publicUrl;
+}
+
+async function uploadEditorialCoverToSupabaseStorage(file) {
+  if (!supabase) throw new Error('Supabase indisponivel para upload da capa editorial.');
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const safeExt = /^[a-z0-9]+$/.test(ext) ? ext : 'jpg';
+  const fileName = sanitizeFileName(file.name || `editorial-cover.${safeExt}`);
+  const path = `editorial/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${fileName}`;
+  const { error: uploadError } = await supabase
+    .storage
+    .from(SUPABASE_POSTERS_BUCKET)
+    .upload(path, file, { upsert: false, contentType: file.type || `image/${safeExt}` });
+  if (uploadError) throw new Error(formatSupabaseStorageUploadError(uploadError));
+  const { data } = supabase.storage.from(SUPABASE_POSTERS_BUCKET).getPublicUrl(path);
+  if (!data?.publicUrl) throw new Error('Falha ao gerar URL publica da capa editorial.');
   return data.publicUrl;
 }
 
@@ -2206,14 +2282,254 @@ function editorialMosaicCategoryLabel(post) {
   return String(post?.source || 'EDITORIAL').trim();
 }
 
+function editorialArticlePath(postId) {
+  return `/editorial/${encodeURIComponent(String(postId || '').trim())}`;
+}
+
+function findEditorialPostById(editorialPosts, postId) {
+  const id = String(postId || '').trim();
+  if (!id) return null;
+  const source = editorialPosts.length ? editorialPosts : defaultEditorialPosts;
+  const post = source.find((item) => item.id === id);
+  if (!post || post.isPublished === false) return null;
+  return post;
+}
+
+function formatEditorialDisplayDate(post) {
+  const raw = String(post?.date || post?.publishedAt || '').trim();
+  if (!raw) return '';
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    const d = new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+    if (!Number.isNaN(d.getTime())) {
+      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+  }
+  return raw;
+}
+
+function linkifyEditorialInlineText(text, keyPrefix) {
+  const value = String(text || '');
+  if (!value) return null;
+  const urlPattern = /(https?:\/\/[^\s<>"']+)/gi;
+  const parts = [];
+  let lastIndex = 0;
+  let match = urlPattern.exec(value);
+  let partIdx = 0;
+  while (match) {
+    if (match.index > lastIndex) {
+      parts.push(value.slice(lastIndex, match.index));
+    }
+    const href = match[0].replace(/[.,;:!?)]+$/, '');
+    parts.push(
+      <a key={`${keyPrefix}-link-${partIdx}`} href={href} target="_blank" rel="noreferrer">
+        {href}
+      </a>,
+    );
+    partIdx += 1;
+    lastIndex = match.index + match[0].length;
+    match = urlPattern.exec(value);
+  }
+  if (lastIndex < value.length) parts.push(value.slice(lastIndex));
+  return parts.length ? parts : value;
+}
+
+function EditorialArticleBody({ body }) {
+  const text = String(body || '').trim();
+  if (!text) {
+    return <p className="editorial-article__placeholder">Texto completo em breve.</p>;
+  }
+
+  const lines = text.split(/\r?\n/);
+  const nodes = [];
+  let paragraphLines = [];
+  let listItems = [];
+
+  const flushParagraph = () => {
+    if (!paragraphLines.length) return;
+    const key = `editorial-p-${nodes.length}`;
+    nodes.push(
+      <p key={key}>
+        {paragraphLines.map((line, lineIdx) => (
+          <span key={`${key}-line-${lineIdx}`}>
+            {lineIdx > 0 ? <br /> : null}
+            {linkifyEditorialInlineText(line, `${key}-line-${lineIdx}`)}
+          </span>
+        ))}
+      </p>,
+    );
+    paragraphLines = [];
+  };
+
+  const flushList = () => {
+    if (!listItems.length) return;
+    const key = `editorial-ul-${nodes.length}`;
+    nodes.push(
+      <ul key={key} className="editorial-article__list">
+        {listItems.map((item, itemIdx) => (
+          <li key={`${key}-item-${itemIdx}`}>{linkifyEditorialInlineText(item, `${key}-item-${itemIdx}`)}</li>
+        ))}
+      </ul>,
+    );
+    listItems = [];
+  };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+    if (trimmed.startsWith('### ')) {
+      flushParagraph();
+      flushList();
+      nodes.push(
+        <h3 key={`editorial-h3-${nodes.length}`} className="editorial-article__h3">
+          {trimmed.slice(4)}
+        </h3>,
+      );
+      continue;
+    }
+    if (trimmed.startsWith('## ')) {
+      flushParagraph();
+      flushList();
+      nodes.push(
+        <h2 key={`editorial-h2-${nodes.length}`} className="editorial-article__h2">
+          {trimmed.slice(3)}
+        </h2>,
+      );
+      continue;
+    }
+    if (trimmed.startsWith('- ')) {
+      flushParagraph();
+      listItems.push(trimmed.slice(2));
+      continue;
+    }
+    flushList();
+    paragraphLines.push(line);
+  }
+
+  flushParagraph();
+  flushList();
+
+  if (!nodes.length) {
+    return <p className="editorial-article__placeholder">Texto completo em breve.</p>;
+  }
+  return nodes;
+}
+
+function EditorialArticleSources({ sources }) {
+  const items = normalizeEditorialSourcesList(sources).filter((item) => item.url);
+  if (!items.length) return null;
+
+  return (
+    <section className="editorial-article__sources" aria-labelledby="editorial-article-sources-title">
+      <h2 id="editorial-article-sources-title" className="editorial-article__sources-title">
+        Fontes
+      </h2>
+      <ol className="editorial-article__sources-list">
+        {items.map((item, idx) => (
+          <li key={`editorial-source-${idx}-${item.url}`}>
+            <a href={item.url} target="_blank" rel="noreferrer">
+              {item.label || item.url}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function AdminEditorialSourcesFields({ sources, onChange }) {
+  const [bulkPaste, setBulkPaste] = useState('');
+  const list = normalizeEditorialSourcesList(sources);
+
+  const updateSource = (index, field, value) => {
+    onChange(list.map((item, idx) => (idx === index ? { ...item, [field]: value } : item)));
+  };
+
+  const removeSource = (index) => {
+    onChange(list.filter((_, idx) => idx !== index));
+  };
+
+  const addSource = () => {
+    onChange([...list, { label: '', url: '' }]);
+  };
+
+  const importBulkSources = () => {
+    const parsed = parseEditorialSourcesBulk(bulkPaste);
+    if (!parsed.length) return;
+    onChange([...list, ...parsed]);
+    setBulkPaste('');
+  };
+
+  return (
+    <div className="admin-editorial-sources">
+      <p className="about-copy">
+        Adicione uma fonte por vez ou cole varias linhas (uma por linha). Formatos: <code>Nome — https://...</code>,{' '}
+        <code>Nome | url</code> ou so o link.
+      </p>
+      {list.map((item, idx) => (
+        <div key={`admin-editorial-source-${idx}`} className="admin-editorial-source-row">
+          <div className="admin-form-field">
+            <label htmlFor={`admin-source-label-${idx}`}>Nome da fonte</label>
+            <input
+              id={`admin-source-label-${idx}`}
+              value={item.label}
+              onChange={(event) => updateSource(idx, 'label', event.target.value)}
+              placeholder="Ex: Instagram Douha Club"
+            />
+          </div>
+          <div className="admin-form-field">
+            <label htmlFor={`admin-source-url-${idx}`}>Link</label>
+            <input
+              id={`admin-source-url-${idx}`}
+              type="url"
+              inputMode="url"
+              value={item.url}
+              onChange={(event) => updateSource(idx, 'url', event.target.value)}
+              placeholder="https://..."
+            />
+          </div>
+          <button type="button" className="pill" onClick={() => removeSource(idx)}>
+            Remover
+          </button>
+        </div>
+      ))}
+      <div className="admin-actions">
+        <button type="button" className="pill pill-light" onClick={addSource}>
+          + Adicionar fonte
+        </button>
+      </div>
+      <div className="admin-form-field admin-editorial-sources-bulk">
+        <label htmlFor="admin-editorial-sources-bulk">Colar varias fontes de uma vez</label>
+        <textarea
+          id="admin-editorial-sources-bulk"
+          rows={4}
+          value={bulkPaste}
+          onChange={(event) => setBulkPaste(event.target.value)}
+          placeholder={'Instagram — https://instagram.com/douha.club\nReportagem | https://...\nhttps://link-so-url.com'}
+        />
+        <button type="button" className="pill" onClick={importBulkSources} disabled={!bulkPaste.trim()}>
+          Organizar e adicionar fontes coladas
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function EditorialMosaicTile({ post, variant = 'side' }) {
   if (!post) return null;
   const coverUrl = String(post.coverUrl || '').trim();
-  const meta = [post.issue, post.date].filter(Boolean).join(' · ');
+  const meta = [post.issue, formatEditorialDisplayDate(post) || post.date].filter(Boolean).join(' · ');
   const showDeck = variant === 'lead' && String(post.deck || '').trim();
 
   return (
-    <article className={`editorial-mosaic-tile editorial-mosaic-tile--${variant}`}>
+    <Link
+      to={editorialArticlePath(post.id)}
+      className={`editorial-mosaic-tile editorial-mosaic-tile--${variant}`}
+    >
       <div className={`editorial-mosaic-tile__visual${coverUrl ? '' : ' editorial-mosaic-tile__visual--empty'}`}>
         {coverUrl ? (
           <img src={coverUrl} alt="" loading="lazy" decoding="async" />
@@ -2232,31 +2548,79 @@ function EditorialMosaicTile({ post, variant = 'side' }) {
           <span className="editorial-mosaic-tile__cta">Leia mais</span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
 
 function EditorialArchiveCard({ post }) {
   if (!post) return null;
-  const coverUrl = String(post.coverUrl || '').trim();
 
   return (
-    <article className="editorial-archive-card">
-      <div className={`editorial-archive-card__thumb${coverUrl ? '' : ' editorial-archive-card__thumb--empty'}`}>
-        {coverUrl ? (
-          <img src={coverUrl} alt="" loading="lazy" decoding="async" />
-        ) : (
-          <span aria-hidden="true">{editorialMosaicCategoryLabel(post)}</span>
-        )}
-      </div>
+    <Link to={editorialArticlePath(post.id)} className="editorial-archive-card">
       <div className="editorial-archive-card__body">
         <span className="editorial-archive-card__category">{editorialMosaicCategoryLabel(post)}</span>
         <h4 className="editorial-archive-card__title">{post.title}</h4>
-        <a className="editorial-archive-card__cta" href="#top">
-          Leia mais
-        </a>
+        <span className="editorial-archive-card__cta">Leia mais</span>
       </div>
-    </article>
+    </Link>
+  );
+}
+
+function EditorialArticlePage({ editorialPosts }) {
+  const { postId } = useParams();
+  const post = useMemo(
+    () => findEditorialPostById(editorialPosts, postId),
+    [editorialPosts, postId],
+  );
+
+  if (!post) {
+    return (
+      <main>
+        <section className="section">
+          <div className="container editorial-article">
+            <p className="about-copy">Materia nao encontrada ou nao publicada.</p>
+            <Link className="pill" to="/editorial">Voltar ao Editorial</Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const coverUrl = String(post.coverUrl || '').trim();
+  const displayDate = formatEditorialDisplayDate(post);
+  const meta = [post.source, post.issue, displayDate].filter(Boolean).join(' · ');
+
+  return (
+    <main>
+      <article className="section editorial-article-section editorial-article-section--reading">
+        <div className="container editorial-article">
+          <Link className="editorial-article__back" to="/editorial">
+            ← Editorial
+          </Link>
+
+          <header className="editorial-article__head">
+            <span className="editorial-article__category">{editorialMosaicCategoryLabel(post)}</span>
+            {meta ? <p className="editorial-article__meta">{meta}</p> : null}
+            <h1 className="editorial-article__title">{post.title}</h1>
+            {String(post.deck || '').trim() ? (
+              <p className="editorial-article__deck">{post.deck}</p>
+            ) : null}
+          </header>
+
+          {coverUrl ? (
+            <figure className="editorial-article__hero">
+              <img src={coverUrl} alt="" loading="eager" decoding="async" />
+            </figure>
+          ) : null}
+
+          <div className="editorial-article__body">
+            <EditorialArticleBody body={post.body} />
+          </div>
+
+          <EditorialArticleSources sources={post.sources} />
+        </div>
+      </article>
+    </main>
   );
 }
 
@@ -2562,6 +2926,7 @@ function AdminPage({
     title: '',
     deck: '',
     body: '',
+    sources: [],
     source: 'DOUHA CLUB',
     issue: '',
     category: '',
@@ -2598,6 +2963,8 @@ function AdminPage({
   const [createSlotLabel, setCreateSlotLabel] = useState('');
   const [isSavingGallery, setIsSavingGallery] = useState(false);
   const [isSavingEditorial, setIsSavingEditorial] = useState(false);
+  const [isUploadingEditorialCover, setIsUploadingEditorialCover] = useState(false);
+  const [editorialCoverUploadError, setEditorialCoverUploadError] = useState('');
   const [isSavingEditorialMosaic, setIsSavingEditorialMosaic] = useState(false);
   const [editorialMosaicError, setEditorialMosaicError] = useState('');
   const [draftEditorialMosaic, setDraftEditorialMosaic] = useState(() => ({
@@ -2887,6 +3254,36 @@ function AdminPage({
     );
   };
 
+  const onEditorialCoverUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = '';
+    try {
+      if (!isSupabaseConfigured || !supabase) {
+        throw new Error(supabaseConfigError || 'Supabase nao configurado para upload.');
+      }
+      setIsUploadingEditorialCover(true);
+      setEditorialCoverUploadError('');
+      const rawDataUrl = await readFileAsDataUrl(file);
+      if (typeof rawDataUrl !== 'string') throw new Error('Arquivo invalido.');
+      const compressed = await compressDataUrlImage(rawDataUrl, { maxWidth: 1600, quality: 0.86 });
+      const compressedBlob = await (await fetch(String(compressed))).blob();
+      const fileForUpload = new File([compressedBlob], file.name || 'editorial-cover.jpg', {
+        type: 'image/jpeg',
+      });
+      const publicUrl = await withTimeout(
+        uploadEditorialCoverToSupabaseStorage(fileForUpload),
+        20000,
+        'Timeout ao enviar capa editorial (20s).',
+      );
+      setDraftEditorial((prev) => ({ ...prev, coverUrl: String(publicUrl) }));
+    } catch (error) {
+      setEditorialCoverUploadError(error.message || 'Nao foi possivel enviar a capa.');
+    } finally {
+      setIsUploadingEditorialCover(false);
+    }
+  };
+
   const onFooterLogoUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -3150,6 +3547,7 @@ function AdminPage({
       title: '',
       deck: '',
       body: '',
+      sources: [],
       source: 'DOUHA CLUB',
       issue: '',
       category: '',
@@ -3166,6 +3564,7 @@ function AdminPage({
       title: post.title || '',
       deck: clampEditorialDeck(post.deck),
       body: post.body || '',
+      sources: normalizeEditorialSourcesList(post.sources),
       source: post.source || 'DOUHA CLUB',
       issue: post.issue || '',
       category: post.category || '',
@@ -4038,7 +4437,9 @@ function AdminPage({
 
           {isEditorialSection ? <article id="admin-editorial" className="admin-panel-card">
             <h3>Materias / Editorial</h3>
-            <p className="about-copy">Crie e atualize materias. Use categoria e capa para o mosaico da pagina Editorial.</p>
+            <p className="about-copy">
+              Crie e atualize materias. A capa aparece no site <strong>apenas no mosaico</strong> (3 posicoes); no acervo fica sem imagem ate a pagina da materia.
+            </p>
             {editorialError ? <p className="admin-error">{editorialError}</p> : null}
             <form className="admin-form" onSubmit={onSaveEditorial}>
               <label>Titulo</label>
@@ -4068,17 +4469,31 @@ function AdminPage({
                   placeholder="Linha de apoio abaixo da chamada (ate 90 caracteres, aparece inteira no card)"
                 />
               </div>
-              <label>Texto completo (opcional)</label>
-              <textarea
-                value={draftEditorial.body}
-                onChange={(event) => setDraftEditorial((prev) => ({ ...prev, body: event.target.value }))}
-                placeholder="Corpo da materia"
-              />
-              <label>Fonte</label>
+              <div className="admin-form-field">
+                <label htmlFor="admin-editorial-body">Texto completo</label>
+                <p className="about-copy image-spec-note">
+                  Enter = nova linha. Linha em branco = paragrafo. Use ## titulo, ### subtitulo, - item de lista.
+                </p>
+                <textarea
+                  id="admin-editorial-body"
+                  value={draftEditorial.body}
+                  onChange={(event) => setDraftEditorial((prev) => ({ ...prev, body: event.target.value }))}
+                  rows={14}
+                  placeholder="Corpo da materia"
+                />
+              </div>
+              <div className="admin-form-field">
+                <h4 className="admin-subheading">Fontes (links)</h4>
+                <AdminEditorialSourcesFields
+                  sources={draftEditorial.sources}
+                  onChange={(sources) => setDraftEditorial((prev) => ({ ...prev, sources }))}
+                />
+              </div>
+              <label>Rotulo editorial</label>
               <input
                 value={draftEditorial.source}
                 onChange={(event) => setDraftEditorial((prev) => ({ ...prev, source: event.target.value }))}
-                placeholder="Ex: BOLETIM DOUHA"
+                placeholder="Ex: BOLETIM DOUHA (aparece no cabecalho da materia)"
               />
               <label>Edicao / issue</label>
               <input
@@ -4098,12 +4513,49 @@ function AdminPage({
                 onChange={(event) => setDraftEditorial((prev) => ({ ...prev, date: event.target.value }))}
                 placeholder="2026-05-20"
               />
-              <label>URL da imagem de capa (opcional)</label>
-              <input
-                value={draftEditorial.coverUrl}
-                onChange={(event) => setDraftEditorial((prev) => ({ ...prev, coverUrl: event.target.value }))}
-                placeholder="https://..."
-              />
+              <div className="admin-form-field">
+                <label htmlFor="admin-editorial-cover-file">Capa da materia (mosaico)</label>
+                <p className="about-copy image-spec-note">{IMAGE_SPEC.editorialCover}</p>
+                <input
+                  id="admin-editorial-cover-file"
+                  type="file"
+                  accept="image/png,image/webp,image/jpeg,image/*"
+                  onChange={onEditorialCoverUpload}
+                  disabled={isUploadingEditorialCover}
+                />
+                {isUploadingEditorialCover ? (
+                  <p className="admin-save-hint" role="status">Enviando capa...</p>
+                ) : null}
+                {editorialCoverUploadError ? <p className="admin-error">{editorialCoverUploadError}</p> : null}
+                <label htmlFor="admin-editorial-cover-url">Ou URL da capa</label>
+                <input
+                  id="admin-editorial-cover-url"
+                  type="text"
+                  inputMode="url"
+                  autoComplete="off"
+                  value={draftEditorial.coverUrl}
+                  onChange={(event) => setDraftEditorial((prev) => ({ ...prev, coverUrl: event.target.value }))}
+                  placeholder="https://..."
+                />
+                {String(draftEditorial.coverUrl || '').trim() ? (
+                  <div className="admin-editorial-cover-preview">
+                    <p className="admin-preview-label">Preview da capa (mosaico)</p>
+                    <img
+                      src={String(draftEditorial.coverUrl).trim()}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <button
+                      type="button"
+                      className="pill"
+                      onClick={() => setDraftEditorial((prev) => ({ ...prev, coverUrl: '' }))}
+                    >
+                      Remover capa
+                    </button>
+                  </div>
+                ) : null}
+              </div>
               <label className="admin-checkbox-row">
                 <input
                   type="checkbox"
@@ -4328,13 +4780,27 @@ export default function App() {
     const loadEditorialFromSupabase = async () => {
       if (!isSupabaseConfigured || !supabase) return;
       try {
-        const { data, error } = await supabase
+        const editorialSelectWithSources =
+          'id, title, deck, body, sources, source, issue, category, cover_url, published_at, is_published, position';
+        const editorialSelectLegacy =
+          'id, title, deck, body, source, issue, category, cover_url, published_at, is_published, position';
+        const firstAttempt = await supabase
           .from(SUPABASE_EDITORIAL_TABLE)
-          .select('id, title, deck, body, source, issue, category, cover_url, published_at, is_published, position')
+          .select(editorialSelectWithSources)
           .order('position', { ascending: true });
-        if (error) throw error;
+        let rowsData = firstAttempt.data;
+        if (firstAttempt.error && isMissingEditorialSourcesColumnError(firstAttempt.error.message)) {
+          const fallback = await supabase
+            .from(SUPABASE_EDITORIAL_TABLE)
+            .select(editorialSelectLegacy)
+            .order('position', { ascending: true });
+          if (fallback.error) throw fallback.error;
+          rowsData = (fallback.data || []).map((row) => ({ ...row, sources: '' }));
+        } else if (firstAttempt.error) {
+          throw firstAttempt.error;
+        }
         if (!active) return;
-        const mapped = Array.isArray(data) ? data.map((row, idx) => mapDbEditorialPostToItem(row, idx)) : [];
+        const mapped = Array.isArray(rowsData) ? rowsData.map((row, idx) => mapDbEditorialPostToItem(row, idx)) : [];
         if (mapped.length) setEditorialPosts(mapped);
       } catch (error) {
         if (!active) return;
@@ -4559,6 +5025,10 @@ export default function App() {
                 youtubeChannelHref={youtubeChannelHref}
               />
             )}
+          />
+          <Route
+            path="/editorial/:postId"
+            element={<EditorialArticlePage editorialPosts={editorialPosts} />}
           />
           <Route path="/editorial" element={<EditorialPage editorialPosts={editorialPosts} siteContent={siteContent} />} />
           <Route path="/contato" element={<ContactPage siteContent={siteContent} />} />
