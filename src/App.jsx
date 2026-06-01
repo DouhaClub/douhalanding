@@ -211,7 +211,8 @@ function mergeYoutubeFeedWithPlaceholders(live, placeholders, maxCount) {
 
 const gallery = ['/brand/elements/01.png', '/brand/elements/02.png', '/brand/elements/03.png', '/brand/elements/05.png'];
 const MONTH_LABELS = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
-const MAX_EVENTS_PER_MONTH = 4;
+const CALENDAR_CARDS_PER_ROW = 4;
+const MAX_EVENTS_PER_MONTH = 8;
 /** 48h apos o fim do dia do evento: ai o card troca ingresso -> link do Drive (fotos). */
 const EVENT_PHOTOS_LINK_DELAY_MS = 2 * 24 * 60 * 60 * 1000;
 const DEFAULT_TIME_OPTIONS = [
@@ -1157,7 +1158,7 @@ function AppShell({
   );
 }
 
-function AgendaEventBlock({ night }) {
+function AgendaEventBlock({ night, style }) {
   const hasPoster = Boolean(night.poster?.trim());
   const isPhotosPhase = shouldUseEventPhotosLink(night.date);
   const actionUrl = isPhotosPhase ? String(night.photosUrl || '').trim() : String(night.ticketUrl || '').trim();
@@ -1193,7 +1194,7 @@ function AgendaEventBlock({ night }) {
   );
 
   return (
-    <article className="agenda-event">
+    <article className="agenda-event" style={style}>
       {hasActionUrl ? (
         <a
           href={actionUrl}
@@ -1317,11 +1318,23 @@ function AgendaCalendarSection({
     return rows.slice(0, MAX_EVENTS_PER_MONTH);
   }, [monthBuckets, selectedMonth, selectedYear]);
   const emptySlots = Math.max(0, MAX_EVENTS_PER_MONTH - monthEvents.length);
-  /** 1–3 eventos: centraliza na grade de 4 colunas (mesmo tamanho de card que com 4). */
+  /** 1–3 eventos na 1ª linha: centraliza (mesmo tamanho de card que com 4). */
   const centerCalendarEvents =
     monthEvents.length > 0
-    && monthEvents.length < MAX_EVENTS_PER_MONTH
+    && monthEvents.length < CALENDAR_CARDS_PER_ROW
     && !(adminMode && showEmptySlots);
+  const calendarSecondRowCount = Math.max(0, monthEvents.length - CALENDAR_CARDS_PER_ROW);
+  const calendarSecondRowStartColumn = calendarSecondRowCount > 0 && calendarSecondRowCount < CALENDAR_CARDS_PER_ROW
+    ? Math.floor((CALENDAR_CARDS_PER_ROW - calendarSecondRowCount) / 2) + 1
+    : 0;
+  const calendarHasSecondRow = monthEvents.length > CALENDAR_CARDS_PER_ROW;
+
+  const getCalendarCardGridColumn = (itemIndex) => {
+    if (centerCalendarEvents || itemIndex < CALENDAR_CARDS_PER_ROW || calendarSecondRowStartColumn < 1) {
+      return undefined;
+    }
+    return { gridColumn: calendarSecondRowStartColumn + (itemIndex - CALENDAR_CARDS_PER_ROW) };
+  };
 
   const WrapperTag = embedded ? 'div' : 'section';
   const InnerTag = 'div';
@@ -1364,11 +1377,16 @@ function AgendaCalendarSection({
         </div>
 
         <div
-          className={`calendar-event-grid${centerCalendarEvents ? ' calendar-event-grid--centered' : ''}`}
+          className={`calendar-event-grid${centerCalendarEvents ? ' calendar-event-grid--centered' : ''}${calendarHasSecondRow ? ' calendar-event-grid--two-rows' : ''}`}
         >
-          {monthEvents.length ? monthEvents.map((night) => (
-            adminMode ? (
-              <article key={`calendar-${night.id}`} className="admin-calendar-slot">
+          {monthEvents.length ? monthEvents.map((night, eventIndex) => {
+            const gridColumnStyle = getCalendarCardGridColumn(eventIndex);
+            return adminMode ? (
+              <article
+                key={`calendar-${night.id}`}
+                className="admin-calendar-slot"
+                style={gridColumnStyle}
+              >
                 <p><strong>{night.date}</strong> · {night.time || 'Sem horario'}</p>
                 <p>{night.lineup}</p>
                 <p className="admin-url">
@@ -1381,15 +1399,27 @@ function AgendaCalendarSection({
                   <button type="button" className="pill" onClick={() => onDeleteEvent?.(night.id)}>Excluir</button>
                 </div>
               </article>
-            ) : <AgendaEventBlock key={`calendar-${night.id}`} night={night} />
-          )) : (
+            ) : (
+              <AgendaEventBlock
+                key={`calendar-${night.id}`}
+                night={night}
+                style={gridColumnStyle}
+              />
+            );
+          }) : (
             <p className="calendar-empty-note">
               Nenhum evento em {MONTH_LABELS[selectedMonth]} {selectedYear}.
               {yearOptions.length > 1 ? ' Troque o ano (ex.: 2025) ou outro mes.' : ' Escolha outro mes.'}
             </p>
           )}
-          {showEmptySlots ? Array.from({ length: emptySlots }).map((_, idx) => (
-            <article key={`empty-slot-${selectedYear}-${selectedMonth}-${idx}`} className="admin-calendar-slot admin-calendar-slot-empty">
+          {showEmptySlots ? Array.from({ length: emptySlots }).map((_, idx) => {
+            const slotIndex = monthEvents.length + idx;
+            return (
+            <article
+              key={`empty-slot-${selectedYear}-${selectedMonth}-${idx}`}
+              className="admin-calendar-slot admin-calendar-slot-empty"
+              style={getCalendarCardGridColumn(slotIndex)}
+            >
               <p><strong>Slot livre</strong></p>
               <p>Disponivel para criar evento neste mes.</p>
               {adminMode ? (
@@ -1406,7 +1436,8 @@ function AgendaCalendarSection({
                 </button>
               ) : null}
             </article>
-          )) : null}
+            );
+          }) : null}
         </div>
       </InnerTag>
     </WrapperTag>

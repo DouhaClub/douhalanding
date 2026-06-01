@@ -112,7 +112,7 @@
   text-align: left;
 }
 
-/* Calendario: grade 4 colunas; 1–3 eventos = flex centralizado, cada card com largura de 1/4. */
+/* Calendario: 4 colunas por linha, ate 8 eventos (2ª linha so a partir do 5º). 1–3 = flex centralizado. */
 .calendar-event-grid {
   align-items: stretch !important;
 }

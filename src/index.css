@@ -634,6 +634,10 @@ a {
   justify-items: stretch;
 }
 
+.calendar-event-grid.calendar-event-grid--two-rows {
+  row-gap: 14px;
+}
+
 .calendar-event-grid.calendar-event-grid--centered {
   display: flex;
   justify-content: center;
