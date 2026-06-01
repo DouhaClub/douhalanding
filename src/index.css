@@ -1345,7 +1345,7 @@ button:disabled,
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   flex: 1 1 auto;
   min-height: 0;
 }
@@ -1374,24 +1374,29 @@ button:disabled,
   opacity: 0.55;
 }
 
-.editorial-home-card__title {
+/* Chamada principal (campo titulo no admin) */
+.editorial-home-card__chamada {
   margin: 0;
-  font-size: clamp(1.02rem, 1.25vw, 1.22rem);
-  line-height: 1.08;
-  letter-spacing: 0.02em;
+  font-size: clamp(1.08rem, 1.45vw, 1.32rem);
+  line-height: 1.06;
+  letter-spacing: 0.015em;
   text-transform: uppercase;
   font-weight: 900;
   color: #2d2916;
 }
 
-.editorial-home-card__deck {
-  margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.38;
-  opacity: 0.72;
+/* Subtexto de apoio (campo deck no admin) — nao e corpo de texto */
+.editorial-home-card__subtext {
+  margin: 2px 0 0;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: none;
+  color: rgba(45, 41, 22, 0.58);
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   overflow: hidden;
 }
 

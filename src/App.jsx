@@ -2112,8 +2112,10 @@ function HomeEditorialSection({ editorialPosts }) {
                       {[post.issue, post.date].filter(Boolean).join(' · ')}
                     </span>
                   </div>
-                  <h3 className="editorial-home-card__title">{post.title}</h3>
-                  <p className="editorial-home-card__deck">{post.deck}</p>
+                  <h3 className="editorial-home-card__chamada">{post.title}</h3>
+                  {String(post.deck || '').trim() ? (
+                    <p className="editorial-home-card__subtext">{post.deck}</p>
+                  ) : null}
                 </div>
                 <span className="editorial-home-card__hover" aria-hidden="true">
                   Ler materia completa
