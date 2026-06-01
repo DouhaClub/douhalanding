@@ -111,9 +111,15 @@
   text-align: left;
 }
 
-/* Calendario: sempre 4 colunas (1–3 eventos mantem o mesmo tamanho de card que com 4). */
+/* Calendario: sempre 4 colunas; 1–3 eventos centralizados via grid-column (sem mudar largura). */
 .calendar-event-grid {
   align-items: stretch !important;
+}
+
+.calendar-event-grid.calendar-event-grid--centered > .agenda-event,
+.calendar-event-grid.calendar-event-grid--centered > .admin-calendar-slot {
+  width: 100%;
+  max-width: none;
 }
 
 /* Cards do calendario: mesma altura na linha da grade */
