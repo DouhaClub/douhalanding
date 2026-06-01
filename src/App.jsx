@@ -2468,9 +2468,6 @@ function EditorialPage({ editorialPosts, siteContent }) {
           <header className="editorial-page-head">
             <p className="editorial-page-kicker">Douha Club</p>
             <h2>Editorial</h2>
-            <p className="about-copy">
-              Mosaico editorial no topo; demais materias publicadas aparecem no acervo abaixo.
-            </p>
           </header>
 
           <div className="editorial-mosaic" aria-label="Mosaico editorial">
@@ -2488,7 +2485,6 @@ function EditorialPage({ editorialPosts, siteContent }) {
             <section className="editorial-archive" aria-labelledby="editorial-archive-title">
               <div className="editorial-archive__head">
                 <h3 id="editorial-archive-title">Acervo</h3>
-                <p className="about-copy">Materias anteriores fora do mosaico principal.</p>
               </div>
               <div className="editorial-archive__grid">
                 {archivePosts.map((post) => (
@@ -2497,12 +2493,6 @@ function EditorialPage({ editorialPosts, siteContent }) {
               </div>
             </section>
           ) : null}
-
-          <section className="editorial-note" id="editorial-note">
-            <p>
-              Em breve: pagina dedicada para cada materia com texto completo, galeria e embeds de audio/video.
-            </p>
-          </section>
         </div>
       </section>
     </main>
