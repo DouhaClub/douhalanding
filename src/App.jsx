@@ -320,6 +320,12 @@ const ROLE_PHOTOS_STAGE_PX = { width: 1920, height: 760 };
 /** Logo do rodape (emblema circular). */
 const FOOTER_LOGO_PX = { size: 400 };
 
+function footerLogoImageClassName(url) {
+  const value = String(url || '').trim();
+  if (/\.jpe?g($|[?#])/i.test(value)) return 'footer-logo-img footer-logo-img--lift-black';
+  return 'footer-logo-img';
+}
+
 /** Camada de arte da faixa (proporcao fixa; nao usa cover para nao esticar/cortar). */
 function YellowStripBg({ imageUrl }) {
   const url = String(imageUrl || '').trim();
@@ -1227,9 +1233,8 @@ function AppShell({
       {children}
 
       <footer className="footer">
-        <div
-          className={`container footer-grid${String(siteContent.footerLogoUrl || '').trim() ? ' footer-grid--has-logo' : ''}`}
-        >
+        <div className={`container footer-shell${String(siteContent.footerLogoUrl || '').trim() ? ' footer-shell--has-logo' : ''}`}>
+          <div className="footer-grid">
           <div className="footer-col footer-col-social">
             <p className="eyebrow">SOCIAL</p>
             <ul className="footer-link-list">
@@ -1260,19 +1265,6 @@ function AppShell({
               </li>
             </ul>
           </div>
-          {String(siteContent.footerLogoUrl || '').trim() ? (
-            <div className="footer-col footer-col-logo">
-              <img
-                className={`footer-logo-img${/\.jpe?g($|[?#])/i.test(String(siteContent.footerLogoUrl).trim()) ? ' footer-logo-img--lift-black' : ''}`}
-                src={String(siteContent.footerLogoUrl).trim()}
-                alt="The Douha Club"
-                width={FOOTER_LOGO_PX.size}
-                height={FOOTER_LOGO_PX.size}
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          ) : null}
           <div className="footer-col footer-col-community">
             <p className="eyebrow">PARTICIPE DA NOSSA COMUNIDADE</p>
             <div className="footer-community-stack">
@@ -1306,9 +1298,29 @@ function AppShell({
             <p className="eyebrow">FAQ</p>
             <a className="footer-faq-link" href="#faq">Acessar FAQ</a>
           </div>
-          <div className="footer-col footer-col-brand">
-            <p className="eyebrow">DOUHA CLUB</p>
-            <p>ALL RIGHTS RESERVED 2026</p>
+          </div>
+          <div className="footer-rule" aria-hidden="true" />
+          <div className={`footer-bottom${String(siteContent.footerLogoUrl || '').trim() ? ' footer-bottom--with-logo' : ''}`}>
+            <div className="footer-col footer-col-brand">
+              <p className="eyebrow">DOUHA CLUB</p>
+              <p>ALL RIGHTS RESERVED 2026</p>
+            </div>
+            {String(siteContent.footerLogoUrl || '').trim() ? (
+              <div className="footer-logo-slot" aria-hidden="true">
+                <div className="footer-logo-mark">
+                  <img
+                    className={footerLogoImageClassName(siteContent.footerLogoUrl)}
+                    src={String(siteContent.footerLogoUrl).trim()}
+                    alt=""
+                    width={FOOTER_LOGO_PX.size}
+                    height={FOOTER_LOGO_PX.size}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              </div>
+            ) : null}
+            <div className="footer-bottom__spacer" aria-hidden="true" />
           </div>
         </div>
       </footer>
@@ -4128,7 +4140,7 @@ function AdminPage({
           <article id="admin-footer-logo" className="admin-panel-card">
             <h3>Logo do rodape</h3>
             <p className="about-copy">
-              Aparece <strong>centralizada no meio do footer</strong> (entre Contato e Comunidade). Vazio = footer como esta hoje.
+              Detalhe <strong>pequeno e redondo</strong> na mesma linha do copyright (centro). Use <strong>PNG com fundo transparente</strong>.
               Envie em <strong>PNG com fundo transparente</strong> para nao aparecer o quadrado preto.
             </p>
             <p className="about-copy image-spec-note">{IMAGE_SPEC.footerLogo}</p>
@@ -4160,13 +4172,16 @@ function AdminPage({
               {footerLogoUploadError ? <p className="admin-error">{footerLogoUploadError}</p> : null}
               {String(draftSiteContent.footerLogoUrl || '').trim() ? (
                 <div className="admin-footer-logo-preview">
-                  <p className="about-copy admin-preview-label">Preview (centralizada no rodape)</p>
-                  <img
-                    src={String(draftSiteContent.footerLogoUrl).trim()}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  <p className="about-copy admin-preview-label">Preview (redonda, acima da linha do rodape)</p>
+                  <div className="footer-logo-mark">
+                    <img
+                      className={footerLogoImageClassName(draftSiteContent.footerLogoUrl)}
+                      src={String(draftSiteContent.footerLogoUrl).trim()}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
                 </div>
               ) : (
                 <p className="about-copy admin-muted">Sem logo: nenhum bloco extra no rodape do site.</p>
