@@ -629,6 +629,19 @@ function parseAgendaDateParts(value) {
   return null;
 }
 
+/** Ordem do calendario: dia do evento (crescente), depois horario. */
+function compareAgendaEventsByDate(a, b) {
+  const pa = parseAgendaDateParts(a?.date);
+  const pb = parseAgendaDateParts(b?.date);
+  if (!pa && !pb) return String(a?.id || '').localeCompare(String(b?.id || ''));
+  if (!pa) return 1;
+  if (!pb) return -1;
+  if (pa.year !== pb.year) return pa.year - pb.year;
+  if (pa.monthIndex !== pb.monthIndex) return pa.monthIndex - pb.monthIndex;
+  if (pa.day !== pb.day) return pa.day - pb.day;
+  return String(a?.time || '').trim().localeCompare(String(b?.time || '').trim(), 'pt-BR');
+}
+
 function getRollingCalendarYears(now = new Date()) {
   const currentYear = now.getFullYear();
   return [currentYear - 1, currentYear];
@@ -1173,7 +1186,7 @@ function AppShell({
   );
 }
 
-function AgendaEventBlock({ night, style }) {
+function AgendaEventBlock({ night }) {
   const hasPoster = Boolean(night.poster?.trim());
   const isPhotosPhase = shouldUseEventPhotosLink(night.date);
   const actionUrl = isPhotosPhase ? String(night.photosUrl || '').trim() : String(night.ticketUrl || '').trim();
@@ -1209,7 +1222,7 @@ function AgendaEventBlock({ night, style }) {
   );
 
   return (
-    <article className="agenda-event" style={style}>
+    <article className="agenda-event">
       {hasActionUrl ? (
         <a
           href={actionUrl}
@@ -1262,6 +1275,11 @@ function AgendaCalendarSection({
       if (!buckets[yearKey]) buckets[yearKey] = {};
       if (!buckets[yearKey][parsed.monthIndex]) buckets[yearKey][parsed.monthIndex] = [];
       buckets[yearKey][parsed.monthIndex].push(item);
+    });
+    Object.keys(buckets).forEach((yearKey) => {
+      Object.keys(buckets[yearKey]).forEach((monthKey) => {
+        buckets[yearKey][monthKey].sort(compareAgendaEventsByDate);
+      });
     });
     return buckets;
   }, [agendaEvents]);
@@ -1338,18 +1356,7 @@ function AgendaCalendarSection({
     monthEvents.length > 0
     && monthEvents.length < CALENDAR_CARDS_PER_ROW
     && !(adminMode && showEmptySlots);
-  const calendarSecondRowCount = Math.max(0, monthEvents.length - CALENDAR_CARDS_PER_ROW);
-  const calendarSecondRowStartColumn = calendarSecondRowCount > 0 && calendarSecondRowCount < CALENDAR_CARDS_PER_ROW
-    ? Math.floor((CALENDAR_CARDS_PER_ROW - calendarSecondRowCount) / 2) + 1
-    : 0;
   const calendarHasSecondRow = monthEvents.length > CALENDAR_CARDS_PER_ROW;
-
-  const getCalendarCardGridColumn = (itemIndex) => {
-    if (centerCalendarEvents || itemIndex < CALENDAR_CARDS_PER_ROW || calendarSecondRowStartColumn < 1) {
-      return undefined;
-    }
-    return { gridColumn: calendarSecondRowStartColumn + (itemIndex - CALENDAR_CARDS_PER_ROW) };
-  };
 
   const WrapperTag = embedded ? 'div' : 'section';
   const InnerTag = 'div';
@@ -1395,21 +1402,16 @@ function AgendaCalendarSection({
           <p className="calendar-admin-limit-note" role="status">
             <strong>{monthEvents.length}/{MAX_EVENTS_PER_MONTH}</strong> eventos em{' '}
             {MONTH_LABELS[selectedMonth]} {selectedYear}. Grade: ate {CALENDAR_CARDS_PER_ROW} na 1ª linha;
-            do {CALENDAR_CARDS_PER_ROW + 1}º ao {MAX_EVENTS_PER_MONTH}º abre a 2ª linha (igual no site publico).
+            do {CALENDAR_CARDS_PER_ROW + 1}º ao {MAX_EVENTS_PER_MONTH}º na 2ª linha (esquerda → direita). Ordem por data do evento.
           </p>
         ) : null}
 
         <div
           className={`calendar-event-grid${centerCalendarEvents ? ' calendar-event-grid--centered' : ''}${calendarHasSecondRow ? ' calendar-event-grid--two-rows' : ''}${adminMode && showEmptySlots ? ' calendar-event-grid--admin-slots' : ''}`}
         >
-          {monthEvents.length ? monthEvents.map((night, eventIndex) => {
-            const gridColumnStyle = getCalendarCardGridColumn(eventIndex);
-            return adminMode ? (
-              <article
-                key={`calendar-${night.id}`}
-                className="admin-calendar-slot"
-                style={gridColumnStyle}
-              >
+          {monthEvents.length ? monthEvents.map((night) => (
+            adminMode ? (
+              <article key={`calendar-${night.id}`} className="admin-calendar-slot">
                 <p><strong>{night.date}</strong> · {night.time || 'Sem horario'}</p>
                 <p>{night.lineup}</p>
                 <p className="admin-url">
@@ -1422,14 +1424,8 @@ function AgendaCalendarSection({
                   <button type="button" className="pill" onClick={() => onDeleteEvent?.(night.id)}>Excluir</button>
                 </div>
               </article>
-            ) : (
-              <AgendaEventBlock
-                key={`calendar-${night.id}`}
-                night={night}
-                style={gridColumnStyle}
-              />
-            );
-          }) : (
+            ) : <AgendaEventBlock key={`calendar-${night.id}`} night={night} />
+          )) : (
             <p className="calendar-empty-note">
               Nenhum evento em {MONTH_LABELS[selectedMonth]} {selectedYear}.
               {yearOptions.length > 1 ? ' Troque o ano (ex.: 2025) ou outro mes.' : ' Escolha outro mes.'}
@@ -1442,7 +1438,6 @@ function AgendaCalendarSection({
             <article
               key={`empty-slot-${selectedYear}-${selectedMonth}-${idx}`}
               className="admin-calendar-slot admin-calendar-slot-empty"
-              style={getCalendarCardGridColumn(slotIndex)}
             >
               <p><strong>Slot {slotNum} livre</strong></p>
               <p>Linha {row} · max. {MAX_EVENTS_PER_MONTH} por mes ({CALENDAR_CARDS_PER_ROW}+{MAX_EVENTS_PER_MONTH - CALENDAR_CARDS_PER_ROW}).</p>
@@ -3675,8 +3670,8 @@ function AdminPage({
           {isCalendarSection ? <article id="admin-calendar" className="admin-panel-card">
             <h3>Calendario do Admin</h3>
             <p className="about-copy">
-              Ate <strong>{MAX_EVENTS_PER_MONTH} eventos por mes</strong>: {CALENDAR_CARDS_PER_ROW} cards na 1ª linha e, a partir do 5º,
-              mais {MAX_EVENTS_PER_MONTH - CALENDAR_CARDS_PER_ROW} na 2ª linha (mesmo layout do site). Clique em um slot livre ou em Editar.
+              Ate <strong>{MAX_EVENTS_PER_MONTH} eventos por mes</strong>, ordenados pela <strong>data do evento</strong> (nao pela ordem de cadastro).
+              {CALENDAR_CARDS_PER_ROW} na 1ª linha; do 5º em diante na 2ª, preenchendo da esquerda para a direita.
             </p>
             <AgendaCalendarSection
               agendaEvents={sortedAgenda}
