@@ -76,7 +76,6 @@
 
 /* —— Grids de cards: mesma celula, mesma altura na linha, sem centralizar no meio —— */
 .calendar-event-grid,
-.editorial-news-grid,
 .sets-video-grid,
 .ticket-grid,
 .contact-grid,
@@ -94,7 +93,6 @@
 }
 
 .calendar-event-grid > *,
-.editorial-news-grid > *,
 .sets-video-grid > *,
 .ticket-grid > *,
 .contact-grid > *,
@@ -155,7 +153,6 @@
 }
 
 .calendar-event-grid .agenda-event-details,
-.editorial-news-card,
 .sets-video-card,
 .city-card,
 .ticket-card,
@@ -164,7 +161,6 @@
   text-align: left;
 }
 
-.editorial-news-card,
 .sets-video-card,
 .city-card,
 .ticket-card,
@@ -193,15 +189,6 @@
   -webkit-line-clamp: 3;
   overflow: hidden;
   min-height: 3.2em;
-}
-
-.editorial-news-card h3,
-.editorial-news-card p {
-  text-align: left;
-}
-
-.editorial-news-card p {
-  flex: 1 1 auto;
 }
 
 .ticket-card h3,

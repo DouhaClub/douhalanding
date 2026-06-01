@@ -1928,29 +1928,7 @@ function HomePage({
         </div>
       </section>
 
-      <section className="section editorial-news-section">
-        <div className="container">
-          <div className="section-head editorial-news-head">
-            <h2>Editorial</h2>
-            <Link className="pill" to="/editorial">Abrir pagina</Link>
-          </div>
-          <div className="editorial-news-grid">
-            {(editorialPosts.filter((item) => item.isPublished !== false).length
-              ? editorialPosts.filter((item) => item.isPublished !== false)
-              : defaultEditorialPosts).slice(0, 4).map((post) => (
-              <article key={`${post.id}-${post.title}`} className="editorial-news-card">
-                <div className="editorial-news-kicker">
-                  <small>{post.source}</small>
-                  <small>{post.issue} · {post.date || ''}</small>
-                </div>
-                <h3>{post.title}</h3>
-                <p>{post.deck}</p>
-                <a href="#top">Read more</a>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      <HomeEditorialSection editorialPosts={editorialPosts} />
     </main>
   );
 }
@@ -2092,6 +2070,70 @@ function SetsPage({ siteContent, youtubeChannelBranding, youtubeChannelHref }) {
         </div>
       </section>
     </main>
+  );
+}
+
+function getPublishedEditorialPosts(editorialPosts, limit = 4) {
+  const source = editorialPosts.length ? editorialPosts : defaultEditorialPosts;
+  return source.filter((item) => item.isPublished !== false).slice(0, limit);
+}
+
+/** Secao Editorial da Home — layout proprio (nao usa editorial-news-*). */
+function HomeEditorialSection({ editorialPosts }) {
+  const posts = useMemo(() => getPublishedEditorialPosts(editorialPosts, 4), [editorialPosts]);
+  const railIssue = posts[0]?.issue || 'ED. —';
+  const railSource = posts[0]?.source || 'DOUHA CLUB';
+
+  return (
+    <section className="section editorial-home-section" aria-labelledby="editorial-home-title">
+      <div className="container editorial-home">
+        <header className="editorial-home-head">
+          <div className="editorial-home-head__left">
+            <h2 id="editorial-home-title">Editorial</h2>
+            <span className="editorial-home-head__rule" aria-hidden="true" />
+          </div>
+          <Link className="editorial-home-open" to="/editorial">
+            Abrir pagina
+          </Link>
+        </header>
+
+        <div className="editorial-home-body">
+          <div className="editorial-home-grid">
+            {posts.map((post) => (
+              <Link
+                key={`home-editorial-${post.id}`}
+                to="/editorial"
+                className="editorial-home-card"
+              >
+                <div className="editorial-home-card__content">
+                  <div className="editorial-home-kicker">
+                    <span className="editorial-home-kicker__source">{post.source}</span>
+                    <span className="editorial-home-kicker__meta">
+                      {[post.issue, post.date].filter(Boolean).join(' · ')}
+                    </span>
+                  </div>
+                  <h3 className="editorial-home-card__title">{post.title}</h3>
+                  <p className="editorial-home-card__deck">{post.deck}</p>
+                </div>
+                <span className="editorial-home-card__hover" aria-hidden="true">
+                  Ler materia completa
+                </span>
+              </Link>
+            ))}
+          </div>
+
+          <aside className="editorial-home-rail" aria-label="Detalhe editorial">
+            <p className="editorial-home-rail__label">Douha Club</p>
+            <p className="editorial-home-rail__issue">{railIssue}</p>
+            <p className="editorial-home-rail__line" aria-hidden="true" />
+            <p className="editorial-home-rail__quote">
+              Leituras de cena, cultura e comportamento noturno.
+            </p>
+            <p className="editorial-home-rail__tag">{railSource}</p>
+          </aside>
+        </div>
+      </div>
+    </section>
   );
 }
 
