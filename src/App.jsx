@@ -322,7 +322,7 @@ const IMAGE_SPEC = {
   gallery:
     'Tamanho sugerido para galeria: largura minima 1200 px; proporcao livre (imagem inteira). Foto larga: panoramas ou banners largos ocupam 2 colunas no carrossel.',
   experienceCopyBanner: `Faixa amarela "Conheca a experiencia": ${YELLOW_BANNER_PX.experienceCopy.width}×${YELLOW_BANNER_PX.experienceCopy.height} px (paisagem). Exporte nessa proporcao; o texto vai na propria imagem.`,
-  setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). Exporte nessa proporcao.`,
+  setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). Deixe a direita mais limpa: o texto do site aparece ali por cima da arte.`,
   rolePhotosStage: `Fundo da faixa de fotos do role: ${ROLE_PHOTOS_STAGE_PX.width}×${ROLE_PHOTOS_STAGE_PX.height} px (paisagem). Exporte nessa proporcao; cards FOTO ficam por cima.`,
 };
 
@@ -804,6 +804,26 @@ function resolvePublicYoutubeChannelUrl(siteContent) {
     return u;
   }
   return youtubeChannelUrl;
+}
+
+/** Faixa 2 (Sets): com imagem de fundo, texto HTML fica à direita com contraste; sem imagem, à esquerda. */
+function SetsBannerSection({ siteContent }) {
+  const bgUrl = String(siteContent?.setsBannerBgUrl || '').trim();
+  const hasBg = Boolean(bgUrl);
+  return (
+    <section className={yellowStripClassName('sets-banner', bgUrl)}>
+      <YellowStripBg imageUrl={bgUrl} />
+      {hasBg ? <div className="sets-banner-scrim" aria-hidden="true" /> : null}
+      <div className={`container${hasBg ? ' sets-banner-copy-shell--on-image' : ''}`}>
+        <p className="sets-banner-copy">
+          <span>Sinta o Douha alem das paredes do club.</span>{' '}
+          <strong>Mergulhe na nossa curadoria sonora</strong>{' '}
+          <span>e reviva a energia das pistas com</span>{' '}
+          <strong>sets unicos e conteudos exclusivos.</strong>
+        </p>
+      </div>
+    </section>
+  );
 }
 
 /** SVG do logo YouTube — so na faixa de sets (Home /sets), nao no header global. */
@@ -1769,17 +1789,7 @@ function HomePage({
         </div>
       </section>
 
-      <section className={yellowStripClassName('sets-banner', siteContent?.setsBannerBgUrl)}>
-        <YellowStripBg imageUrl={siteContent?.setsBannerBgUrl} />
-        <div className="container">
-          <p className="sets-banner-copy">
-            <span>Sinta o Douha alem das paredes do club.</span>{' '}
-            <strong>Mergulhe na nossa curadoria sonora</strong>{' '}
-            <span>e reviva a energia das pistas com</span>{' '}
-            <strong>sets unicos e conteudos exclusivos.</strong>
-          </p>
-        </div>
-      </section>
+      <SetsBannerSection siteContent={siteContent} />
 
       <section className="section">
         <div className="container music-block">
@@ -1945,17 +1955,7 @@ function SetsPage({ siteContent, youtubeChannelBranding, youtubeChannelHref }) {
 
   return (
     <main>
-      <section className={yellowStripClassName('sets-banner', siteContent?.setsBannerBgUrl)}>
-        <YellowStripBg imageUrl={siteContent?.setsBannerBgUrl} />
-        <div className="container">
-          <p className="sets-banner-copy">
-            <span>Sinta o Douha alem das paredes do club.</span>{' '}
-            <strong>Mergulhe na nossa curadoria sonora</strong>{' '}
-            <span>e reviva a energia das pistas com</span>{' '}
-            <strong>sets unicos e conteudos exclusivos.</strong>
-          </p>
-        </div>
-      </section>
+      <SetsBannerSection siteContent={siteContent} />
       <section className="section">
         <div className="container music-block">
           <SetsFeedHeaderRow branding={youtubeChannelBranding} channelHref={youtubeChannelHref} />
