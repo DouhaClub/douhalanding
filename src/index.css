@@ -749,18 +749,6 @@ a {
   word-break: break-word;
 }
 
-.calendar-event-grid.calendar-event-grid--sparse {
-  gap: 14px;
-  align-items: stretch;
-}
-
-.calendar-event-grid.calendar-event-grid--sparse .agenda-event {
-  border-right: none;
-  padding: 0 clamp(10px, 1.4vw, 18px);
-  height: 100%;
-  min-height: 100%;
-}
-
 .calendar-empty-note {
   margin: 0;
   color: rgba(45, 41, 22, 0.68);

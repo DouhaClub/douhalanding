@@ -111,13 +111,9 @@
   text-align: left;
 }
 
-/* Mes com 1–3 eventos: grade so com essas colunas, bloco centralizado na pagina */
-.calendar-event-grid.calendar-event-grid--sparse {
-  grid-template-columns: repeat(var(--calendar-visible-count, 1), minmax(var(--douha-grid-col-min), 1fr)) !important;
-  width: max-content;
-  max-width: 100%;
-  margin-inline: auto;
-  justify-content: center;
+/* Calendario: sempre 4 colunas (1–3 eventos mantem o mesmo tamanho de card que com 4). */
+.calendar-event-grid {
+  align-items: stretch !important;
 }
 
 /* Cards do calendario: mesma altura na linha da grade */
