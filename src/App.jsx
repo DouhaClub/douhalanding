@@ -115,13 +115,21 @@ const editorial = [
     deck: 'Panorama rapido sobre referencias globais que influenciam a narrativa visual e sonora do clube.',
   },
 ];
+
+/** Subtexto (deck) nos cards da Home — limite para caber inteiro no bloco. */
+const EDITORIAL_HOME_DECK_MAX_LENGTH = 90;
+
+function clampEditorialDeck(value) {
+  return String(value ?? '').slice(0, EDITORIAL_HOME_DECK_MAX_LENGTH);
+}
+
 const defaultEditorialPosts = editorial.map((item, idx) => ({
   id: `editorial-${idx + 1}`,
   source: String(item.source || 'DOUHA CLUB'),
   issue: String(item.issue || ''),
   date: String(item.date || ''),
   title: String(item.title || ''),
-  deck: String(item.deck || ''),
+  deck: clampEditorialDeck(item.deck),
   body: '',
   category: '',
   coverUrl: '',
@@ -495,7 +503,7 @@ function normalizeEditorialItem(item, idx = 0) {
   return {
     id: String(item?.id || `editorial-${idx + 1}`),
     title: String(item?.title || ''),
-    deck: String(item?.deck || ''),
+    deck: clampEditorialDeck(item?.deck),
     body: String(item?.body || ''),
     source: String(item?.source || 'DOUHA CLUB'),
     issue: String(item?.issue || ''),
@@ -2868,7 +2876,7 @@ function AdminPage({
     setDraftEditorial({
       id: post.id,
       title: post.title || '',
-      deck: post.deck || '',
+      deck: clampEditorialDeck(post.deck),
       body: post.body || '',
       source: post.source || 'DOUHA CLUB',
       issue: post.issue || '',
@@ -2885,7 +2893,7 @@ function AdminPage({
     if (isSavingEditorial) return;
     setEditorialError('');
     const title = String(draftEditorial.title || '').trim();
-    const deck = String(draftEditorial.deck || '').trim();
+    const deck = clampEditorialDeck(draftEditorial.deck).trim();
     if (!title || !deck) {
       setEditorialError('Preencha pelo menos titulo e deck para salvar a materia.');
       return;
@@ -3671,12 +3679,27 @@ function AdminPage({
                 onChange={(event) => setDraftEditorial((prev) => ({ ...prev, title: event.target.value }))}
                 placeholder="Manchete da materia"
               />
-              <label>Deck (resumo curto)</label>
-              <textarea
-                value={draftEditorial.deck}
-                onChange={(event) => setDraftEditorial((prev) => ({ ...prev, deck: event.target.value }))}
-                placeholder="Resumo que aparece nos cards"
-              />
+              <div className="admin-form-field">
+                <label htmlFor="admin-editorial-deck">
+                  Deck (subtexto na Home)
+                  <span className="admin-field-limit">
+                    {clampEditorialDeck(draftEditorial.deck).length}/{EDITORIAL_HOME_DECK_MAX_LENGTH}
+                  </span>
+                </label>
+                <textarea
+                  id="admin-editorial-deck"
+                  value={draftEditorial.deck}
+                  maxLength={EDITORIAL_HOME_DECK_MAX_LENGTH}
+                  rows={3}
+                  onChange={(event) =>
+                    setDraftEditorial((prev) => ({
+                      ...prev,
+                      deck: clampEditorialDeck(event.target.value),
+                    }))
+                  }
+                  placeholder="Linha de apoio abaixo da chamada (ate 90 caracteres, aparece inteira no card)"
+                />
+              </div>
               <label>Texto completo (opcional)</label>
               <textarea
                 value={draftEditorial.body}

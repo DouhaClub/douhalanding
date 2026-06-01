@@ -1394,10 +1394,7 @@ button:disabled,
   letter-spacing: 0.05em;
   text-transform: none;
   color: rgba(45, 41, 22, 0.58);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .editorial-home-card__hover {
@@ -2507,10 +2504,22 @@ button:disabled,
 }
 
 .admin-form-field > label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.03em;
   color: rgba(45, 41, 22, 0.88);
+}
+
+.admin-field-limit {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(45, 41, 22, 0.5);
+  white-space: nowrap;
 }
 
 .admin-form-pair-row {
