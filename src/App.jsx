@@ -267,6 +267,8 @@ const defaultSiteContent = {
   setsBannerBgUrl: '',
   /** Textura/fundo da faixa diagonal de fotos do role (2º plano; cards FOTO por cima) */
   rolePhotosStageBgUrl: '',
+  /** Logo centralizada no rodape (vazio = sem bloco extra no footer) */
+  footerLogoUrl: '',
 };
 
 /** Medidas de exportacao das faixas amarelas (largura x altura em px). */
@@ -277,6 +279,9 @@ const YELLOW_BANNER_PX = {
 
 /** Faixa diagonal de fotos do role (fundo atras dos cards). */
 const ROLE_PHOTOS_STAGE_PX = { width: 1920, height: 760 };
+
+/** Logo do rodape (emblema circular). */
+const FOOTER_LOGO_PX = { size: 400 };
 
 /** Camada de arte da faixa (proporcao fixa; nao usa cover para nao esticar/cortar). */
 function YellowStripBg({ imageUrl }) {
@@ -324,6 +329,7 @@ const IMAGE_SPEC = {
   experienceCopyBanner: `Faixa amarela "Conheca a experiencia": ${YELLOW_BANNER_PX.experienceCopy.width}×${YELLOW_BANNER_PX.experienceCopy.height} px (paisagem). Exporte nessa proporcao; o texto vai na propria imagem.`,
   setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). Exporte com o texto ja na imagem (o site nao sobrepoe copy HTML).`,
   rolePhotosStage: `Fundo da faixa de fotos do role: ${ROLE_PHOTOS_STAGE_PX.width}×${ROLE_PHOTOS_STAGE_PX.height} px (paisagem). Exporte nessa proporcao; cards FOTO ficam por cima.`,
+  footerLogo: `Logo do rodape: ${FOOTER_LOGO_PX.size}×${FOOTER_LOGO_PX.size} px (quadrado 1:1). PNG com fundo transparente recomendado.`,
 };
 
 function normalizeAgendaItem(item, idx = 0) {
@@ -1126,6 +1132,19 @@ function AppShell({
             <p>ALL RIGHTS RESERVED 2026</p>
           </div>
         </div>
+        {String(siteContent.footerLogoUrl || '').trim() ? (
+          <div className="container footer-logo-band">
+            <img
+              className="footer-logo-img"
+              src={String(siteContent.footerLogoUrl).trim()}
+              alt="The Douha Club"
+              width={FOOTER_LOGO_PX.size}
+              height={FOOTER_LOGO_PX.size}
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+        ) : null}
       </footer>
     </div>
   );
@@ -2160,6 +2179,8 @@ function AdminPage({
   const [experienceCopyBannerUploadError, setExperienceCopyBannerUploadError] = useState('');
   const [setsBannerUploadError, setSetsBannerUploadError] = useState('');
   const [roleStageBgUploadError, setRoleStageBgUploadError] = useState('');
+  const [isUploadingFooterLogo, setIsUploadingFooterLogo] = useState(false);
+  const [footerLogoUploadError, setFooterLogoUploadError] = useState('');
   const [isSavingGallery, setIsSavingGallery] = useState(false);
   const [isSavingEditorial, setIsSavingEditorial] = useState(false);
   const [isSavingRolePhotos, setIsSavingRolePhotos] = useState(false);
@@ -2426,6 +2447,41 @@ function AdminPage({
       setIsUploadingRoleStageBg,
       setRoleStageBgUploadError,
     );
+  };
+
+  const onFooterLogoUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = '';
+    try {
+      if (!isSupabaseConfigured || !supabase) {
+        throw new Error(supabaseConfigError || 'Supabase nao configurado para upload.');
+      }
+      setIsUploadingFooterLogo(true);
+      setFooterLogoUploadError('');
+      const rawDataUrl = await readFileAsDataUrl(file);
+      if (typeof rawDataUrl !== 'string') throw new Error('Arquivo invalido.');
+      const compressed = await compressDataUrlImage(rawDataUrl, {
+        maxWidth: FOOTER_LOGO_PX.size,
+        quality: 0.9,
+      });
+      const compressedBlob = await (await fetch(String(compressed))).blob();
+      const fileForUpload = new File([compressedBlob], file.name || 'douha-footer-logo.png', {
+        type: file.type?.startsWith('image/') ? file.type : 'image/png',
+      });
+      const publicUrl = await withTimeout(
+        uploadGalleryImageToSupabaseStorage(fileForUpload),
+        20000,
+        'Timeout ao enviar logo do rodape (20s).',
+      );
+      setDraftSiteContent((prev) =>
+        mergeSiteContentWithDefaults({ ...prev, footerLogoUrl: String(publicUrl) }),
+      );
+    } catch (error) {
+      setFooterLogoUploadError(error.message || 'Nao foi possivel enviar a logo.');
+    } finally {
+      setIsUploadingFooterLogo(false);
+    }
   };
 
   const onUsePosterUrl = () => {
@@ -3156,6 +3212,61 @@ function AdminPage({
               </div>
             </div>
           </article> : null}
+
+          {isGeneralSection ? (
+          <article id="admin-footer-logo" className="admin-panel-card">
+            <h3>Logo do rodape</h3>
+            <p className="about-copy">
+              Aparece <strong>centralizada abaixo</strong> das colunas do footer. Vazio = footer como esta hoje (sem espaco extra).
+            </p>
+            <p className="about-copy image-spec-note">{IMAGE_SPEC.footerLogo}</p>
+            <div className="admin-form">
+              <label htmlFor="admin-footer-logo-url">URL da logo</label>
+              <input
+                id="admin-footer-logo-url"
+                type="text"
+                inputMode="url"
+                autoComplete="off"
+                placeholder="https://..."
+                value={draftSiteContent.footerLogoUrl ?? ''}
+                onChange={(event) => setDraftSiteContent((prev) => ({
+                  ...mergeSiteContentWithDefaults(prev),
+                  footerLogoUrl: event.target.value,
+                }))}
+              />
+              <label htmlFor="admin-footer-logo-file">Enviar logo do computador</label>
+              <input
+                id="admin-footer-logo-file"
+                type="file"
+                accept="image/png,image/webp,image/jpeg,image/*"
+                onChange={onFooterLogoUpload}
+                disabled={isUploadingFooterLogo}
+              />
+              {isUploadingFooterLogo ? (
+                <p className="admin-save-hint" role="status">Enviando logo...</p>
+              ) : null}
+              {footerLogoUploadError ? <p className="admin-error">{footerLogoUploadError}</p> : null}
+              {String(draftSiteContent.footerLogoUrl || '').trim() ? (
+                <div className="admin-footer-logo-preview">
+                  <p className="about-copy admin-preview-label">Preview (centralizada no rodape)</p>
+                  <img
+                    src={String(draftSiteContent.footerLogoUrl).trim()}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              ) : (
+                <p className="about-copy admin-muted">Sem logo: nenhum bloco extra no rodape do site.</p>
+              )}
+              <div className="admin-actions">
+                <button type="button" className="pill pill-light" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
+                  {isSavingSiteContent ? 'Salvando...' : 'Salvar logo do rodape'}
+                </button>
+              </div>
+            </div>
+          </article>
+          ) : null}
 
           {isPhotosSection ? (
           <article id="admin-experience-hero" className="admin-panel-card">

@@ -1713,6 +1713,41 @@ button:disabled,
   background: rgba(45, 41, 22, 0.04);
 }
 
+.footer-logo-band {
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(45, 41, 22, 0.12);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer-logo-img {
+  width: clamp(112px, 16vw, 200px);
+  height: auto;
+  max-height: 200px;
+  display: block;
+  object-fit: contain;
+}
+
+.admin-footer-logo-preview {
+  margin-top: 12px;
+  padding: 20px 16px;
+  border: 1px dashed rgba(45, 41, 22, 0.28);
+  border-radius: 8px;
+  background: rgba(45, 41, 22, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-footer-logo-preview img {
+  width: clamp(96px, 28vw, 160px);
+  height: auto;
+  object-fit: contain;
+}
+
 .footer-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
