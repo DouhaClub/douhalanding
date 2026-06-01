@@ -90,6 +90,8 @@ const editorial = [
     source: 'BOLETIM DOUHA',
     issue: 'ED. 01',
     date: 'ABR 2026',
+    category: 'AGENDA',
+    coverUrl: '/brand/elements/01.png',
     title: 'Abertura oficial da temporada e nova fase editorial do clube',
     deck: 'Resumo semanal com agenda, bastidores e curadoria para quem acompanha o movimento desde o inicio.',
   },
@@ -97,6 +99,8 @@ const editorial = [
     source: 'REPORTAGEM',
     issue: 'ED. 02',
     date: 'ABR 2026',
+    category: 'CENA',
+    coverUrl: '/brand/elements/02.png',
     title: 'Como a pista conversa com moda, arte e comportamento noturno',
     deck: 'Leitura de cena com foco em artistas residentes, convidados e referencias que moldam a experiencia Douha.',
   },
@@ -104,6 +108,8 @@ const editorial = [
     source: 'NEWSLETTER',
     issue: 'ED. 03',
     date: 'MAI 2026',
+    category: 'GUIA',
+    coverUrl: '/brand/elements/03.png',
     title: 'Guia de proximas datas, links oficiais e cobertura pos-evento',
     deck: 'O que abre, o que muda e onde acessar ingressos, fotos e conteudo completo em um unico lugar.',
   },
@@ -111,6 +117,8 @@ const editorial = [
     source: 'CULTURA',
     issue: 'ED. 04',
     date: 'MAI 2026',
+    category: 'CULTURA',
+    coverUrl: '/brand/elements/04.png',
     title: 'Rockstar, label culture e o novo ciclo criativo das pistas',
     deck: 'Panorama rapido sobre referencias globais que influenciam a narrativa visual e sonora do clube.',
   },
@@ -131,8 +139,8 @@ const defaultEditorialPosts = editorial.map((item, idx) => ({
   title: String(item.title || ''),
   deck: clampEditorialDeck(item.deck),
   body: '',
-  category: '',
-  coverUrl: '',
+  category: String(item.category || ''),
+  coverUrl: String(item.coverUrl || ''),
   publishedAt: null,
   isPublished: true,
   position: idx,
@@ -293,6 +301,10 @@ const defaultSiteContent = {
   rolePhotosStageBgUrl: '',
   /** Logo centralizada no rodape (vazio = sem bloco extra no footer) */
   footerLogoUrl: '',
+  /** Mosaico fixo da pagina /editorial — IDs de douha_editorial_posts */
+  editorialMosaicLeadId: '',
+  editorialMosaicSide1Id: '',
+  editorialMosaicSide2Id: '',
 };
 
 /** Medidas de exportacao das faixas amarelas (largura x altura em px). */
@@ -2081,9 +2093,301 @@ function SetsPage({ siteContent, youtubeChannelBranding, youtubeChannelHref }) {
   );
 }
 
-function getPublishedEditorialPosts(editorialPosts, limit = 4) {
+function getAllPublishedEditorialPosts(editorialPosts) {
   const source = editorialPosts.length ? editorialPosts : defaultEditorialPosts;
-  return source.filter((item) => item.isPublished !== false).slice(0, limit);
+  return [...source]
+    .filter((item) => item.isPublished !== false)
+    .sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0));
+}
+
+function getPublishedEditorialPosts(editorialPosts, limit = 4) {
+  return getAllPublishedEditorialPosts(editorialPosts).slice(0, limit);
+}
+
+function resolveEditorialMosaic(editorialPosts, siteContent) {
+  const published = getAllPublishedEditorialPosts(editorialPosts);
+  if (!published.length) return { lead: null, side: [] };
+
+  const slotIds = [
+    String(siteContent?.editorialMosaicLeadId || '').trim(),
+    String(siteContent?.editorialMosaicSide1Id || '').trim(),
+    String(siteContent?.editorialMosaicSide2Id || '').trim(),
+  ];
+  const byId = new Map(published.map((post) => [post.id, post]));
+  const used = new Set();
+
+  const resolveSlot = (id) => {
+    if (id && byId.has(id) && !used.has(id)) {
+      used.add(id);
+      return byId.get(id);
+    }
+    const fallback = published.find((post) => !used.has(post.id));
+    if (fallback) used.add(fallback.id);
+    return fallback || null;
+  };
+
+  const lead = resolveSlot(slotIds[0]);
+  const side1 = resolveSlot(slotIds[1]);
+  const side2 = resolveSlot(slotIds[2]);
+  return { lead, side: [side1, side2].filter(Boolean) };
+}
+
+function getEditorialMosaicPostIds(mosaic) {
+  const ids = new Set();
+  if (mosaic?.lead?.id) ids.add(mosaic.lead.id);
+  (mosaic?.side || []).forEach((post) => {
+    if (post?.id) ids.add(post.id);
+  });
+  return ids;
+}
+
+function getEditorialArchivePosts(editorialPosts, siteContent) {
+  const mosaic = resolveEditorialMosaic(editorialPosts, siteContent);
+  const inMosaic = getEditorialMosaicPostIds(mosaic);
+  return getAllPublishedEditorialPosts(editorialPosts).filter((post) => !inMosaic.has(post.id));
+}
+
+const EDITORIAL_MOSAIC_SLOT_FIELDS = {
+  lead: 'leadId',
+  side1: 'side1Id',
+  side2: 'side2Id',
+};
+
+const EDITORIAL_MOSAIC_DRAG_MIME = 'application/x-douha-editorial-mosaic';
+
+function parseEditorialMosaicDragPayload(event) {
+  const raw = event.dataTransfer.getData(EDITORIAL_MOSAIC_DRAG_MIME);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    const postId = String(parsed?.postId || '').trim();
+    if (!postId) return null;
+    const fromSlot = String(parsed?.fromSlot || '').trim();
+    return { postId, fromSlot: fromSlot || null };
+  } catch {
+    return null;
+  }
+}
+
+function assignEditorialMosaicSlot(draft, targetSlot, postId, fromSlot = null) {
+  const next = {
+    leadId: String(draft.leadId || ''),
+    side1Id: String(draft.side1Id || ''),
+    side2Id: String(draft.side2Id || ''),
+  };
+  const targetField = EDITORIAL_MOSAIC_SLOT_FIELDS[targetSlot];
+  if (!targetField) return next;
+
+  const displacedId = String(next[targetField] || '');
+  for (const field of Object.values(EDITORIAL_MOSAIC_SLOT_FIELDS)) {
+    if (next[field] === postId) next[field] = '';
+  }
+
+  next[targetField] = postId;
+
+  if (fromSlot && fromSlot !== targetSlot) {
+    const fromField = EDITORIAL_MOSAIC_SLOT_FIELDS[fromSlot];
+    if (fromField) next[fromField] = displacedId && displacedId !== postId ? displacedId : '';
+  }
+
+  return next;
+}
+
+function clearEditorialMosaicSlot(draft, slot) {
+  const next = { ...draft };
+  const field = EDITORIAL_MOSAIC_SLOT_FIELDS[slot];
+  if (field) next[field] = '';
+  return next;
+}
+
+function editorialMosaicCategoryLabel(post) {
+  const category = String(post?.category || '').trim();
+  if (category) return category;
+  return String(post?.source || 'EDITORIAL').trim();
+}
+
+function EditorialMosaicTile({ post, variant = 'side' }) {
+  if (!post) return null;
+  const coverUrl = String(post.coverUrl || '').trim();
+  const meta = [post.issue, post.date].filter(Boolean).join(' · ');
+  const showDeck = variant === 'lead' && String(post.deck || '').trim();
+
+  return (
+    <article className={`editorial-mosaic-tile editorial-mosaic-tile--${variant}`}>
+      <div className={`editorial-mosaic-tile__visual${coverUrl ? '' : ' editorial-mosaic-tile__visual--empty'}`}>
+        {coverUrl ? (
+          <img src={coverUrl} alt="" loading="lazy" decoding="async" />
+        ) : (
+          <div className="editorial-mosaic-tile__visual-fallback" aria-hidden="true">
+            <span>{String(post.issue || 'DOUHA').trim()}</span>
+          </div>
+        )}
+        <div className="editorial-mosaic-tile__overlay">
+          <div className="editorial-mosaic-tile__meta">
+            <span className="editorial-mosaic-tile__category">{editorialMosaicCategoryLabel(post)}</span>
+            {meta ? <span className="editorial-mosaic-tile__issue">{meta}</span> : null}
+          </div>
+          <h3 className="editorial-mosaic-tile__title">{post.title}</h3>
+          {showDeck ? <p className="editorial-mosaic-tile__deck">{post.deck}</p> : null}
+          <span className="editorial-mosaic-tile__cta">Leia mais</span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function EditorialArchiveCard({ post }) {
+  if (!post) return null;
+  const coverUrl = String(post.coverUrl || '').trim();
+
+  return (
+    <article className="editorial-archive-card">
+      <div className={`editorial-archive-card__thumb${coverUrl ? '' : ' editorial-archive-card__thumb--empty'}`}>
+        {coverUrl ? (
+          <img src={coverUrl} alt="" loading="lazy" decoding="async" />
+        ) : (
+          <span aria-hidden="true">{editorialMosaicCategoryLabel(post)}</span>
+        )}
+      </div>
+      <div className="editorial-archive-card__body">
+        <span className="editorial-archive-card__category">{editorialMosaicCategoryLabel(post)}</span>
+        <h4 className="editorial-archive-card__title">{post.title}</h4>
+        <a className="editorial-archive-card__cta" href="#top">
+          Leia mais
+        </a>
+      </div>
+    </article>
+  );
+}
+
+function AdminEditorialMosaicBoard({ posts, draft, onChange }) {
+  const [dragOverSlot, setDragOverSlot] = useState('');
+
+  const slotPosts = useMemo(
+    () => ({
+      lead: posts.find((post) => post.id === draft.leadId) || null,
+      side1: posts.find((post) => post.id === draft.side1Id) || null,
+      side2: posts.find((post) => post.id === draft.side2Id) || null,
+    }),
+    [posts, draft.leadId, draft.side1Id, draft.side2Id],
+  );
+
+  const assignedIds = useMemo(
+    () => new Set([draft.leadId, draft.side1Id, draft.side2Id].filter(Boolean)),
+    [draft.leadId, draft.side1Id, draft.side2Id],
+  );
+
+  const onDragStartPost = (event, postId, fromSlot = null) => {
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData(
+      EDITORIAL_MOSAIC_DRAG_MIME,
+      JSON.stringify({ postId, fromSlot }),
+    );
+  };
+
+  const onDropSlot = (event, slot) => {
+    event.preventDefault();
+    setDragOverSlot('');
+    const payload = parseEditorialMosaicDragPayload(event);
+    if (!payload?.postId) return;
+    onChange(assignEditorialMosaicSlot(draft, slot, payload.postId, payload.fromSlot));
+  };
+
+  const onDropPool = (event) => {
+    event.preventDefault();
+    const payload = parseEditorialMosaicDragPayload(event);
+    if (!payload?.fromSlot) return;
+    onChange(clearEditorialMosaicSlot(draft, payload.fromSlot));
+  };
+
+  const renderSlot = (slot, label, variant) => {
+    const post = slotPosts[slot];
+    const isOver = dragOverSlot === slot;
+
+    return (
+      <div
+        key={`admin-mosaic-slot-${slot}`}
+        className={`admin-mosaic-slot admin-mosaic-slot--${variant}${isOver ? ' admin-mosaic-slot--over' : ''}${post ? ' admin-mosaic-slot--filled' : ''}`}
+        onDragOver={(event) => {
+          event.preventDefault();
+          setDragOverSlot(slot);
+        }}
+        onDragLeave={() => setDragOverSlot('')}
+        onDrop={(event) => onDropSlot(event, slot)}
+      >
+        <p className="admin-mosaic-slot__label">{label}</p>
+        {post ? (
+          <div
+            className="admin-mosaic-slot__card"
+            draggable
+            onDragStart={(event) => onDragStartPost(event, post.id, slot)}
+          >
+            <AdminMosaicDragThumb post={post} />
+            <p className="admin-mosaic-slot__title">{post.title}</p>
+            <button
+              type="button"
+              className="admin-mosaic-slot__clear"
+              onClick={() => onChange(clearEditorialMosaicSlot(draft, slot))}
+            >
+              Remover
+            </button>
+          </div>
+        ) : (
+          <p className="admin-mosaic-slot__empty">Arraste uma materia aqui</p>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="admin-mosaic-board">
+      <div className="admin-mosaic-board__layout" aria-label="Layout do mosaico no site">
+        {renderSlot('lead', 'Principal', 'lead')}
+        <div className="admin-mosaic-board__side">
+          {renderSlot('side1', 'Secundaria 1', 'side')}
+          {renderSlot('side2', 'Secundaria 2', 'side')}
+        </div>
+      </div>
+
+      <div
+        className="admin-mosaic-pool"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={onDropPool}
+      >
+        <p className="admin-mosaic-pool__title">
+          Materias publicadas
+          <span className="admin-mosaic-pool__hint">Arraste para o mosaico · solte aqui para tirar do mosaico</span>
+        </p>
+        {!posts.length ? (
+          <p className="about-copy">Nenhuma materia publicada ainda.</p>
+        ) : (
+          <div className="admin-mosaic-pool__grid">
+            {posts.map((post) => (
+              <div
+                key={`admin-mosaic-pool-${post.id}`}
+                className={`admin-mosaic-pool__item${assignedIds.has(post.id) ? ' admin-mosaic-pool__item--assigned' : ''}`}
+                draggable
+                onDragStart={(event) => onDragStartPost(event, post.id, null)}
+              >
+                <AdminMosaicDragThumb post={post} />
+                <p>{post.title}</p>
+                {assignedIds.has(post.id) ? <span className="admin-mosaic-pool__badge">No mosaico</span> : null}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AdminMosaicDragThumb({ post }) {
+  const coverUrl = String(post?.coverUrl || '').trim();
+  return (
+    <div className={`admin-mosaic-thumb${coverUrl ? '' : ' admin-mosaic-thumb--empty'}`}>
+      {coverUrl ? <img src={coverUrl} alt="" /> : <span>{editorialMosaicCategoryLabel(post)}</span>}
+    </div>
+  );
 }
 
 /** Secao Editorial da Home — layout proprio (nao usa editorial-news-*). */
@@ -2147,76 +2451,54 @@ function HomeEditorialSection({ editorialPosts }) {
   );
 }
 
-function EditorialPage({ editorialPosts }) {
-  const sourcePosts = editorialPosts.length ? editorialPosts : defaultEditorialPosts;
-  const published = sourcePosts.filter((item) => item.isPublished !== false);
-  const posts = published.length ? published : defaultEditorialPosts;
-  const lead = posts[0];
-  const side = posts.slice(1, 3);
-  const latest = [
-    ...posts,
-    {
-      source: 'AGENDA',
-      issue: 'FLASH',
-      date: 'MAI 2026',
-      title: 'Cenas da semana: bastidores, crowd e highlights da pista',
-      deck: 'Recorte rapido dos momentos que definiram o ritmo da semana no ecossistema Douha.',
-    },
-    {
-      source: 'ENTREVISTA',
-      issue: 'ED. 04',
-      date: 'MAI 2026',
-      title: 'Resident talks: curadoria, narrativa sonora e tensao de pista',
-      deck: 'Conversa sobre selecao musical, leitura de publico e construcao de atmosfera.',
-    },
-  ];
+function EditorialPage({ editorialPosts, siteContent }) {
+  const mosaic = useMemo(
+    () => resolveEditorialMosaic(editorialPosts, siteContent),
+    [editorialPosts, siteContent],
+  );
+  const archivePosts = useMemo(
+    () => getEditorialArchivePosts(editorialPosts, siteContent),
+    [editorialPosts, siteContent],
+  );
 
   return (
-    <main>
-      <section className="section">
-        <div className="container editorial-newsroom">
-          <div className="editorial-newsroom-head">
+    <main id="top">
+      <section className="section editorial-page-section">
+        <div className="container editorial-page">
+          <header className="editorial-page-head">
+            <p className="editorial-page-kicker">Douha Club</p>
             <h2>Editorial</h2>
             <p className="about-copy">
-              Cobertura em linguagem de portal: manchetes, leitura de cena, entrevistas e atualizacoes do universo Douha.
+              Mosaico editorial no topo; demais materias publicadas aparecem no acervo abaixo.
             </p>
-          </div>
+          </header>
 
-          <div className="editorial-newsroom-hero">
-            <article className="editorial-lead-story">
-              <small>{lead?.source} · {lead?.issue} · {lead?.date}</small>
-              <h3>{lead?.title}</h3>
-              <p>{lead?.deck}</p>
-              <a href="#top">Ler materia completa</a>
-            </article>
-
-            <div className="editorial-side-stories">
-              {side.map((post) => (
-                <article key={`side-${post.issue}-${post.title}`} className="editorial-side-story">
-                  <small>{post.source} · {post.date}</small>
-                  <h4>{post.title}</h4>
-                  <a href="#top">Abrir</a>
-                </article>
+          <div className="editorial-mosaic" aria-label="Mosaico editorial">
+            <div className="editorial-mosaic__lead">
+              <EditorialMosaicTile post={mosaic.lead} variant="lead" />
+            </div>
+            <div className="editorial-mosaic__side">
+              {mosaic.side.map((post) => (
+                <EditorialMosaicTile key={`mosaic-side-${post.id}`} post={post} variant="side" />
               ))}
             </div>
           </div>
 
-          <section className="editorial-latest-block">
-            <div className="section-head">
-              <h3>Ultimas publicacoes</h3>
-            </div>
-            <div className="editorial-latest-list">
-              {latest.map((post, idx) => (
-                <article key={`latest-${post.issue}-${post.title}-${idx}`} className="editorial-latest-item">
-                  <small>{post.source} · {post.issue} · {post.date}</small>
-                  <h4>{post.title}</h4>
-                  <p>{post.deck}</p>
-                  <a href="#top">Ler agora</a>
-                </article>
-              ))}
-            </div>
-          </section>
-          <section className="editorial-note">
+          {archivePosts.length ? (
+            <section className="editorial-archive" aria-labelledby="editorial-archive-title">
+              <div className="editorial-archive__head">
+                <h3 id="editorial-archive-title">Acervo</h3>
+                <p className="about-copy">Materias anteriores fora do mosaico principal.</p>
+              </div>
+              <div className="editorial-archive__grid">
+                {archivePosts.map((post) => (
+                  <EditorialArchiveCard key={`editorial-archive-${post.id}`} post={post} />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          <section className="editorial-note" id="editorial-note">
             <p>
               Em breve: pagina dedicada para cada materia com texto completo, galeria e embeds de audio/video.
             </p>
@@ -2326,6 +2608,13 @@ function AdminPage({
   const [createSlotLabel, setCreateSlotLabel] = useState('');
   const [isSavingGallery, setIsSavingGallery] = useState(false);
   const [isSavingEditorial, setIsSavingEditorial] = useState(false);
+  const [isSavingEditorialMosaic, setIsSavingEditorialMosaic] = useState(false);
+  const [editorialMosaicError, setEditorialMosaicError] = useState('');
+  const [draftEditorialMosaic, setDraftEditorialMosaic] = useState(() => ({
+    leadId: String(siteContent?.editorialMosaicLeadId || ''),
+    side1Id: String(siteContent?.editorialMosaicSide1Id || ''),
+    side2Id: String(siteContent?.editorialMosaicSide2Id || ''),
+  }));
   const [isSavingRolePhotos, setIsSavingRolePhotos] = useState(false);
   const [isSavingSiteContent, setIsSavingSiteContent] = useState(false);
   const [siteContentSaveError, setSiteContentSaveError] = useState('');
@@ -2335,6 +2624,10 @@ function AdminPage({
   const galleryUploadWideRef = useRef(false);
   const [galleryUploadWide, setGalleryUploadWide] = useState(false);
   const sortedAgenda = useMemo(() => [...agendaEvents], [agendaEvents]);
+  const publishedEditorialForMosaic = useMemo(
+    () => getAllPublishedEditorialPosts(editorialPosts.length ? editorialPosts : defaultEditorialPosts),
+    [editorialPosts],
+  );
   const isGeneralSection = adminSection === 'geral';
   const isPhotosSection = adminSection === 'fotos';
   const isEditorialSection = adminSection === 'editorial';
@@ -2364,6 +2657,11 @@ function AdminPage({
     setDraftSiteContent(mergeSiteContentWithDefaults(siteContent));
     setDraftPhotos([...sitePhotos]);
     setDraftRolePhotos(rolePhotos.map((r) => normalizeRolePhotoEntry(r)).filter(Boolean));
+    setDraftEditorialMosaic({
+      leadId: String(siteContent?.editorialMosaicLeadId || ''),
+      side1Id: String(siteContent?.editorialMosaicSide1Id || ''),
+      side2Id: String(siteContent?.editorialMosaicSide2Id || ''),
+    });
   }, [isAdminLoggedIn, siteContent, sitePhotos, rolePhotos]);
 
   const onLogin = (event) => {
@@ -2886,6 +3184,59 @@ function AdminPage({
       isPublished: post.isPublished !== false,
     });
     setEditorialError('');
+  };
+
+  const onSwapEditorialMosaicSides = () => {
+    setDraftEditorialMosaic((prev) => ({
+      ...prev,
+      side1Id: prev.side2Id,
+      side2Id: prev.side1Id,
+    }));
+  };
+
+  const onSaveEditorialMosaic = async () => {
+    if (isSavingEditorialMosaic) return;
+    setEditorialMosaicError('');
+    const leadId = String(draftEditorialMosaic.leadId || '').trim();
+    const side1Id = String(draftEditorialMosaic.side1Id || '').trim();
+    const side2Id = String(draftEditorialMosaic.side2Id || '').trim();
+    const ids = [leadId, side1Id, side2Id].filter(Boolean);
+    if (new Set(ids).size !== ids.length) {
+      setEditorialMosaicError('Cada posicao do mosaico precisa de uma materia diferente (ou deixe vazio para preenchimento automatico).');
+      return;
+    }
+    const merged = mergeSiteContentWithDefaults({
+      ...siteContent,
+      editorialMosaicLeadId: leadId,
+      editorialMosaicSide1Id: side1Id,
+      editorialMosaicSide2Id: side2Id,
+    });
+    setSiteContent(merged);
+    safeSetLocalStorage(SITE_CONTENT_STORAGE_KEY, JSON.stringify(merged));
+    if (!isSupabaseConfigured || !supabase) {
+      flashSaved();
+      return;
+    }
+    setIsSavingEditorialMosaic(true);
+    try {
+      const { error } = await supabase.from(SUPABASE_SITE_CONTENT_TABLE).upsert(
+        {
+          id: SUPABASE_SITE_CONTENT_ROW_ID,
+          payload: merged,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' },
+      );
+      if (error) throw error;
+      flashSaved();
+    } catch (error) {
+      const msg = isMissingSiteContentTableError(error.message)
+        ? 'Tabela douha_site_content ausente no Supabase. Rode supabase/migrations/004_douha_site_content.sql'
+        : `Nao foi possivel salvar mosaico editorial: ${error.message || 'erro desconhecido'}`;
+      setEditorialMosaicError(msg);
+    } finally {
+      setIsSavingEditorialMosaic(false);
+    }
   };
 
   const onSaveEditorial = async (event) => {
@@ -3668,9 +4019,36 @@ function AdminPage({
             </div>
           </article> : null}
 
+          {isEditorialSection ? <article id="admin-editorial-mosaic" className="admin-panel-card">
+            <h3>Mosaico da pagina Editorial</h3>
+            <p className="about-copy">
+              Arraste as materias publicadas para o layout fixo do site (1 principal + 2 secundarias).
+              As demais ficam no <strong>Acervo</strong> na pagina publica. Slot vazio = preenchimento automatico.
+            </p>
+            {editorialMosaicError ? <p className="admin-error">{editorialMosaicError}</p> : null}
+            <AdminEditorialMosaicBoard
+              posts={publishedEditorialForMosaic}
+              draft={draftEditorialMosaic}
+              onChange={setDraftEditorialMosaic}
+            />
+            <div className="admin-actions">
+              <button type="button" className="pill" onClick={onSwapEditorialMosaicSides}>
+                Trocar secundarias
+              </button>
+              <button
+                type="button"
+                className="pill pill-light"
+                onClick={onSaveEditorialMosaic}
+                disabled={isSavingEditorialMosaic}
+              >
+                {isSavingEditorialMosaic ? 'Salvando mosaico...' : 'Salvar mosaico editorial'}
+              </button>
+            </div>
+          </article> : null}
+
           {isEditorialSection ? <article id="admin-editorial" className="admin-panel-card">
             <h3>Materias / Editorial</h3>
-            <p className="about-copy">Crie e atualize materias para aparecer no Home e na pagina Editorial.</p>
+            <p className="about-copy">Crie e atualize materias. Use categoria e capa para o mosaico da pagina Editorial.</p>
             {editorialError ? <p className="admin-error">{editorialError}</p> : null}
             <form className="admin-form" onSubmit={onSaveEditorial}>
               <label>Titulo</label>
@@ -4192,7 +4570,7 @@ export default function App() {
               />
             )}
           />
-          <Route path="/editorial" element={<EditorialPage editorialPosts={editorialPosts} />} />
+          <Route path="/editorial" element={<EditorialPage editorialPosts={editorialPosts} siteContent={siteContent} />} />
           <Route path="/contato" element={<ContactPage siteContent={siteContent} />} />
           <Route
             path="/admin"

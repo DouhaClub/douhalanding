@@ -200,12 +200,9 @@
   text-align: left;
 }
 
-/* Editorial: manter duas colunas como no desktop */
-.editorial-newsroom-hero {
-  grid-template-columns: minmax(260px, 1.4fr) minmax(220px, 1fr) !important;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x proximity;
+/* Editorial: mosaico fixo em duas colunas no desktop */
+.editorial-mosaic {
+  grid-template-columns: minmax(260px, 1.35fr) minmax(220px, 1fr) !important;
 }
 
 /* Lista de agenda (fora do calendario): poster + texto lado a lado */
