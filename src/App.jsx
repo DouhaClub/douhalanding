@@ -1189,14 +1189,15 @@ function AppShell({
 function AgendaEventBlock({ night }) {
   const hasPoster = Boolean(night.poster?.trim());
   const isPhotosPhase = shouldUseEventPhotosLink(night.date);
-  const actionUrl = isPhotosPhase ? String(night.photosUrl || '').trim() : String(night.ticketUrl || '').trim();
-  const hasActionUrl = Boolean(actionUrl);
+  const ticketUrl = String(night.ticketUrl || '').trim();
+  const photosUrl = String(night.photosUrl || '').trim();
+  const hasTicketUrl = Boolean(ticketUrl);
+  const hasPhotosUrl = Boolean(photosUrl);
+  /** Antes do evento: so ingresso. Depois: so fotos (se tiver link). */
+  const isClickable = isPhotosPhase ? hasPhotosUrl : hasTicketUrl;
+  const actionUrl = isPhotosPhase ? photosUrl : ticketUrl;
   const ctaLabel = isPhotosPhase ? 'Ver fotos do role' : 'Comprar ingressos';
-  const missingLabel = isPhotosPhase ? 'Sem link de fotos ainda' : 'Evento sem link ainda';
-  const missingHint = isPhotosPhase
-    ? 'Adicione o link do Drive no /admin'
-    : 'Adicione o link do ingresso no /admin';
-  const label = `Abrir detalhes — ${night.date}`;
+  const ariaLabel = isClickable ? `${ctaLabel} — ${night.lineup}` : `${night.lineup} — ${night.date}`;
   const posterInner = (
     <div className="agenda-poster">
       {hasPoster ? (
@@ -1212,29 +1213,28 @@ function AgendaEventBlock({ night }) {
           <small className="poster-spec-hint">{IMAGE_SPEC.agendaPoster}</small>
         </div>
       )}
-      <div className="agenda-poster-overlay" aria-hidden="true">
-        <span className="agenda-poster-cta">{hasActionUrl ? ctaLabel : missingLabel}</span>
-        <span className="agenda-poster-hint">
-          {hasActionUrl ? actionUrl.replace(/^https?:\/\//, '') : missingHint}
-        </span>
-      </div>
+      {isClickable ? (
+        <div className="agenda-poster-overlay" aria-hidden="true">
+          <span className="agenda-poster-cta">{ctaLabel}</span>
+        </div>
+      ) : null}
     </div>
   );
 
   return (
     <article className="agenda-event">
-      {hasActionUrl ? (
+      {isClickable ? (
         <a
           href={actionUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="agenda-poster-link"
-          aria-label={label}
+          aria-label={ariaLabel}
         >
           {posterInner}
         </a>
       ) : (
-        <div className="agenda-poster-link agenda-poster-link-disabled" aria-label={label}>
+        <div className="agenda-poster-link agenda-poster-link-disabled" aria-label={ariaLabel}>
           {posterInner}
         </div>
       )}

@@ -953,7 +953,14 @@ button:disabled,
 }
 
 .agenda-poster-link-disabled {
-  cursor: not-allowed;
+  cursor: default;
+  pointer-events: none;
+}
+
+.agenda-poster-link-disabled:hover,
+.agenda-poster-link-disabled:focus-visible {
+  border-color: rgba(45, 41, 22, 0.28);
+  box-shadow: none;
 }
 
 .agenda-poster {
@@ -1049,16 +1056,6 @@ button:disabled,
   text-transform: uppercase;
   color: #f9f6ee;
   text-align: center;
-}
-
-.agenda-poster-hint {
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  color: rgba(249, 246, 238, 0.88);
-  text-align: center;
-  word-break: break-all;
-  max-width: 100%;
-  line-height: 1.35;
 }
 
 .agenda-event-details {
