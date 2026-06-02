@@ -35,20 +35,17 @@
   width: calc(2 * var(--douha-hero-frame));
 }
 
-/* —— Header: mesmos links e tipografia; scroll horizontal se faltar largura —— */
+/* —— Header: largura total; logo na borda esquerda da viewport —— */
 .header-inner {
   flex-wrap: nowrap;
-  gap: 12px 16px;
-}
-
-.header-brand-block {
-  flex-shrink: 0;
+  gap: 10px 16px;
+  max-width: none;
+  margin: 0;
 }
 
 .nav--header {
-  flex: 1 1 auto;
   min-width: 0;
-  justify-content: flex-start;
+  justify-content: flex-end;
   overflow-x: auto;
   overflow-y: hidden;
   flex-wrap: nowrap;
@@ -286,10 +283,7 @@
   min-height: 44px;
 }
 
-/* Areas seguras (notch / barra do iPhone) */
-.header {
-  padding-top: max(14px, env(safe-area-inset-top));
-}
+/* Areas seguras: padding do header definido em index.css (.header--overlay) */
 
 .page {
   padding-left: env(safe-area-inset-left);

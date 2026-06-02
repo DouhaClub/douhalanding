@@ -2,6 +2,8 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 export const SUPABASE_RESERVATIONS_TABLE = 'douha_table_reservations';
 
+export const DOUHA_FLOOR_MAP_IMAGE = '/brand/reservation/douha-floor-map.svg';
+
 export const RESERVATION_STATUS = {
   PENDING: 'pending',
   CONFIRMED: 'confirmed',
@@ -9,6 +11,61 @@ export const RESERVATION_STATUS = {
 };
 
 const ACTIVE_STATUSES = [RESERVATION_STATUS.PENDING, RESERVATION_STATUS.CONFIRMED];
+
+const DOUHA_LAYOUT_WIDTH = 1000;
+const DOUHA_LAYOUT_HEIGHT = 700;
+
+function spot(id, label, zone, x, y, options = {}) {
+  const shape = options.shape || 'circle';
+  return {
+    id,
+    label,
+    zone,
+    shape,
+    x,
+    y,
+    r: options.r ?? 0.04,
+    w: options.w,
+    h: options.h,
+    capacity: options.capacity ?? (zone === 'camarote' ? 8 : 4),
+  };
+}
+
+/** Mapa oficial Douha: palco, mesas 1–14, camarotes C1–C6 (coordenadas alinhadas ao SVG). */
+export function buildDefaultReservationLayout() {
+  return {
+    width: DOUHA_LAYOUT_WIDTH,
+    height: DOUHA_LAYOUT_HEIGHT,
+    backgroundImage: DOUHA_FLOOR_MAP_IMAGE,
+    stage: { x: 0.103, y: 0.5, w: 0.11, h: 0.57, label: 'PALCO' },
+    zones: {
+      mesa: { label: 'Mesas' },
+      camarote: { label: 'Camarotes' },
+    },
+    tables: [
+      spot('C1', 'Camarote C1', 'camarote', 0.064, 0.168, { shape: 'rect', w: 0.072, h: 0.126 }),
+      spot('C2', 'Camarote C2', 'camarote', 0.064, 0.325, { shape: 'rect', w: 0.072, h: 0.126 }),
+      spot('C3', 'Camarote C3', 'camarote', 0.292, 0.086, { shape: 'rect', w: 0.088, h: 0.091 }),
+      spot('C4', 'Camarote C4', 'camarote', 0.4, 0.086, { shape: 'rect', w: 0.088, h: 0.091 }),
+      spot('C5', 'Camarote C5', 'camarote', 0.508, 0.086, { shape: 'rect', w: 0.088, h: 0.091 }),
+      spot('C6', 'Camarote C6', 'camarote', 0.616, 0.086, { shape: 'rect', w: 0.088, h: 0.091 }),
+      spot('1', 'Mesa 1', 'mesa', 0.3, 0.311, { r: 0.04 }),
+      spot('2', 'Mesa 2', 'mesa', 0.3, 0.426, { r: 0.04 }),
+      spot('3', 'Mesa 3', 'mesa', 0.3, 0.589, { r: 0.04 }),
+      spot('4', 'Mesa 4', 'mesa', 0.3, 0.703, { r: 0.04 }),
+      spot('5', 'Mesa 5', 'mesa', 0.42, 0.311, { r: 0.04 }),
+      spot('6', 'Mesa 6', 'mesa', 0.42, 0.426, { r: 0.04 }),
+      spot('7', 'Mesa 7', 'mesa', 0.42, 0.589, { r: 0.04 }),
+      spot('8', 'Mesa 8', 'mesa', 0.42, 0.703, { r: 0.04 }),
+      spot('9', 'Mesa 9', 'mesa', 0.54, 0.311, { r: 0.04 }),
+      spot('10', 'Mesa 10', 'mesa', 0.54, 0.426, { r: 0.04 }),
+      spot('11', 'Mesa 11', 'mesa', 0.54, 0.589, { r: 0.04 }),
+      spot('12', 'Mesa 12', 'mesa', 0.54, 0.703, { r: 0.04 }),
+      spot('13', 'Mesa 13', 'mesa', 0.66, 0.369, { r: 0.04 }),
+      spot('14', 'Mesa 14', 'mesa', 0.66, 0.646, { r: 0.04 }),
+    ],
+  };
+}
 
 export function isMissingReservationColumnsError(message) {
   const text = String(message || '').toLowerCase();
@@ -19,69 +76,40 @@ export function isMissingReservationColumnsError(message) {
   );
 }
 
-export function buildDefaultReservationLayout() {
-  const tables = [];
-  for (let row = 0; row < 2; row += 1) {
-    for (let col = 0; col < 4; col += 1) {
-      const n = row * 4 + col + 1;
-      tables.push({
-        id: `mesa-${n}`,
-        label: `Mesa ${n}`,
-        zone: 'mesa',
-        capacity: 4,
-        x: 0.11 + col * 0.2,
-        y: 0.22 + row * 0.2,
-        r: 0.038,
-      });
-    }
-  }
-  for (let i = 0; i < 4; i += 1) {
-    tables.push({
-      id: `camarote-${i + 1}`,
-      label: `Camarote ${i + 1}`,
-      zone: 'camarote',
-      capacity: 8,
-      x: 0.14 + i * 0.22,
-      y: 0.72,
-      r: 0.05,
-    });
-  }
-  return {
-    width: 1000,
-    height: 640,
-    zones: {
-      mesa: { label: 'Mesas' },
-      camarote: { label: 'Camarotes' },
-    },
-    tables,
+function normalizeTableEntry(table, idx) {
+  const id = String(table?.id || `table-${idx + 1}`).trim();
+  if (!id) return null;
+  const x = Number(table.x);
+  const y = Number(table.y);
+  const shape = table?.shape === 'rect' ? 'rect' : 'circle';
+  const entry = {
+    id,
+    label: String(table?.label || id),
+    zone: String(table?.zone || 'mesa'),
+    shape,
+    capacity: Number(table?.capacity) > 0 ? Number(table.capacity) : 4,
+    x: Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : 0.5,
+    y: Number.isFinite(y) ? Math.min(1, Math.max(0, y)) : 0.5,
+    r: Number(table?.r) > 0 ? Number(table.r) : 0.04,
   };
+  if (shape === 'rect') {
+    entry.w = Number(table?.w) > 0 ? Number(table.w) : 0.08;
+    entry.h = Number(table?.h) > 0 ? Number(table.h) : 0.1;
+  }
+  return entry;
 }
 
 export function normalizeReservationLayout(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const tables = Array.isArray(raw.tables)
-    ? raw.tables
-      .map((table, idx) => {
-        const id = String(table?.id || `table-${idx + 1}`).trim();
-        if (!id) return null;
-        const x = Number(table.x);
-        const y = Number(table.y);
-        return {
-          id,
-          label: String(table?.label || id),
-          zone: String(table?.zone || 'mesa'),
-          capacity: Number(table?.capacity) > 0 ? Number(table.capacity) : 4,
-          x: Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : 0.5,
-          y: Number.isFinite(y) ? Math.min(1, Math.max(0, y)) : 0.5,
-          r: Number(table?.r) > 0 ? Number(table.r) : 0.04,
-        };
-      })
-      .filter(Boolean)
+    ? raw.tables.map((table, idx) => normalizeTableEntry(table, idx)).filter(Boolean)
     : [];
   if (!tables.length) return null;
   return {
-    width: Number(raw.width) > 0 ? Number(raw.width) : 1000,
-    height: Number(raw.height) > 0 ? Number(raw.height) : 640,
+    width: Number(raw.width) > 0 ? Number(raw.width) : DOUHA_LAYOUT_WIDTH,
+    height: Number(raw.height) > 0 ? Number(raw.height) : DOUHA_LAYOUT_HEIGHT,
+    backgroundImage: String(raw.backgroundImage || '').trim() || undefined,
+    stage: raw.stage && typeof raw.stage === 'object' ? raw.stage : undefined,
     zones: raw.zones && typeof raw.zones === 'object' ? raw.zones : {},
     tables,
   };

@@ -27,7 +27,7 @@ const ROUTE_META = {
       'Douha Club em Maringá: curadoria musical, natureza e noites memoráveis com os melhores DJs do Brasil e do mundo.',
   },
   '/calendario': {
-    title: `Calendario | ${SITE_NAME}`,
+    title: `Calendário | ${SITE_NAME}`,
     description: 'Agenda de eventos do Douha Club: datas, horarios e lineups.',
   },
   '/agenda': {

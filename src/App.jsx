@@ -362,7 +362,7 @@ const DOUHA_GOOGLE_MAPS_URL =
 const faq = [
   {
     q: 'Como compro ingresso para um evento?',
-    a: 'Va em Calendario, selecione o mes e clique no poster do role. Se houver venda aberta, aparece a opcao de ingresso e voce e levado para a plataforma oficial daquele evento (Sympla, Ingresso Nacional, etc.).',
+    a: 'Va em Calendário, selecione o mes e clique no poster do role. Se houver venda aberta, aparece a opcao de ingresso e voce e levado para a plataforma oficial daquele evento (Sympla, Ingresso Nacional, etc.).',
   },
   {
     q: 'Como funciona o Members Club?',
@@ -1293,17 +1293,15 @@ function AppShell({
         </div>
       )}
 
-      <header className="header">
-        <div className="container header-inner">
-          <div className="header-brand-block">
-            <Link to="/" className="header-brand" aria-label="Douha Club home">
-              <img className="header-logo-img" src="/brand/logos/header-v9.svg" alt="Douha Club" />
-            </Link>
-          </div>
+      <header className="header header--overlay">
+        <div className="header-inner">
+          <Link to="/" className="header-brand" aria-label="Douha Club home">
+            <img className="header-logo-img" src="/brand/logos/header-v9.svg" alt="" />
+          </Link>
           <nav className="nav nav--header">
             <NavLink to="/" end className={({ isActive }) => (isActive ? 'is-active' : '')}>HOME</NavLink>
             <NavLink to="/quem-somos" className={({ isActive }) => (isActive ? 'is-active' : '')}>QUEM SOMOS</NavLink>
-            <NavLink to="/calendario" className={({ isActive }) => (isActive ? 'is-active' : '')}>CALENDARIO</NavLink>
+            <NavLink to="/calendario" className={({ isActive }) => (isActive ? 'is-active' : '')}>CALENDÁRIO</NavLink>
             <NavLink to="/reservas" className={({ isActive }) => (isActive ? 'is-active' : '')}>RESERVAS</NavLink>
             <NavLink to="/sets" className={({ isActive }) => (isActive ? 'is-active' : '')}>SETS</NavLink>
             <NavLink to="/editorial" className={({ isActive }) => (isActive ? 'is-active' : '')}>EDITORIAL</NavLink>
@@ -1486,7 +1484,7 @@ function AgendaEventBlock({ night }) {
 
 function AgendaCalendarSection({
   agendaEvents,
-  title = 'CALENDARIO',
+  title = 'CALENDÁRIO',
   ctaLabel,
   ctaTo,
   showEmptySlots = false,
@@ -1693,7 +1691,7 @@ function AgendaCalendarSection({
 }
 
 /** Metade da faixa duplicada em loop (mais lento que a animacao CSS antiga de 48s). */
-const HERO_MARQUEE_HALF_LOOP_SEC = 72;
+const HERO_MARQUEE_HALF_LOOP_SEC = 90;
 
 /** Carrossel: prioriza primeiras imagens; demais lazy para aliviar rede e decode. */
 function heroCarouselImageProps(index) {
@@ -2107,7 +2105,7 @@ function HomePage({
             ))}
           </div>
 
-          <div className="sets-topics-block">
+          <div className="sets-topics-block sets-topics-block--textured">
             <div className="section-head">
               <h2><Link to="/sets">Sets Unicos</Link></h2>
             </div>
@@ -2154,7 +2152,7 @@ function AgendaPage({ agendaEvents, calendarFocus, onFocusConsumed }) {
     <main>
       <AgendaCalendarSection
         agendaEvents={agendaEvents}
-        title="CALENDARIO"
+        title="CALENDÁRIO"
         applySavedFocus
         focusTarget={calendarFocus}
         onFocusConsumed={onFocusConsumed}
@@ -2220,7 +2218,7 @@ function SetsPage({ siteContent, youtubeChannelBranding, youtubeChannelHref }) {
               </a>
             ))}
           </div>
-          <div className="sets-topics-block">
+          <div className="sets-topics-block sets-topics-block--textured">
             <div className="section-head">
               <h2>Sets Unicos</h2>
             </div>
@@ -3548,7 +3546,7 @@ function AdminPage({
       );
       if (inMonth >= MAX_EVENTS_PER_MONTH) {
         setAgendaSaveError(
-          `${MONTH_LABELS[targetParts.monthIndex]} ${targetParts.year} ja tem ${MAX_EVENTS_PER_MONTH} eventos (limite do calendario). Edite ou exclua um antes de adicionar outro.`,
+          `${MONTH_LABELS[targetParts.monthIndex]} ${targetParts.year} ja tem ${MAX_EVENTS_PER_MONTH} eventos (limite do calendário). Edite ou exclua um antes de adicionar outro.`,
         );
         setIsSavingEvent(false);
         return;
@@ -4054,7 +4052,7 @@ function AdminPage({
             <Link className="pill" to="/admin">Conteudo do site</Link>
             <Link className="pill" to="/admin/fotos">Fotos</Link>
             <Link className="pill" to="/admin/editorial">Materias</Link>
-            <Link className="pill" to="/admin/calendario">Agenda / Calendario</Link>
+            <Link className="pill" to="/admin/calendario">Agenda / Calendário</Link>
             <Link className="pill" to="/admin/reservas">Reservas / Mapa</Link>
           </nav>
 
@@ -4798,14 +4796,14 @@ function AdminPage({
           ) : null}
 
           {isCalendarSection ? <article id="admin-calendar" className="admin-panel-card">
-            <h3>Calendario do Admin</h3>
+            <h3>Calendário do Admin</h3>
             <p className="about-copy">
               Ate <strong>{MAX_EVENTS_PER_MONTH} eventos por mes</strong>, ordenados pela <strong>data do evento</strong> (nao pela ordem de cadastro).
               {CALENDAR_CARDS_PER_ROW} na 1ª linha; do 5º em diante na 2ª, preenchendo da esquerda para a direita.
             </p>
             <AgendaCalendarSection
               agendaEvents={sortedAgenda}
-              title="CALENDARIO INTERNO"
+              title="CALENDÁRIO INTERNO"
               adminMode
               showEmptySlots
               onEditEvent={onEdit}

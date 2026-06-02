@@ -20,7 +20,7 @@ export function NotFoundPage() {
           </p>
           <div className="not-found-page__actions">
             <Link className="pill pill-light" to="/">Ir para a home</Link>
-            <Link className="pill" to="/calendario">Ver calendario</Link>
+            <Link className="pill" to="/calendario">Ver calendário</Link>
             <Link className="pill" to="/contato">Contato</Link>
           </div>
         </div>

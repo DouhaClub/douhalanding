@@ -162,7 +162,7 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
               />
               <div className="admin-actions">
                 <button type="button" className="pill" onClick={onApplyDefaultLayout}>
-                  Mapa padrao (12 mesas + 4 camarotes)
+                  Mapa Douha (mesas 1–14 + C1–C6)
                 </button>
                 <button type="button" className="pill pill-light" onClick={onSaveConfig} disabled={isSaving}>
                   {isSaving ? 'Salvando...' : 'Salvar mapa e ativar'}

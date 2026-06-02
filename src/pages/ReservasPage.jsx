@@ -177,7 +177,7 @@ export function ReservasPage({ agendaEvents }) {
             <div className="reservas-empty">
               <p className="about-copy">
                 Nenhum evento com mapa de reservas aberto no momento.
-                Confira o <Link to="/calendario">calendario</Link> ou fale no <Link to="/contato">contato</Link>.
+                Confira o <Link to="/calendario">calendário</Link> ou fale no <Link to="/contato">contato</Link>.
               </p>
             </div>
           ) : (
