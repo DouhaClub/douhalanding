@@ -623,6 +623,44 @@ function mapEditorialItemToDbPost(item) {
   };
 }
 
+/**
+ * Garante link absoluto do WhatsApp (wa.me). Valores como "whatsapp", "/wpp" ou "5511..."
+ * viram path no proprio site e geram 404 — aqui sempre https://wa.me/...
+ */
+function normalizeWhatsAppUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  if (/^https?:\/\//i.test(raw)) {
+    const https = raw.replace(/^http:\/\//i, 'https://');
+    if (/wa\.me|api\.whatsapp\.com/i.test(https)) return https;
+  }
+
+  const withoutScheme = raw.replace(/^https?:\/\//i, '');
+  if (/^(wa\.me|api\.whatsapp\.com)\//i.test(withoutScheme)) {
+    return `https://${withoutScheme}`;
+  }
+
+  const waInText = withoutScheme.match(/wa\.me\/(\d{10,15})/i);
+  if (waInText) return `https://wa.me/${waInText[1]}`;
+
+  const digits = raw.replace(/\D/g, '');
+  const looksLikePhone = /^[\d\s()+\-./]+$/.test(raw) && digits.length >= 10 && digits.length <= 15;
+  if (looksLikePhone) return `https://wa.me/${digits}`;
+
+  if (raw.startsWith('/') && !raw.startsWith('//')) {
+    if (digits.length >= 10) return `https://wa.me/${digits}`;
+    return '';
+  }
+
+  if (!raw.includes('.') && !raw.includes(':')) {
+    if (digits.length >= 10) return `https://wa.me/${digits}`;
+    return '';
+  }
+
+  return '';
+}
+
 /** Garante todos os campos (ex.: experienceHero) mesmo se o estado vier incompleto. */
 function mergeSiteContentWithDefaults(partial) {
   const base = { ...defaultSiteContent };
@@ -631,6 +669,8 @@ function mergeSiteContentWithDefaults(partial) {
   for (const key of Object.keys(base)) {
     if (out[key] === undefined) out[key] = base[key];
   }
+  out.contactWhatsApp = normalizeWhatsAppUrl(out.contactWhatsApp) || base.contactWhatsApp;
+  out.communityWhatsAppUrl = normalizeWhatsAppUrl(out.communityWhatsAppUrl) || base.communityWhatsAppUrl;
   return out;
 }
 
@@ -1248,7 +1288,7 @@ function AppShell({
                 </a>
               </li>
               <li>
-                <a href={siteContent.contactWhatsApp} target="_blank" rel="noreferrer" className="footer-contact-link">
+                <a href={normalizeWhatsAppUrl(siteContent.contactWhatsApp) || siteContent.contactWhatsApp} target="_blank" rel="noreferrer" className="footer-contact-link">
                   <span className="footer-social-icon footer-contact-icon" aria-hidden="true">{renderContactIcon('whatsapp')}</span>
                   <span className="footer-social-name">WhatsApp</span>
                 </a>
@@ -1276,7 +1316,7 @@ function AppShell({
               </a>
               <a
                 className="footer-community-line"
-                href={siteContent.communityWhatsAppUrl}
+                href={normalizeWhatsAppUrl(siteContent.communityWhatsAppUrl) || siteContent.communityWhatsAppUrl}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -2859,7 +2899,7 @@ function ContactChannelIcon({ id }) {
 
 function ContactPage({ siteContent }) {
   const email = String(siteContent?.contactEmail || '').trim();
-  const whatsapp = String(siteContent?.contactWhatsApp || '').trim();
+  const whatsapp = normalizeWhatsAppUrl(siteContent?.contactWhatsApp);
   const channels = [
     email
       ? {
@@ -3953,9 +3993,10 @@ function AdminPage({
                 value={draftSiteContent.contactEmail}
                 onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, contactEmail: event.target.value }))}
               />
-              <label>WhatsApp comercial (link completo)</label>
+              <label>WhatsApp comercial (numero ou link wa.me)</label>
               <input
                 value={draftSiteContent.contactWhatsApp}
+                placeholder="https://wa.me/5511999999999 ou 5511999999999"
                 onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, contactWhatsApp: event.target.value }))}
               />
               <div className="admin-form-pair-row">
@@ -3987,12 +4028,12 @@ function AdminPage({
                   />
                 </div>
                 <div className="admin-form-field">
-                  <label htmlFor="site-cm-wa-url">Comunidade WhatsApp (link)</label>
+                  <label htmlFor="site-cm-wa-url">Comunidade WhatsApp (numero ou link wa.me)</label>
                   <input
                     id="site-cm-wa-url"
+                    placeholder="https://wa.me/5511999999999"
                     value={draftSiteContent.communityWhatsAppUrl}
                     onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityWhatsAppUrl: event.target.value }))}
-                    placeholder="https://..."
                   />
                 </div>
               </div>
