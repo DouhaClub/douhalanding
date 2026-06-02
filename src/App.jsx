@@ -3078,6 +3078,7 @@ function AdminPage({
     setAuthError('');
     try {
       await signInDouhaAdmin(emailInput, passwordInput);
+      setIsAdminLoggedIn(true);
       setEmailInput('');
       setPasswordInput('');
     } catch (error) {
@@ -3085,6 +3086,11 @@ function AdminPage({
     } finally {
       setIsSigningIn(false);
     }
+  };
+
+  const onLogout = async () => {
+    await signOutDouhaAdmin();
+    setIsAdminLoggedIn(false);
   };
 
   const onEdit = (item) => {
@@ -3896,7 +3902,13 @@ function AdminPage({
       <section className="section">
         <div className="container admin-box">
           <div className="section-head">
-            <h2>Admin · Agenda</h2>
+            <h2>
+              Admin
+              {isCalendarSection ? ' · Agenda' : ''}
+              {isPhotosSection ? ' · Fotos' : ''}
+              {isEditorialSection ? ' · Editorial' : ''}
+              {isGeneralSection ? ' · Conteudo' : ''}
+            </h2>
             <div className="admin-actions">
               <button type="button" className="pill" onClick={onResetAgenda}>Limpar agenda</button>
               <button type="button" className="pill pill-light" onClick={onLogout}>Sair</button>
