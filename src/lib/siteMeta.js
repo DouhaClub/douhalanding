@@ -46,6 +46,10 @@ const ROUTE_META = {
     title: `Contato | ${SITE_NAME}`,
     description: 'Fale com o Douha Club: comercial, parcerias e duvidas frequentes.',
   },
+  '/reservas': {
+    title: `Pre-reservas | ${SITE_NAME}`,
+    description: 'Pre-reserve mesa ou camarote no mapa do evento — sem pagamento no site.',
+  },
   '/privacidade': {
     title: `Politica de privacidade | ${SITE_NAME}`,
     description: 'Como o Douha Club trata cookies, armazenamento local e dados pessoais (LGPD).',

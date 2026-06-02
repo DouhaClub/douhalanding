@@ -20,6 +20,14 @@ import { DocumentMeta } from './components/DocumentMeta';
 import { SiteFavicon } from './components/SiteFavicon';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { ReservasPage } from './pages/ReservasPage';
+import { AdminReservasPanel } from './components/AdminReservasPanel';
+import {
+  isMissingReservationColumnsError,
+  mapAgendaReservationFieldsToDb,
+  mapDbEventReservationFields,
+  normalizeReservationLayout,
+} from './lib/reservations';
 import {
   formatAdminAuthError,
   getAdminSession,
@@ -246,9 +254,25 @@ const WIDE_PHOTO_PREFIX = 'wide::';
 const POSTER_MAX_BYTES = 2 * 1024 * 1024;
 const POSTER_MAX_LABEL = '2 MB';
 
+const WHO_WE_ARE_TEXT =
+  'O Douha Club é o ponto de encontro onde a curadoria musical refinada encontra a natureza. Localizado em Maringá no Paraná, somos um espaço criado por quem realmente se conecta com a música para entregar noites que fogem do óbvio. Muito além de um club, somos um refúgio para quem busca conexão real, intensidade e momentos memoráveis ao som dos melhores DJs do Brasil e do mundo. Aqui, cada batida é uma experiência.';
+
+const LEGACY_WHO_WE_ARE_MARKERS = [
+  'inspirado no estilo',
+  'tropical noir',
+  'narrativa editorial para criar experiencias de pista',
+];
+
+function resolveWhoWeAreText(value) {
+  const text = String(value || '').trim();
+  if (!text) return WHO_WE_ARE_TEXT;
+  const lower = text.toLowerCase();
+  if (LEGACY_WHO_WE_ARE_MARKERS.some((marker) => lower.includes(marker))) return WHO_WE_ARE_TEXT;
+  return text;
+}
+
 const defaultSiteContent = {
-  whoWeAreText:
-    'O Douha Club é o ponto de encontro onde a curadoria musical refinada encontra a natureza. Localizado em Maringá no Paraná, somos um espaço criado por quem realmente se conecta com a música para entregar noites que fogem do óbvio. Muito além de um club, somos um refúgio para quem busca conexão real, intensidade e momentos memoráveis ao som dos melhores DJs do Brasil e do mundo. Aqui, cada batida é uma experiência.',
+  whoWeAreText: WHO_WE_ARE_TEXT,
   whoWeAreInstagram: 'https://www.instagram.com/douha.club/',
   contactEmail: 'booking@douhaclub.com',
   contactWhatsApp: 'https://wa.me/5500000000000',
@@ -404,6 +428,8 @@ function normalizeAgendaItem(item, idx = 0) {
     poster: String(item?.poster || ''),
     ticketUrl: String(item?.ticketUrl || ''),
     photosUrl: String(item?.photosUrl || ''),
+    reservationsEnabled: Boolean(item?.reservationsEnabled),
+    reservationLayout: normalizeReservationLayout(item?.reservationLayout),
   };
 }
 
@@ -417,6 +443,7 @@ function mapDbEventToAgendaItem(row, idx = 0) {
       poster: row?.poster,
       ticketUrl: row?.ticket_url,
       photosUrl: row?.photos_url,
+      ...mapDbEventReservationFields(row),
     },
     idx,
   );
@@ -431,6 +458,7 @@ function mapAgendaItemToDbEvent(item) {
     poster: String(item.poster || ''),
     ticket_url: String(item.ticketUrl || ''),
     photos_url: String(item.photosUrl || ''),
+    ...mapAgendaReservationFieldsToDb(item),
   };
 }
 
@@ -698,6 +726,7 @@ function mergeSiteContentWithDefaults(partial) {
   }
   out.contactWhatsApp = normalizeWhatsAppUrl(out.contactWhatsApp) || base.contactWhatsApp;
   out.communityWhatsAppUrl = normalizeWhatsAppUrl(out.communityWhatsAppUrl) || base.communityWhatsAppUrl;
+  out.whoWeAreText = resolveWhoWeAreText(out.whoWeAreText);
   return out;
 }
 
@@ -1275,6 +1304,7 @@ function AppShell({
             <NavLink to="/" end className={({ isActive }) => (isActive ? 'is-active' : '')}>HOME</NavLink>
             <NavLink to="/quem-somos" className={({ isActive }) => (isActive ? 'is-active' : '')}>QUEM SOMOS</NavLink>
             <NavLink to="/calendario" className={({ isActive }) => (isActive ? 'is-active' : '')}>CALENDARIO</NavLink>
+            <NavLink to="/reservas" className={({ isActive }) => (isActive ? 'is-active' : '')}>RESERVAS</NavLink>
             <NavLink to="/sets" className={({ isActive }) => (isActive ? 'is-active' : '')}>SETS</NavLink>
             <NavLink to="/editorial" className={({ isActive }) => (isActive ? 'is-active' : '')}>EDITORIAL</NavLink>
             <NavLink to="/contato" className={({ isActive }) => (isActive ? 'is-active' : '')}>CONTATO</NavLink>
@@ -1444,6 +1474,11 @@ function AgendaEventBlock({ night }) {
           <span>{night.time}</span>
         </p>
         <p className="event-lineup">{night.lineup}</p>
+        {night.reservationsEnabled && !isPhotosPhase ? (
+          <Link to={`/reservas/${night.id}`} className="pill agenda-reserve-link">
+            Pre-reservar mesa
+          </Link>
+        ) : null}
       </div>
     </article>
   );
@@ -2104,11 +2139,9 @@ function QuemSomosPage({ siteContent }) {
             {siteContent.whoWeAreText}
           </p>
           <p className="about-copy">
-            Instagram de referencia editorial:{' '}
             <a href={siteContent.whoWeAreInstagram} target="_blank" rel="noreferrer">
-              @douha.club
+              @douha.club no Instagram
             </a>
-            .
           </p>
         </div>
       </section>
@@ -3126,6 +3159,7 @@ function AdminPage({
   const isPhotosSection = adminSection === 'fotos';
   const isEditorialSection = adminSection === 'editorial';
   const isCalendarSection = adminSection === 'calendario';
+  const isReservasSection = adminSection === 'reservas';
   const adminStats = useMemo(() => {
     const total = sortedAgenda.length;
     const withTicket = sortedAgenda.filter((item) => String(item.ticketUrl || '').trim()).length;
@@ -3486,6 +3520,7 @@ function AdminPage({
     }
     setIsSavingEvent(true);
     const normalizedDate = formatAgendaDate(draftDay, draftMonthIndex, draftYear);
+    const existingEvent = editingId ? agendaEvents.find((item) => item.id === editingId) : null;
     const nextItem = {
       id: editingId || `event-${Date.now()}`,
       date: normalizedDate,
@@ -3494,6 +3529,8 @@ function AdminPage({
       ticketUrl: draft.ticketUrl.trim(),
       photosUrl: draft.photosUrl.trim(),
       poster: draft.poster.trim(),
+      reservationsEnabled: Boolean(existingEvent?.reservationsEnabled),
+      reservationLayout: existingEvent?.reservationLayout ?? null,
     };
     if (!nextItem.date || !nextItem.lineup) {
       setAgendaSaveError('Preencha data e lineup para salvar o evento.');
@@ -3537,6 +3574,18 @@ function AdminPage({
       if (saveResult.error && isMissingPhotosUrlColumnError(saveResult.error.message)) {
         const legacyPayload = { ...payload };
         delete legacyPayload.photos_url;
+        const retry = await withTimeout(
+          supabase
+            .from(SUPABASE_EVENTS_TABLE)
+            .upsert(legacyPayload, { onConflict: 'id' }),
+          12000,
+          'Timeout ao salvar no Supabase (12s).',
+        );
+        if (retry.error) throw retry.error;
+      } else if (saveResult.error && isMissingReservationColumnsError(saveResult.error.message)) {
+        const legacyPayload = { ...payload };
+        delete legacyPayload.reservations_enabled;
+        delete legacyPayload.reservation_layout;
         const retry = await withTimeout(
           supabase
             .from(SUPABASE_EVENTS_TABLE)
@@ -3991,6 +4040,7 @@ function AdminPage({
             <h2>
               Admin
               {isCalendarSection ? ' · Agenda' : ''}
+              {isReservasSection ? ' · Reservas' : ''}
               {isPhotosSection ? ' · Fotos' : ''}
               {isEditorialSection ? ' · Editorial' : ''}
               {isGeneralSection ? ' · Conteudo' : ''}
@@ -4005,6 +4055,7 @@ function AdminPage({
             <Link className="pill" to="/admin/fotos">Fotos</Link>
             <Link className="pill" to="/admin/editorial">Materias</Link>
             <Link className="pill" to="/admin/calendario">Agenda / Calendario</Link>
+            <Link className="pill" to="/admin/reservas">Reservas / Mapa</Link>
           </nav>
 
           {saveHint && <p className="admin-save-hint" role="status">{saveHint}</p>}
@@ -4742,6 +4793,10 @@ function AdminPage({
             </div>
           </article> : null}
 
+          {isReservasSection ? (
+            <AdminReservasPanel agendaEvents={agendaEvents} setAgendaEvents={setAgendaEvents} />
+          ) : null}
+
           {isCalendarSection ? <article id="admin-calendar" className="admin-panel-card">
             <h3>Calendario do Admin</h3>
             <p className="about-copy">
@@ -4896,9 +4951,11 @@ export default function App() {
         return;
       }
       try {
+        const fullSelect =
+          'id, date, time, lineup, poster, ticket_url, photos_url, reservations_enabled, reservation_layout, created_at';
         const firstAttempt = await supabase
           .from(SUPABASE_EVENTS_TABLE)
-          .select('id, date, time, lineup, poster, ticket_url, photos_url, created_at')
+          .select(fullSelect)
           .order('created_at', { ascending: true });
         let rowsData = firstAttempt.data;
         if (firstAttempt.error && isMissingPhotosUrlColumnError(firstAttempt.error.message)) {
@@ -4911,6 +4968,18 @@ export default function App() {
           if (active) {
             setAgendaSyncError(
               'Banco sem coluna photos_url. Agenda carregada em modo compatibilidade. Rode: supabase/migrations/001_douha_events_photos_url.sql',
+            );
+          }
+        } else if (firstAttempt.error && isMissingReservationColumnsError(firstAttempt.error.message)) {
+          const fallback = await supabase
+            .from(SUPABASE_EVENTS_TABLE)
+            .select('id, date, time, lineup, poster, ticket_url, photos_url, created_at')
+            .order('created_at', { ascending: true });
+          if (fallback.error) throw fallback.error;
+          rowsData = fallback.data || [];
+          if (active) {
+            setAgendaSyncError(
+              'Pre-reservas: rode supabase/migrations/007_douha_reservations.sql no Supabase.',
             );
           }
         } else if (firstAttempt.error) {
@@ -5197,6 +5266,8 @@ export default function App() {
           />
           <Route path="/editorial" element={<EditorialPage editorialPosts={editorialPosts} siteContent={siteContent} />} />
           <Route path="/contato" element={<ContactPage siteContent={siteContent} />} />
+          <Route path="/reservas" element={<ReservasPage agendaEvents={agendaEvents} />} />
+          <Route path="/reservas/:eventId" element={<ReservasPage agendaEvents={agendaEvents} />} />
           <Route path="/privacidade" element={<PrivacyPolicyPage siteContent={siteContent} />} />
           <Route
             path="/admin"
@@ -5307,6 +5378,34 @@ export default function App() {
                     : ''
                 }
                 adminSection="calendario"
+              />
+            )}
+          />
+          <Route
+            path="/admin/reservas"
+            element={(
+              <AdminPage
+                agendaEvents={agendaEvents}
+                setAgendaEvents={setAgendaEvents}
+                onResetAgenda={onResetAgenda}
+                isAdminLoggedIn={isAdminLoggedIn}
+                setIsAdminLoggedIn={setIsAdminLoggedIn}
+                sitePhotos={sitePhotos}
+                setSitePhotos={setSitePhotos}
+                rolePhotos={rolePhotos}
+                setRolePhotos={setRolePhotos}
+                editorialPosts={editorialPosts}
+                setEditorialPosts={setEditorialPosts}
+                siteContent={siteContent}
+                setSiteContent={setSiteContent}
+                onEventSavedFocus={(focus) => setCalendarFocus(focus)}
+                agendaSyncError={agendaSyncError}
+                supabaseSetupError={
+                  !isSupabaseConfigured && supabaseConfigError
+                    ? `Revise o .env do Douha: ${supabaseConfigError}`
+                    : ''
+                }
+                adminSection="reservas"
               />
             )}
           />
