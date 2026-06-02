@@ -1691,7 +1691,7 @@ function AgendaCalendarSection({
 }
 
 /** Metade da faixa duplicada em loop (mais lento que a animacao CSS antiga de 48s). */
-const HERO_MARQUEE_HALF_LOOP_SEC = 90;
+const HERO_MARQUEE_HALF_LOOP_SEC = 130;
 
 /** Carrossel: prioriza primeiras imagens; demais lazy para aliviar rede e decode. */
 function heroCarouselImageProps(index) {
