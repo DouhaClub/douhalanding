@@ -2871,9 +2871,33 @@ button:disabled,
   font-weight: 700;
 }
 
+.faq-item-body {
+  margin-top: 10px;
+}
+
 .faq-item p {
   margin: 10px 0 0;
   opacity: 0.8;
+}
+
+.faq-item-body p:first-child {
+  margin-top: 0;
+}
+
+.faq-item-list {
+  margin: 8px 0 0;
+  padding-left: 1.2rem;
+  opacity: 0.8;
+}
+
+.faq-item-list li + li {
+  margin-top: 4px;
+}
+
+.faq-item-link-wrap a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .contact-page__inner {

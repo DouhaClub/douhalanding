@@ -248,7 +248,7 @@ const POSTER_MAX_LABEL = '2 MB';
 
 const defaultSiteContent = {
   whoWeAreText:
-    'O Douha Club, inspirado no estilo e atmosfera vistos no perfil do Instagram, mistura curadoria musical, visual tropical noir e narrativa editorial para criar experiencias de pista e conteudo.',
+    'O Douha Club é o ponto de encontro onde a curadoria musical refinada encontra a natureza. Localizado em Maringá no Paraná, somos um espaço criado por quem realmente se conecta com a música para entregar noites que fogem do óbvio. Muito além de um club, somos um refúgio para quem busca conexão real, intensidade e momentos memoráveis ao som dos melhores DJs do Brasil e do mundo. Aqui, cada batida é uma experiência.',
   whoWeAreInstagram: 'https://www.instagram.com/douha.club/',
   contactEmail: 'booking@douhaclub.com',
   contactWhatsApp: 'https://wa.me/5500000000000',
@@ -332,22 +332,49 @@ function buildRoleStageBgProps(imageUrl) {
   };
 }
 
+const DOUHA_GOOGLE_MAPS_URL =
+  'https://www.google.com/maps/place/douha+club/data=!4m2!3m1!1s0x94ecd3004c83b51d:0x5e4a68fcd0274d1?sa=X&ved=1t:242&ictx=111';
+
 const faq = [
   {
     q: 'Como compro ingresso para um evento?',
     a: 'Va em Calendario, selecione o mes e clique no poster do role. Se houver venda aberta, aparece a opcao de ingresso e voce e levado para a plataforma oficial daquele evento (Sympla, Ingresso Nacional, etc.).',
   },
   {
-    q: 'O que eu encontro no Calendario?',
-    a: 'Data, horario, lineup e o poster de cada role. O ingresso sai pelo proprio evento, quando o link estiver cadastrado. Depois do role, o mesmo card pode mostrar fotos, se a gente publicar o album.',
+    q: 'Como funciona o Members Club?',
+    paragraphs: [
+      'O Members Club e o espaco exclusivo do Douha para quem quer viver a experiencia antes de todo mundo.',
+      'Participando, voce recebe acesso antecipado a line-up e as novidades, pode fazer reservas de mesas e camarotes um dia antes da abertura geral, participa de enquetes que ajudam a definir o role, alem de concorrer a sorteios e receber descontos exclusivos.',
+      'Ou seja: sua opiniao entra no jogo, e voce fica sempre um passo a frente.',
+    ],
   },
   {
-    q: 'Como falo com o comercial?',
-    a: 'Use o e-mail ou o WhatsApp nesta pagina — sao os canais oficiais para parcerias, booking e duvidas gerais. Para privacidade e LGPD, o mesmo e-mail serve; detalhes na Politica de privacidade.',
+    q: 'Onde estamos localizados?',
+    a: 'Estamos localizados na Rodovia Deputado Silvio Barros, 6175.',
+    link: { href: DOUHA_GOOGLE_MAPS_URL, label: 'Ver no Google Maps' },
   },
   {
-    q: 'O site utiliza cookies?',
-    a: 'Utilizamos apenas o necessario para o funcionamento do site. No banner de consentimento, o visitante pode optar por recursos essenciais ou por essenciais acrescidos de cache no navegador, com o objetivo de agilizar visitas futuras. Nao empregamos cookies de publicidade. Informacoes complementares constam na Politica de privacidade.',
+    q: 'Voces possuem estacionamento?',
+    a: 'Sim, temos estacionamento (pago) e pontos de retirada de uber, taxis e afins.',
+  },
+  {
+    q: 'O que e proibido no dress code?',
+    a: 'Itens nao permitidos:',
+    list: [
+      'Correntes muito grossas',
+      'Camiseta de Time',
+      'Camiseta Polo',
+      'Bermuda Tactel',
+      'Chinelo/Crocs',
+      'Regata',
+    ],
+  },
+  {
+    q: 'Bar e Cozinha',
+    paragraphs: [
+      'Garantimos um bar completo, pronto para agradar qualquer paladar.',
+      'E se bater aquela fome, fique a vontade e aproveite o Douha Pub! Temos diversos sabores de pizzas pra te salvar da larica.',
+    ],
   },
   {
     q: 'Como exercer meus direitos na LGPD?',
@@ -2973,7 +3000,26 @@ function ContactPage({ siteContent }) {
             {faq.map((item) => (
               <details key={item.q} className="faq-item">
                 <summary>{item.q}</summary>
-                <p>{item.a}</p>
+                <div className="faq-item-body">
+                  {item.paragraphs?.map((paragraph) => (
+                    <p key={`${item.q}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
+                  ))}
+                  {item.a ? <p>{item.a}</p> : null}
+                  {item.list?.length ? (
+                    <ul className="faq-item-list">
+                      {item.list.map((line) => (
+                        <li key={`${item.q}-${line}`}>{line}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {item.link ? (
+                    <p className="faq-item-link-wrap">
+                      <a href={item.link.href} target="_blank" rel="noreferrer">
+                        {item.link.label}
+                      </a>
+                    </p>
+                  ) : null}
+                </div>
               </details>
             ))}
           </div>

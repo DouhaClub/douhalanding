@@ -23,7 +23,8 @@ const ROUTE_META = {
   },
   '/quem-somos': {
     title: `Quem somos | ${SITE_NAME}`,
-    description: 'Conheca o Douha Club: proposta, experiencia e identidade do coletivo.',
+    description:
+      'Douha Club em Maringá: curadoria musical, natureza e noites memoráveis com os melhores DJs do Brasil e do mundo.',
   },
   '/calendario': {
     title: `Calendario | ${SITE_NAME}`,
