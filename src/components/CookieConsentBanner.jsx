@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { initAnalyticsIfConsented } from '../lib/analytics';
 import { needsConsentBanner, saveConsentChoice } from '../lib/consentStorage';
 import { registerServiceWorkerIfAccepted, unregisterServiceWorker } from '../lib/registerServiceWorker';
 
@@ -10,6 +11,7 @@ export function CookieConsentBanner() {
     saveConsentChoice('accepted');
     setOpen(false);
     await registerServiceWorkerIfAccepted();
+    await initAnalyticsIfConsented();
   }, []);
 
   const onReject = useCallback(async () => {
@@ -34,14 +36,14 @@ export function CookieConsentBanner() {
           <div className="cookie-consent-text">
             <p className="cookie-consent-eyebrow">Privacidade</p>
             <h2 id="cookie-consent-title" className="cookie-consent-heading">
-              Cookies, dados locais e cache
+              Cookies e armazenamento local
             </h2>
             <p id="cookie-consent-desc" className="cookie-consent-copy">
-              Este site pode usar <strong>cookies</strong> e <strong>armazenamento local</strong> para
-              funcionar (por exemplo, preferencias). Se voce aceitar, tambem usamos{' '}
-              <strong>cache no navegador</strong> (Service Worker) para as proximas visitas
-              carregarem mais rapido. Isso nao substitui uma politica de privacidade completa — em
-              duvida, fale conosco em <Link to="/contato">Contato</Link>.
+              Usamos <strong>armazenamento local</strong> para o site funcionar (preferencias, agenda,
+              consentimento). Se voce aceitar, tambem ativamos <strong>cache</strong> (Service Worker) e{' '}
+              <strong>estatisticas de visita</strong> (analytics), quando configurados. Saiba mais na{' '}
+              <Link to="/privacidade">Politica de privacidade</Link> ou fale conosco em{' '}
+              <Link to="/contato">Contato</Link>.
             </p>
           </div>
           <div className="cookie-consent-actions">

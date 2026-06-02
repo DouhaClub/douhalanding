@@ -2,7 +2,7 @@
  * Cache de assets do Douha Club (mesma origem) apos o visitante aceitar.
  * HTML: rede primeiro. JS/CSS/imagens/fontes: cache com atualizacao em segundo plano.
  */
-const CACHE_NAME = 'douha-app-v1';
+const CACHE_NAME = 'douha-app-v3';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

@@ -14,7 +14,21 @@ import {
   normalizeYoutubeChannelEnv,
   resolveYoutubeChannelWebUrl,
 } from './lib/youtubeApi';
+import { Analytics } from './components/Analytics';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
+import { DocumentMeta } from './components/DocumentMeta';
+import { SiteFavicon } from './components/SiteFavicon';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import {
+  formatAdminAuthError,
+  getAdminSession,
+  signInDouhaAdmin,
+  signOutDouhaAdmin,
+  subscribeAdminAuth,
+} from './lib/adminAuth';
+import { useDocumentMeta } from './hooks/useDocumentMeta';
+import { buildEditorialArticleMeta } from './lib/siteMeta';
 import { hasAcceptedOptionalStorage } from './lib/consentStorage';
 import { registerServiceWorkerIfAccepted } from './lib/registerServiceWorker';
 
@@ -42,48 +56,8 @@ function rolePhotoEntryUrl(entry) {
   const n = normalizeRolePhotoEntry(entry);
   return n ? n.url : '';
 }
-const ADMIN_AUTH_KEY = 'douha_admin_auth_v1';
-const ADMIN_USERNAME = 'adm';
-const ADMIN_PASSWORD = 'senhadouha';
-
-const defaultAgenda = [
-  {
-    id: 'night-1',
-    date: '02.05.26',
-    time: 'A CONFIRMAR',
-    lineup: 'SYON TRIO',
-    poster: '/events/syon-trio-by-douha.png',
-    ticketUrl: 'https://www.ingressonacional.com.br/evento/33724/syon-trio-by-douha',
-    photosUrl: '',
-  },
-  {
-    id: 'night-2',
-    date: '04th JULY',
-    time: 'FROM 18:00',
-    lineup: 'ARTIST G, ARTIST H, ARTIST I, ARTIST J, ARTIST K, ARTIST L',
-    poster: '/brand/elements/02.png',
-    ticketUrl: 'https://www.sympla.com.br',
-    photosUrl: '',
-  },
-  {
-    id: 'night-3',
-    date: '11th JULY',
-    time: 'FROM 18:00',
-    lineup: 'RESIDENT A, RESIDENT B, GUEST M, GUEST N, GUEST O',
-    poster: '/brand/elements/03.png',
-    ticketUrl: 'https://www.sympla.com.br',
-    photosUrl: '',
-  },
-];
-
-const cities = [
-  { city: 'SAO PAULO', date: 'JUL 2026' },
-  { city: 'RIO', date: 'AUG 2026' },
-  { city: 'LISBON', date: 'OCT 2026' },
-  { city: 'MADRID', date: 'NOV 2026' },
-  { city: 'PARIS', date: 'JAN 2027' },
-  { city: 'BERLIN', date: 'FEB 2027' },
-];
+/** Agenda vem do Supabase; sem fallback fake no codigo. */
+const defaultAgenda = [];
 
 const editorial = [
   {
@@ -359,9 +333,26 @@ function buildRoleStageBgProps(imageUrl) {
 }
 
 const faq = [
-  { q: 'Como compro ingresso?', a: 'Use a pagina Ingressos. Cada card redireciona para a plataforma oficial.' },
-  { q: 'A agenda e a bilheteria sao a mesma coisa?', a: 'Nao. Agenda mostra datas e lineups; bilheteria e separada.' },
-  { q: 'Como falar com o comercial?', a: 'Na pagina Contato voce encontra email business e WhatsApp comercial.' },
+  {
+    q: 'Como compro ingresso para um evento?',
+    a: 'Va em Calendario, selecione o mes e clique no poster do role. Se houver venda aberta, aparece a opcao de ingresso e voce e levado para a plataforma oficial daquele evento (Sympla, Ingresso Nacional, etc.).',
+  },
+  {
+    q: 'O que eu encontro no Calendario?',
+    a: 'Data, horario, lineup e o poster de cada role. O ingresso sai pelo proprio evento, quando o link estiver cadastrado. Depois do role, o mesmo card pode mostrar fotos, se a gente publicar o album.',
+  },
+  {
+    q: 'Como falo com o comercial?',
+    a: 'Use o e-mail ou o WhatsApp nesta pagina — sao os canais oficiais para parcerias, booking e duvidas gerais. Para privacidade e LGPD, o mesmo e-mail serve; detalhes na Politica de privacidade.',
+  },
+  {
+    q: 'O site utiliza cookies?',
+    a: 'Utilizamos apenas o necessario para o funcionamento do site. No banner de consentimento, o visitante pode optar por recursos essenciais ou por essenciais acrescidos de cache no navegador, com o objetivo de agilizar visitas futuras. Nao empregamos cookies de publicidade. Informacoes complementares constam na Politica de privacidade.',
+  },
+  {
+    q: 'Como exercer meus direitos na LGPD?',
+    a: 'Mande um e-mail para o contato comercial dizendo o que precisa: saber se tratamos seus dados, corrigir informacao, pedir exclusao ou revogar consentimento de cache/analytics. Respondemos em prazo razoavel, conforme a lei.',
+  },
 ];
 
 /** Referencia de tamanho para exportar arquivos (alinha com o layout do site) */
@@ -1217,7 +1208,6 @@ function AppShell({
             <NavLink to="/" end className={({ isActive }) => (isActive ? 'is-active' : '')}>HOME</NavLink>
             <NavLink to="/quem-somos" className={({ isActive }) => (isActive ? 'is-active' : '')}>QUEM SOMOS</NavLink>
             <NavLink to="/calendario" className={({ isActive }) => (isActive ? 'is-active' : '')}>CALENDARIO</NavLink>
-            <NavLink to="/tickets" className={({ isActive }) => (isActive ? 'is-active' : '')}>INGRESSOS</NavLink>
             <NavLink to="/sets" className={({ isActive }) => (isActive ? 'is-active' : '')}>SETS</NavLink>
             <NavLink to="/editorial" className={({ isActive }) => (isActive ? 'is-active' : '')}>EDITORIAL</NavLink>
             <NavLink to="/contato" className={({ isActive }) => (isActive ? 'is-active' : '')}>CONTATO</NavLink>
@@ -1296,7 +1286,8 @@ function AppShell({
           </div>
           <div className="footer-col footer-col-faq">
             <p className="eyebrow">FAQ</p>
-            <a className="footer-faq-link" href="#faq">Acessar FAQ</a>
+            <a className="footer-faq-link" href="/contato#faq">Acessar FAQ</a>
+            <a className="footer-faq-link footer-privacy-link" href="/privacidade">Politica de privacidade</a>
           </div>
           </div>
           <div className="footer-rule" aria-hidden="true" />
@@ -1566,12 +1557,7 @@ function AgendaCalendarSection({
                 </div>
               </article>
             ) : <AgendaEventBlock key={`calendar-${night.id}`} night={night} />
-          )) : (
-            <p className="calendar-empty-note">
-              Nenhum evento em {MONTH_LABELS[selectedMonth]} {selectedYear}.
-              {yearOptions.length > 1 ? ' Troque o ano (ex.: 2025) ou outro mes.' : ' Escolha outro mes.'}
-            </p>
-          )}
+          )) : null}
           {showEmptySlots ? Array.from({ length: emptySlots }).map((_, idx) => {
             const slotIndex = monthEvents.length + idx;
             const { slotNum, row } = describeCalendarSlot(slotIndex);
@@ -2069,40 +2055,13 @@ function AgendaPage({ agendaEvents, calendarFocus, onFocusConsumed }) {
       <AgendaCalendarSection
         agendaEvents={agendaEvents}
         title="CALENDARIO"
-        ctaLabel="Ver ingressos"
-        ctaTo="/tickets"
         applySavedFocus
         focusTarget={calendarFocus}
         onFocusConsumed={onFocusConsumed}
       />
-      <section className="section">
+      <section className="section worldwide-section">
         <div className="container">
           <h2>Worldwide</h2>
-          <div className="cities">
-            {cities.map((item) => (
-              <article key={item.city} className="city-card">
-                <h3>{item.city}</h3>
-                <p>{item.date}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function TicketsPage() {
-  return (
-    <main>
-      <section className="section">
-        <div className="container">
-          <h2>Ingressos</h2>
-          <div className="ticket-grid">
-            <a className="ticket-card" href="#top"><h3>PRE-SALE SAO PAULO</h3><p>Redirecionamento para plataforma oficial.</p></a>
-            <a className="ticket-card" href="#top"><h3>GENERAL SALE RIO</h3><p>Compra de ingresso por lote e data.</p></a>
-            <a className="ticket-card" href="#top"><h3>LISTA VIP / EARLY ACCESS</h3><p>Cadastro para abertura de lote.</p></a>
-          </div>
         </div>
       </section>
     </main>
@@ -2585,6 +2544,12 @@ function EditorialArticlePage({ editorialPosts }) {
     [editorialPosts, postId],
   );
 
+  useDocumentMeta(
+    post
+      ? buildEditorialArticleMeta(post)
+      : { title: `Materia | Douha Club`, description: 'Materia nao encontrada.', canonicalPath: '/editorial' },
+  );
+
   if (!post) {
     return (
       <main>
@@ -2875,20 +2840,93 @@ function EditorialPage({ editorialPosts, siteContent }) {
   );
 }
 
-function ContactPage({ siteContent }) {
+function ContactChannelIcon({ id }) {
+  if (id === 'email') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3.5" y="6.3" width="17" height="11.4" rx="2.1" fill="none" />
+        <path d="M4.6 7.7 12 13l7.4-5.3" fill="none" />
+      </svg>
+    );
+  }
   return (
-    <main>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 4.2a7.9 7.9 0 0 0-6.8 12l-1 3.6 3.7-1A7.9 7.9 0 1 0 12 4.2Z" fill="none" />
+      <path d="M9.1 9.2c.15-.35.3-.36.56-.36h.48c.15 0 .38-.06.59.43.2.49.68 1.68.74 1.8.06.12.1.27 0 .44-.1.16-.15.26-.3.4-.15.14-.3.31-.42.42-.14.14-.29.29-.12.57.17.28.77 1.27 1.66 2.06 1.15 1.01 2.12 1.33 2.4 1.48.28.15.44.13.6-.08.17-.21.71-.83.9-1.12.18-.29.37-.24.62-.15.25.09 1.6.76 1.87.9.27.13.45.2.52.32.07.12.07.71-.17 1.4-.24.69-1.4 1.32-1.93 1.4-.5.08-1.14.12-1.84-.11-.43-.14-.98-.32-1.7-.63-2.98-1.29-4.92-4.45-5.07-4.65-.15-.2-1.2-1.6-1.2-3.06 0-1.46.77-2.17 1.04-2.47Z" />
+    </svg>
+  );
+}
+
+function ContactPage({ siteContent }) {
+  const email = String(siteContent?.contactEmail || '').trim();
+  const whatsapp = String(siteContent?.contactWhatsApp || '').trim();
+  const channels = [
+    email
+      ? {
+          id: 'email',
+          label: 'E-mail comercial',
+          hint: 'Parcerias, booking e assuntos gerais',
+          value: email,
+          href: `mailto:${email}`,
+          external: false,
+        }
+      : null,
+    whatsapp
+      ? {
+          id: 'whatsapp',
+          label: 'WhatsApp Business',
+          hint: 'Canal direto para combinados e parcerias',
+          value: 'Abrir conversa',
+          href: whatsapp,
+          external: true,
+        }
+      : null,
+  ].filter(Boolean);
+
+  return (
+    <main className="contact-page">
       <section className="section">
-        <div className="container">
-          <h2>Comercial / Contato</h2>
-          <div className="contact-grid">
-            <a className="contact-card" href={`mailto:${siteContent.contactEmail}`}><h3>EMAIL COMERCIAL</h3><p>{siteContent.contactEmail}</p></a>
-            <a className="contact-card" href={siteContent.contactWhatsApp} target="_blank" rel="noreferrer"><h3>WHATSAPP BUSINESS</h3><p>Canal direto para parcerias.</p></a>
-            <a className="contact-card" href="#top"><h3>MEDIA KIT</h3><p>Solicitacao de material institucional.</p></a>
-          </div>
+        <div className="container contact-page__inner">
+          <p className="eyebrow">Contato</p>
+          <h1>Comercial</h1>
+          <p className="contact-page__lead">
+            Escolha o canal abaixo. Respondemos o mais rapido possivel em dias uteis.
+          </p>
+          <ul className="contact-channel-list">
+            {channels.map((channel) => (
+              <li key={channel.id}>
+                <a
+                  className="contact-channel-link"
+                  href={channel.href}
+                  {...(channel.external ? { target: '_blank', rel: 'noreferrer' } : {})}
+                >
+                  <span className={`contact-channel-icon contact-channel-icon--${channel.id}`} aria-hidden="true">
+                    <ContactChannelIcon id={channel.id} />
+                  </span>
+                  <span className="contact-channel-copy">
+                    <span className="contact-channel-label">{channel.label}</span>
+                    <span className="contact-channel-hint">{channel.hint}</span>
+                    <span className="contact-channel-value">{channel.value}</span>
+                  </span>
+                  <span className="contact-channel-arrow" aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p className="about-copy contact-lgpd-note">
+            Duvidas sobre dados pessoais:{' '}
+            <Link to="/privacidade">Politica de privacidade</Link>
+            {email ? (
+              <>
+                {' '}
+                ou <a href={`mailto:${email}`}>{email}</a>
+              </>
+            ) : null}
+            .
+          </p>
         </div>
       </section>
-      <section className="section">
+      <section className="section contact-page__faq" id="faq">
         <div className="container">
           <h2>FAQ</h2>
           <div className="faq-list">
@@ -2924,9 +2962,10 @@ function AdminPage({
   supabaseSetupError,
   adminSection = 'geral',
 }) {
-  const [usernameInput, setUsernameInput] = useState('');
+  const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const [editingId, setEditingId] = useState('');
   const [draft, setDraft] = useState({ date: '', time: '', lineup: '', ticketUrl: '', photosUrl: '', poster: '' });
   const [posterUrlInput, setPosterUrlInput] = useState('');
@@ -3033,22 +3072,19 @@ function AdminPage({
     });
   }, [isAdminLoggedIn, siteContent, sitePhotos, rolePhotos]);
 
-  const onLogin = (event) => {
+  const onLogin = async (event) => {
     event.preventDefault();
-    if (usernameInput !== ADMIN_USERNAME || passwordInput !== ADMIN_PASSWORD) {
-      setAuthError('Login ou senha invalidos.');
-      return;
-    }
-    safeSetLocalStorage(ADMIN_AUTH_KEY, 'ok');
-    setIsAdminLoggedIn(true);
-    setUsernameInput('');
-    setPasswordInput('');
+    setIsSigningIn(true);
     setAuthError('');
-  };
-
-  const onLogout = () => {
-    safeRemoveLocalStorage(ADMIN_AUTH_KEY);
-    setIsAdminLoggedIn(false);
+    try {
+      await signInDouhaAdmin(emailInput, passwordInput);
+      setEmailInput('');
+      setPasswordInput('');
+    } catch (error) {
+      setAuthError(formatAdminAuthError(error));
+    } finally {
+      setIsSigningIn(false);
+    }
   };
 
   const onEdit = (item) => {
@@ -3820,17 +3856,19 @@ function AdminPage({
           <div className="container admin-box">
             <h2>Admin</h2>
             <p className="about-copy">
-              Login rapido para gerenciar agenda sem mexer em codigo.
+              Acesso restrito com conta Supabase Auth (e-mail + senha). O usuario precisa ter{' '}
+              <code>app_metadata.role = admin</code> no painel do Supabase.
             </p>
             <form className="admin-login-form" onSubmit={onLogin}>
-              <label htmlFor="admin-username">Login</label>
+              <label htmlFor="admin-email">E-mail</label>
               <input
-                id="admin-username"
-                type="text"
-                value={usernameInput}
-                onChange={(event) => setUsernameInput(event.target.value)}
-                placeholder="Digite o login"
+                id="admin-email"
+                type="email"
+                value={emailInput}
+                onChange={(event) => setEmailInput(event.target.value)}
+                placeholder="admin@douhaclub.com"
                 autoComplete="username"
+                required
               />
               <label htmlFor="admin-password">Senha</label>
               <input
@@ -3838,11 +3876,14 @@ function AdminPage({
                 type="password"
                 value={passwordInput}
                 onChange={(event) => setPasswordInput(event.target.value)}
-                placeholder="Digite a senha do admin"
+                placeholder="Senha do administrador"
                 autoComplete="current-password"
+                required
               />
               {authError && <p className="admin-error">{authError}</p>}
-              <button type="submit" className="pill pill-light">Entrar no painel</button>
+              <button type="submit" className="pill pill-light" disabled={isSigningIn}>
+                {isSigningIn ? 'Entrando...' : 'Entrar no painel'}
+              </button>
             </form>
           </div>
         </section>
@@ -3857,7 +3898,7 @@ function AdminPage({
           <div className="section-head">
             <h2>Admin · Agenda</h2>
             <div className="admin-actions">
-              <button type="button" className="pill" onClick={onResetAgenda}>Restaurar padrao</button>
+              <button type="button" className="pill" onClick={onResetAgenda}>Limpar agenda</button>
               <button type="button" className="pill pill-light" onClick={onLogout}>Sair</button>
             </div>
           </div>
@@ -4715,7 +4756,7 @@ export default function App() {
   const [rolePhotos, setRolePhotos] = useState(() => loadStoredRolePhotos());
   const [editorialPosts, setEditorialPosts] = useState(() => [...defaultEditorialPosts]);
   const [siteContent, setSiteContent] = useState(() => mergeSiteContentWithDefaults(loadStoredSiteContent()));
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => localStorage.getItem(ADMIN_AUTH_KEY) === 'ok');
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [calendarFocus, setCalendarFocus] = useState(null);
   const [agendaSyncError, setAgendaSyncError] = useState('');
   const [youtubeChannelBranding, setYoutubeChannelBranding] = useState(null);
@@ -4750,8 +4791,9 @@ export default function App() {
         setAgendaSyncError(
           supabaseConfigError
             ? `Configuracao Supabase invalida: ${supabaseConfigError}`
-            : 'Supabase nao configurado. Usando agenda padrao.',
+            : 'Supabase nao configurado. Agenda vazia.',
         );
+        setAgendaEvents([]);
         return;
       }
       try {
@@ -4777,11 +4819,12 @@ export default function App() {
         }
         if (!active) return;
         const mapped = Array.isArray(rowsData) ? rowsData.map((row, idx) => mapDbEventToAgendaItem(row, idx)) : [];
-        setAgendaEvents(mapped.length ? mapped : [...defaultAgenda]);
+        setAgendaEvents(mapped);
         if (!firstAttempt.error) setAgendaSyncError('');
       } catch (error) {
         if (!active) return;
-        setAgendaSyncError(`Supabase indisponivel agora. Exibindo agenda padrao temporaria. Detalhe: ${error.message || 'erro desconhecido'}`);
+        setAgendaEvents([]);
+        setAgendaSyncError(`Nao foi possivel carregar a agenda. Detalhe: ${error.message || 'erro desconhecido'}`);
       }
     };
 
@@ -4956,48 +4999,56 @@ export default function App() {
   }, [siteContent]);
 
   useEffect(() => {
-    if (isAdminLoggedIn) safeSetLocalStorage(ADMIN_AUTH_KEY, 'ok');
-    else safeRemoveLocalStorage(ADMIN_AUTH_KEY);
-  }, [isAdminLoggedIn]);
-
-  useEffect(() => {
     if (hasAcceptedOptionalStorage()) {
       registerServiceWorkerIfAccepted();
     }
   }, []);
 
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) {
+      return undefined;
+    }
+    let active = true;
+    getAdminSession()
+      .then((session) => {
+        if (active) setIsAdminLoggedIn(Boolean(session));
+      })
+      .catch(() => {
+        if (active) setIsAdminLoggedIn(false);
+      });
+    const unsubscribe = subscribeAdminAuth((session) => {
+      if (active) setIsAdminLoggedIn(Boolean(session));
+    });
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, []);
+
   const onResetAgenda = async () => {
+    if (!window.confirm('Apagar todos os eventos da agenda no Supabase?')) return;
     try {
       if (isSupabaseConfigured && supabase) {
         const { error: deleteError } = await supabase.from(SUPABASE_EVENTS_TABLE).delete().neq('id', '');
         if (deleteError) throw deleteError;
-        const payload = defaultAgenda.map((item) => mapAgendaItemToDbEvent(item));
-        const insertAttempt = await supabase.from(SUPABASE_EVENTS_TABLE).upsert(payload, { onConflict: 'id' });
-        if (insertAttempt.error && isMissingPhotosUrlColumnError(insertAttempt.error.message)) {
-          const legacyPayload = payload.map((item) => {
-            const copy = { ...item };
-            delete copy.photos_url;
-            return copy;
-          });
-          const retry = await supabase.from(SUPABASE_EVENTS_TABLE).upsert(legacyPayload, { onConflict: 'id' });
-          if (retry.error) throw retry.error;
-        } else if (insertAttempt.error) {
-          throw insertAttempt.error;
-        }
       }
-      setAgendaEvents(defaultAgenda);
+      setAgendaEvents([]);
       setAgendaSyncError('');
     } catch (error) {
-      setAgendaSyncError(`Nao foi possivel restaurar no Supabase: ${error.message || 'erro desconhecido'}`);
+      setAgendaSyncError(`Nao foi possivel limpar a agenda: ${formatAdminAuthError(error)}`);
     }
   };
 
-  const onAdminLogout = () => {
+  const onAdminLogout = async () => {
+    await signOutDouhaAdmin();
     setIsAdminLoggedIn(false);
   };
 
   return (
     <BrowserRouter>
+      <DocumentMeta />
+      <Analytics />
+      <SiteFavicon footerLogoUrl={siteContent?.footerLogoUrl} />
       <AppShell
         isAdminLoggedIn={isAdminLoggedIn}
         onAdminLogout={onAdminLogout}
@@ -5029,7 +5080,7 @@ export default function App() {
             path="/calendario"
             element={<AgendaPage agendaEvents={agendaEvents} calendarFocus={calendarFocus} onFocusConsumed={() => setCalendarFocus(null)} />}
           />
-          <Route path="/tickets" element={<TicketsPage />} />
+          <Route path="/tickets" element={<Navigate to="/calendario" replace />} />
           <Route path="/fotos" element={<Navigate to="/" replace />} />
           <Route
             path="/sets"
@@ -5047,6 +5098,7 @@ export default function App() {
           />
           <Route path="/editorial" element={<EditorialPage editorialPosts={editorialPosts} siteContent={siteContent} />} />
           <Route path="/contato" element={<ContactPage siteContent={siteContent} />} />
+          <Route path="/privacidade" element={<PrivacyPolicyPage siteContent={siteContent} />} />
           <Route
             path="/admin"
             element={(
@@ -5159,6 +5211,7 @@ export default function App() {
               />
             )}
           />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AppShell>
       <CookieConsentBanner />

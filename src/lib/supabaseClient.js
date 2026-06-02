@@ -21,7 +21,13 @@ export const isSupabaseConfigured = configIssues.length === 0;
 export const supabaseConfigError = configIssues.join(' | ');
 
 export const supabase = isSupabaseConfigured
-  ? createClient(rawSupabaseUrl, rawSupabaseAnonKey)
+  ? createClient(rawSupabaseUrl, rawSupabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
   : null;
 
 /** ID do projeto (ex.: abcdefgh) extraido da URL, para o admin conferir se bate com o painel do Supabase. */
