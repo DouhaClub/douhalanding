@@ -2100,17 +2100,25 @@ button:disabled,
   color: #2d2916;
 }
 
-.editorial-article__body p {
+.editorial-article__body p,
+.editorial-article__paragraph {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.editorial-article-section--reading .editorial-article__body p,
+.editorial-article-section--reading .editorial-article__paragraph {
+  text-indent: 0;
   margin: 0;
 }
 
-.editorial-article-section--reading .editorial-article__body p {
-  text-indent: 2em;
-  margin: 0 0 0.9em;
-}
-
-.editorial-article-section--reading .editorial-article__body p:last-child {
-  margin-bottom: 0;
+.editorial-article__whitespace {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.75;
+  font-size: inherit;
+  color: transparent;
+  user-select: none;
 }
 
 .editorial-article__placeholder {

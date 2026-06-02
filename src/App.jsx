@@ -2403,84 +2403,72 @@ function linkifyEditorialInlineText(text, keyPrefix) {
   return parts.length ? parts : value;
 }
 
+function renderEditorialContentBlock(block, blockIdx) {
+  const content = block.replace(/^\n+|\n+$/g, '');
+  if (!content.trim() && !/\S/.test(content)) return null;
+
+  const lines = content.split(/\r?\n/);
+  const nonEmptyLines = lines.filter((line) => line.trim());
+
+  if (nonEmptyLines.length > 0 && nonEmptyLines.every((line) => line.trim().startsWith('- '))) {
+    return (
+      <ul key={`editorial-ul-${blockIdx}`} className="editorial-article__list">
+        {nonEmptyLines.map((line, itemIdx) => (
+          <li key={`editorial-ul-${blockIdx}-item-${itemIdx}`}>
+            {linkifyEditorialInlineText(line.trim().slice(2), `editorial-ul-${blockIdx}-item-${itemIdx}`)}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (lines.length === 1) {
+    const single = lines[0].trim();
+    if (single.startsWith('### ')) {
+      return (
+        <h3 key={`editorial-h3-${blockIdx}`} className="editorial-article__h3">
+          {single.slice(4)}
+        </h3>
+      );
+    }
+    if (single.startsWith('## ')) {
+      return (
+        <h2 key={`editorial-h2-${blockIdx}`} className="editorial-article__h2">
+          {single.slice(3)}
+        </h2>
+      );
+    }
+  }
+
+  return (
+    <p key={`editorial-p-${blockIdx}`} className="editorial-article__paragraph">
+      {linkifyEditorialInlineText(content, `editorial-p-${blockIdx}`)}
+    </p>
+  );
+}
+
+/** Preserva paragrafos e quebras de linha como no admin (linha em branco = espaco; Enter = quebra). */
 function EditorialArticleBody({ body }) {
-  const text = String(body || '').trim();
-  if (!text) {
+  const text = String(body ?? '');
+  if (!text.trim()) {
     return <p className="editorial-article__placeholder">Texto completo em breve.</p>;
   }
 
-  const lines = text.split(/\r?\n/);
+  const segments = text.split(/(\n{2,})/);
   const nodes = [];
-  let paragraphLines = [];
-  let listItems = [];
 
-  const flushParagraph = () => {
-    if (!paragraphLines.length) return;
-    const key = `editorial-p-${nodes.length}`;
-    nodes.push(
-      <p key={key}>
-        {paragraphLines.map((line, lineIdx) => (
-          <span key={`${key}-line-${lineIdx}`}>
-            {lineIdx > 0 ? <br /> : null}
-            {linkifyEditorialInlineText(line, `${key}-line-${lineIdx}`)}
-          </span>
-        ))}
-      </p>,
-    );
-    paragraphLines = [];
-  };
-
-  const flushList = () => {
-    if (!listItems.length) return;
-    const key = `editorial-ul-${nodes.length}`;
-    nodes.push(
-      <ul key={key} className="editorial-article__list">
-        {listItems.map((item, itemIdx) => (
-          <li key={`${key}-item-${itemIdx}`}>{linkifyEditorialInlineText(item, `${key}-item-${itemIdx}`)}</li>
-        ))}
-      </ul>,
-    );
-    listItems = [];
-  };
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      flushParagraph();
-      flushList();
-      continue;
-    }
-    if (trimmed.startsWith('### ')) {
-      flushParagraph();
-      flushList();
+  segments.forEach((segment, idx) => {
+    if (/^\n+$/.test(segment)) {
       nodes.push(
-        <h3 key={`editorial-h3-${nodes.length}`} className="editorial-article__h3">
-          {trimmed.slice(4)}
-        </h3>,
+        <div key={`editorial-gap-${idx}`} className="editorial-article__whitespace" aria-hidden="true">
+          {segment}
+        </div>,
       );
-      continue;
+      return;
     }
-    if (trimmed.startsWith('## ')) {
-      flushParagraph();
-      flushList();
-      nodes.push(
-        <h2 key={`editorial-h2-${nodes.length}`} className="editorial-article__h2">
-          {trimmed.slice(3)}
-        </h2>,
-      );
-      continue;
-    }
-    if (trimmed.startsWith('- ')) {
-      flushParagraph();
-      listItems.push(trimmed.slice(2));
-      continue;
-    }
-    flushList();
-    paragraphLines.push(line);
-  }
-
-  flushParagraph();
-  flushList();
+    const block = renderEditorialContentBlock(segment, idx);
+    if (block) nodes.push(block);
+  });
 
   if (!nodes.length) {
     return <p className="editorial-article__placeholder">Texto completo em breve.</p>;
@@ -4676,7 +4664,8 @@ function AdminPage({
               <div className="admin-form-field">
                 <label htmlFor="admin-editorial-body">Texto completo</label>
                 <p className="about-copy image-spec-note">
-                  Enter = nova linha. Linha em branco = paragrafo. Use ## titulo, ### subtitulo, - item de lista.
+                  Enter = quebra de linha no mesmo paragrafo. Linha em branco = novo paragrafo (o site repete igual).
+                  Bloco so com ## titulo, ### subtitulo ou linhas com - item = lista.
                 </p>
                 <textarea
                   id="admin-editorial-body"
