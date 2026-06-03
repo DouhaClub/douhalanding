@@ -42,7 +42,7 @@ export function CookieConsentBanner() {
               Usamos <strong>armazenamento local</strong> para o site funcionar (preferencias, agenda,
               consentimento). Se voce aceitar, tambem ativamos <strong>cache</strong> (Service Worker) e{' '}
               <strong>estatisticas de visita</strong> (analytics), quando configurados. Saiba mais na{' '}
-              <Link to="/privacidade">Politica de privacidade</Link> ou fale conosco em{' '}
+              <Link to="/privacidade">Política de privacidade</Link> ou fale conosco em{' '}
               <Link to="/contato">Contato</Link>.
             </p>
           </div>

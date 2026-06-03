@@ -289,3 +289,10 @@
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
+
+/* Mobile: hero um pouco mais baixo; mesma logica de scroll do desktop (sem snap — snap trava o auto-scroll). */
+@media (max-width: 767px) {
+  :root {
+    --douha-hero-height: min(58vh, 520px);
+  }
+}

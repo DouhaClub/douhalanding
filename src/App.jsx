@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BrowserRouter, NavLink, Routes, Route, Link, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter, NavLink, Routes, Route, Link, Navigate, useParams, useLocation } from 'react-router-dom';
 import {
   formatSupabaseStorageUploadError,
   isSupabaseConfigured,
@@ -1140,11 +1140,22 @@ function AppShell({
   onAdminLogout,
   siteContent,
 }) {
+  const location = useLocation();
   const [prints, setPrints] = useState([]);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isCursorFine, setIsCursorFine] = useState(true);
   const printIdRef = useRef(0);
   const throttleRef = useRef(0);
   const lastPointRef = useRef(null);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    document.body.classList.toggle('site-mobile-nav-open', mobileNavOpen);
+    return () => document.body.classList.remove('site-mobile-nav-open');
+  }, [mobileNavOpen]);
 
   useEffect(() => {
     const media = window.matchMedia('(pointer: fine)');
@@ -1293,21 +1304,41 @@ function AppShell({
         </div>
       )}
 
-      <header className="header header--overlay">
+      <header className={`header header--overlay${mobileNavOpen ? ' header--nav-open' : ''}`}>
         <div className="header-inner">
           <Link to="/" className="header-brand" aria-label="Douha Club home">
             <img className="header-logo-img" src="/brand/logos/header-v9.svg" alt="" />
           </Link>
-          <nav className="nav nav--header">
-            <NavLink to="/" end className={({ isActive }) => (isActive ? 'is-active' : '')}>HOME</NavLink>
-            <NavLink to="/quem-somos" className={({ isActive }) => (isActive ? 'is-active' : '')}>QUEM SOMOS</NavLink>
-            <NavLink to="/calendario" className={({ isActive }) => (isActive ? 'is-active' : '')}>CALENDÁRIO</NavLink>
-            <NavLink to="/reservas" className={({ isActive }) => (isActive ? 'is-active' : '')}>RESERVAS</NavLink>
-            <NavLink to="/sets" className={({ isActive }) => (isActive ? 'is-active' : '')}>SETS</NavLink>
-            <NavLink to="/editorial" className={({ isActive }) => (isActive ? 'is-active' : '')}>EDITORIAL</NavLink>
-            <NavLink to="/contato" className={({ isActive }) => (isActive ? 'is-active' : '')}>CONTATO</NavLink>
+          <button
+            type="button"
+            className="header-menu-toggle"
+            aria-expanded={mobileNavOpen}
+            aria-controls="site-header-nav"
+            onClick={() => setMobileNavOpen((open) => !open)}
+          >
+            <span className="visually-hidden">{mobileNavOpen ? 'Fechar menu' : 'Abrir menu'}</span>
+            <span className="header-menu-toggle__bar" aria-hidden="true" />
+            <span className="header-menu-toggle__bar" aria-hidden="true" />
+            <span className="header-menu-toggle__bar" aria-hidden="true" />
+          </button>
+          <nav id="site-header-nav" className={`nav nav--header${mobileNavOpen ? ' is-open' : ''}`}>
+            <NavLink to="/" end className={({ isActive }) => (isActive ? 'is-active' : '')} onClick={() => setMobileNavOpen(false)}>HOME</NavLink>
+            <NavLink to="/quem-somos" className={({ isActive }) => (isActive ? 'is-active' : '')} onClick={() => setMobileNavOpen(false)}>QUEM SOMOS</NavLink>
+            <NavLink to="/calendario" className={({ isActive }) => (isActive ? 'is-active' : '')} onClick={() => setMobileNavOpen(false)}>CALENDÁRIO</NavLink>
+            <NavLink to="/reservas" className={({ isActive }) => (isActive ? 'is-active' : '')} onClick={() => setMobileNavOpen(false)}>RESERVAS</NavLink>
+            <NavLink to="/sets" className={({ isActive }) => (isActive ? 'is-active' : '')} onClick={() => setMobileNavOpen(false)}>SETS</NavLink>
+            <NavLink to="/editorial" className={({ isActive }) => (isActive ? 'is-active' : '')} onClick={() => setMobileNavOpen(false)}>EDITORIAL</NavLink>
+            <NavLink to="/contato" className={({ isActive }) => (isActive ? 'is-active' : '')} onClick={() => setMobileNavOpen(false)}>CONTATO</NavLink>
           </nav>
         </div>
+        {mobileNavOpen ? (
+          <button
+            type="button"
+            className="header-nav-backdrop"
+            aria-label="Fechar menu"
+            onClick={() => setMobileNavOpen(false)}
+          />
+        ) : null}
       </header>
       {isAdminLoggedIn && (
         <div className="admin-quickbar">
@@ -1382,7 +1413,7 @@ function AppShell({
           <div className="footer-col footer-col-faq">
             <p className="eyebrow">FAQ</p>
             <a className="footer-faq-link" href="/contato#faq">Acessar FAQ</a>
-            <a className="footer-faq-link footer-privacy-link" href="/privacidade">Politica de privacidade</a>
+            <a className="footer-faq-link footer-privacy-link" href="/privacidade">Política de privacidade</a>
           </div>
           </div>
           <div className="footer-rule" aria-hidden="true" />
@@ -1705,10 +1736,33 @@ function heroCarouselImageProps(index) {
 
 /** Faixa pos-experiencia: mosaico denso em "trilhos"; repetimos entradas pra preencher o loop. */
 const ROLE_STRIP_LANES = 7;
+const ROLE_STRIP_LANES_MOBILE = 2;
 const ROLE_STRIP_MIN_CARDS = 21;
 const ROLE_STRIP_MAX_CARDS = 120;
+/** Mobile: 1 foto por trilho (2 no total) — evita empilhar na vertical. */
+const ROLE_LANE_X_MOBILE = [24, 76];
+/** Mobile: queda 12s; 1.375s entre esq/dir; espacamento por trilho divide 12s (sem sobrepor). */
+const ROLE_STRIP_MOBILE_FALL_SEC = 12;
+const ROLE_STRIP_MOBILE_STAGGER_SEC = 1.375;
+const ROLE_STRIP_MOBILE_CARD_COUNT = 8;
 
-function getRoleLaneDurationSec(lane) {
+function roleMobileCardsInLane(lane, total = ROLE_STRIP_MOBILE_CARD_COUNT) {
+  let count = 0;
+  for (let i = lane; i < total; i += ROLE_STRIP_LANES_MOBILE) count += 1;
+  return count;
+}
+
+/** Offset positivo no ciclo: trilhos com N fotos ficam a cada FALL_SEC/N (evita 2 no mesmo Y). */
+function roleMobileCardOffsetSec(idx, total = ROLE_STRIP_MOBILE_CARD_COUNT) {
+  const lane = idx % ROLE_STRIP_LANES_MOBILE;
+  const slot = Math.floor(idx / ROLE_STRIP_LANES_MOBILE);
+  const laneStart = lane === 1 ? ROLE_STRIP_MOBILE_STAGGER_SEC : 0;
+  const laneGap = ROLE_STRIP_MOBILE_FALL_SEC / Math.max(1, roleMobileCardsInLane(lane, total));
+  return laneStart + slot * laneGap;
+}
+
+function getRoleLaneDurationSec(lane, mobile = false) {
+  if (mobile) return ROLE_STRIP_MOBILE_FALL_SEC;
   return 41 + (lane % 4) * 2.5;
 }
 
@@ -1716,19 +1770,48 @@ function getRoleLaneDurationSec(lane) {
  * Distribui os cards de forma uniforme dentro de cada trilho.
  * Evita colisao por modulo de delay (quando o loop volta no mesmo ponto).
  */
-function buildRoleCardStyle(lane, slot, cardsInLane, globalIdx) {
-  const durationSec = getRoleLaneDurationSec(lane);
+function buildRoleCardStyle(lane, slot, cardsInLane, globalIdx, mobile = false) {
+  const durationSec = getRoleLaneDurationSec(lane, mobile);
   const count = Math.max(1, cardsInLane);
-  const gapSec = durationSec / count;
-  const laneOffset = (lane * 0.37) % durationSec;
-  const idxPhase = ((globalIdx * 0.173) % 1.9);
-  return {
+  let roleDelay;
+  if (mobile && count === 1) {
+    /* Direita ja cai enquanto esquerda ainda desce (cruzamento, nunca trilho vazio). */
+    const staggerSec = ROLE_STRIP_MOBILE_STAGGER_SEC;
+    roleDelay = lane === 0 ? '0s' : `${-staggerSec}s`;
+  } else {
+    const gapSec = durationSec / count;
+    const laneOffset = (lane * 0.37) % durationSec;
+    const idxPhase = (globalIdx * 0.173) % 1.9;
+    roleDelay = `${-(laneOffset + slot * gapSec + idxPhase)}s`;
+  }
+  const style = {
     '--role-lane': `${lane}`,
-    '--role-delay': `${-(laneOffset + (slot * gapSec) + idxPhase)}s`,
+    '--role-delay': roleDelay,
     '--role-duration': `${durationSec}s`,
-    '--role-drift': '0px',
+    '--role-drift': mobile ? (lane % 2 === 0 ? '-8px' : '8px') : '0px',
     '--role-jitter': '0px',
   };
+  if (mobile) {
+    style['--role-lane-x'] = `${ROLE_LANE_X_MOBILE[lane % ROLE_LANE_X_MOBILE.length]}%`;
+  }
+  return style;
+}
+
+function buildRoleMobileStripCards(normalizedEntries) {
+  const shuffled = shuffleRolePhotoEntriesDeterministic(normalizedEntries);
+  const url = (i) => shuffled[i % shuffled.length]?.url || '';
+  const total = ROLE_STRIP_MOBILE_CARD_COUNT;
+  return Array.from({ length: total }, (_, idx) => {
+    const lane = idx % ROLE_STRIP_LANES_MOBILE;
+    const style = buildRoleCardStyle(lane, 0, 1, idx, true);
+    const offsetSec = roleMobileCardOffsetSec(idx, total);
+    style['--role-delay'] = offsetSec === 0 ? '0s' : `${-offsetSec}s`;
+    return {
+      id: `role-photo-m${idx}-${url(idx)}`,
+      url: url(idx),
+      style,
+    };
+  });
 }
 
 function shuffleRolePhotoEntriesDeterministic(entries) {
@@ -1786,8 +1869,21 @@ function HomePage({
   const reduceMotionRef = useRef(false);
   const [heroDragging, setHeroDragging] = useState(false);
   const [videoCards, setVideoCards] = useState([]);
+  const [roleStripMobile, setRoleStripMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
+  );
   const rolePhotoPlaceholders = useMemo(
     () => {
+      if (roleStripMobile) {
+        const total = ROLE_STRIP_MOBILE_CARD_COUNT;
+        return Array.from({ length: total }, (_, idx) => {
+          const lane = idx % ROLE_STRIP_LANES_MOBILE;
+          const style = buildRoleCardStyle(lane, 0, 1, idx, true);
+          const offsetSec = roleMobileCardOffsetSec(idx, total);
+          style['--role-delay'] = offsetSec === 0 ? '0s' : `${-offsetSec}s`;
+          return { id: `role-placeholder-m${idx}`, style };
+        });
+      }
       const lanes = ROLE_STRIP_LANES;
       const total = ROLE_STRIP_MIN_CARDS;
       return Array.from({ length: total }, (_, idx) => {
@@ -1800,13 +1896,14 @@ function HomePage({
         };
       });
     },
-    [],
+    [roleStripMobile],
   );
   const rolePhotoCards = useMemo(() => {
     if (!rolePhotos.length) return rolePhotoPlaceholders.map((item) => ({ ...item, url: '' }));
+    const normalized = rolePhotos.map(normalizeRolePhotoEntry).filter(Boolean);
+    if (roleStripMobile) return buildRoleMobileStripCards(normalized);
     const lanes = ROLE_STRIP_LANES;
     const total = getRoleStripCardCount(rolePhotos.length);
-    const normalized = rolePhotos.map(normalizeRolePhotoEntry).filter(Boolean);
     const shuffled = shuffleRolePhotoEntriesDeterministic(normalized);
     return Array.from({ length: total }, (_, idx) => {
       const lane = idx % lanes;
@@ -1819,7 +1916,7 @@ function HomePage({
         style: buildRoleCardStyle(lane, slot, cardsInLane, idx),
       };
     });
-  }, [rolePhotos, rolePhotoPlaceholders]);
+  }, [rolePhotos, rolePhotoPlaceholders, roleStripMobile]);
 
   const detachHeroDragListeners = () => {
     const fn = heroDragCleanupRef.current;
@@ -1838,6 +1935,15 @@ function HomePage({
     const onMq = () => {
       reduceMotionRef.current = mq.matches;
     };
+    mq.addEventListener('change', onMq);
+    return () => mq.removeEventListener('change', onMq);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const onMq = () => setRoleStripMobile(mq.matches);
+    onMq();
     mq.addEventListener('change', onMq);
     return () => mq.removeEventListener('change', onMq);
   }, []);
@@ -1879,10 +1985,15 @@ function HomePage({
         || reduceMotionRef.current
         || document.visibilityState !== 'visible'
         || heroMarqueeOffscreenRef.current;
-      if (!paused && el.scrollWidth > el.clientWidth) {
+      if (!paused && el.scrollWidth > el.clientWidth + 1) {
         const half = el.scrollWidth / 2;
         const speed = half / HERO_MARQUEE_HALF_LOOP_SEC;
-        el.scrollLeft += speed * dt;
+        const nextLeft = el.scrollLeft + speed * dt;
+        if (typeof el.scrollTo === 'function') {
+          el.scrollTo({ left: nextLeft, behavior: 'auto' });
+        } else {
+          el.scrollLeft = nextLeft;
+        }
         normalizeScroll();
       }
       rafId = requestAnimationFrame(tick);
@@ -3001,7 +3112,7 @@ function ContactPage({ siteContent }) {
           </ul>
           <p className="about-copy contact-lgpd-note">
             Duvidas sobre dados pessoais:{' '}
-            <Link to="/privacidade">Politica de privacidade</Link>
+            <Link to="/privacidade">Política de privacidade</Link>
             {email ? (
               <>
                 {' '}

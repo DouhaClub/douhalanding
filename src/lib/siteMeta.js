@@ -51,7 +51,7 @@ const ROUTE_META = {
     description: 'Pre-reserve mesa ou camarote no mapa do evento — sem pagamento no site.',
   },
   '/privacidade': {
-    title: `Politica de privacidade | ${SITE_NAME}`,
+    title: `Política de privacidade | ${SITE_NAME}`,
     description: 'Como o Douha Club trata cookies, armazenamento local e dados pessoais (LGPD).',
   },
 };
