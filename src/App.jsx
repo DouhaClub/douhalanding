@@ -37,6 +37,14 @@ import {
 } from './lib/adminAuth';
 import { useDocumentMeta } from './hooks/useDocumentMeta';
 import { buildEditorialArticleMeta } from './lib/siteMeta';
+import {
+  editorialAuthorInitial,
+  estimateEditorialReadingMinutes,
+  formatEditorialArticleDate,
+  formatEditorialReadingLabel,
+  formatEditorialRelativeUpdate,
+  buildEditorialBylinePreview,
+} from './lib/editorialReading';
 import { hasAcceptedOptionalStorage } from './lib/consentStorage';
 import { registerServiceWorkerIfAccepted } from './lib/registerServiceWorker';
 
@@ -124,6 +132,9 @@ const defaultEditorialPosts = editorial.map((item, idx) => ({
   category: String(item.category || ''),
   coverUrl: String(item.coverUrl || ''),
   sources: [],
+  authorName: '',
+  authorAvatarUrl: '',
+  updatedAt: null,
   publishedAt: null,
   isPublished: true,
   position: idx,
@@ -633,6 +644,9 @@ function normalizeEditorialItem(item, idx = 0) {
     coverUrl: String(item?.coverUrl || ''),
     date: String(item?.date || item?.publishedAt || ''),
     publishedAt: item?.publishedAt || null,
+    authorName: String(item?.authorName || item?.author_name || ''),
+    authorAvatarUrl: String(item?.authorAvatarUrl || item?.author_avatar_url || ''),
+    updatedAt: item?.updatedAt || item?.updated_at || null,
     isPublished: item?.isPublished !== false,
     position: Number.isFinite(Number(item?.position)) ? Number(item.position) : idx,
   };
@@ -653,6 +667,9 @@ function mapDbEditorialPostToItem(row, idx = 0) {
       coverUrl: row?.cover_url,
       publishedAt: publishedAtRaw || null,
       date: publishedAtRaw ? publishedAtRaw.slice(0, 10) : '',
+      authorName: row?.author_name,
+      authorAvatarUrl: row?.author_avatar_url,
+      updatedAt: row?.updated_at ? String(row.updated_at) : null,
       isPublished: row?.is_published,
       position: row?.position,
     },
@@ -673,6 +690,9 @@ function mapEditorialItemToDbPost(item) {
     category: String(item.category || ''),
     cover_url: String(item.coverUrl || ''),
     published_at: publishRaw ? publishRaw : null,
+    author_name: String(item.authorName || ''),
+    author_avatar_url: String(item.authorAvatarUrl || ''),
+    updated_at: new Date().toISOString(),
     is_published: item.isPublished !== false,
     position: Number.isFinite(Number(item.position)) ? Number(item.position) : 0,
   };
@@ -2587,25 +2607,142 @@ function EditorialArticleBody({ body }) {
   return nodes;
 }
 
-function EditorialArticleSources({ sources }) {
+function EditorialArticleByline({ post }) {
+  const authorName = String(post?.authorName || '').trim() || 'Douha Club';
+  const avatarUrl = String(post?.authorAvatarUrl || '').trim();
+  const publishedLabel = formatEditorialArticleDate(post);
+  const updatedLabel = formatEditorialRelativeUpdate(post);
+  const readingMinutes = estimateEditorialReadingMinutes(post);
+  const readingLabel = formatEditorialReadingLabel(readingMinutes);
+  const initial = editorialAuthorInitial(authorName);
+
+  return (
+    <div className="editorial-article__byline" aria-label="Autoria e tempo de leitura">
+      <div className="editorial-article__byline-segment editorial-article__byline-author">
+        <span className="editorial-article__byline-avatar" aria-hidden="true">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" loading="lazy" decoding="async" />
+          ) : (
+            <span className="editorial-article__byline-avatar-fallback">{initial}</span>
+          )}
+        </span>
+        <span className="editorial-article__byline-name">{authorName}</span>
+      </div>
+
+      <div className="editorial-article__byline-segment editorial-article__byline-dates">
+        {publishedLabel ? (
+          <span className="editorial-article__byline-date">{publishedLabel}</span>
+        ) : (
+          <span className="editorial-article__byline-date editorial-article__byline-date--empty">Data a definir</span>
+        )}
+        {updatedLabel ? <span className="editorial-article__byline-updated">{updatedLabel}</span> : null}
+      </div>
+
+      <div className="editorial-article__byline-segment editorial-article__byline-reading">
+        <svg className="editorial-article__byline-clock" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.75" />
+          <path d="M12 7v5l3 2.5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+        </svg>
+        <span>{readingLabel}</span>
+      </div>
+    </div>
+  );
+}
+
+function editorialReferenceTitle(item, idx) {
+  const label = String(item?.label || '').trim();
+  if (label) return label;
+  try {
+    const host = new URL(item.url).hostname.replace(/^www\./, '');
+    return host || `Referência ${idx + 1}`;
+  } catch {
+    return `Referência ${idx + 1}`;
+  }
+}
+
+function EditorialArticleReferences({ sources }) {
   const items = normalizeEditorialSourcesList(sources).filter((item) => item.url);
   if (!items.length) return null;
 
   return (
-    <section className="editorial-article__sources" aria-labelledby="editorial-article-sources-title">
-      <h2 id="editorial-article-sources-title" className="editorial-article__sources-title">
-        Fontes
+    <section className="editorial-article__references" aria-labelledby="editorial-article-references-title">
+      <h2 id="editorial-article-references-title" className="editorial-article__references-title">
+        Referências
       </h2>
-      <ol className="editorial-article__sources-list">
+      <ol className="editorial-article__references-list">
         {items.map((item, idx) => (
-          <li key={`editorial-source-${idx}-${item.url}`}>
-            <a href={item.url} target="_blank" rel="noreferrer">
-              {item.label || item.url}
+          <li key={`editorial-ref-${idx}-${item.url}`}>
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="editorial-article__reference-link"
+            >
+              {editorialReferenceTitle(item, idx)}
             </a>
           </li>
         ))}
       </ol>
     </section>
+  );
+}
+
+function AdminEditorialBylineFields({ draft, onChange }) {
+  const preview = useMemo(() => buildEditorialBylinePreview(draft), [draft]);
+
+  return (
+    <div className="admin-editorial-byline-block">
+      <h4 className="admin-subheading">Autoria, data e tempo de leitura</h4>
+      <p className="about-copy image-spec-note">
+        Aparece na barra abaixo do titulo (autor · data · relógio + minutos). O tempo de leitura é calculado
+        automaticamente pelo texto. &quot;Atualizado há…&quot; usa a data da ultima gravacao no admin.
+      </p>
+      <div className="admin-editorial-byline-row">
+        <div className="admin-form-field">
+          <label htmlFor="admin-editorial-author">Autor(a)</label>
+          <input
+            id="admin-editorial-author"
+            value={draft.authorName}
+            onChange={(event) => onChange({ authorName: event.target.value })}
+            placeholder="Ex: Clarissa Palácio"
+          />
+        </div>
+        <div className="admin-form-field">
+          <label htmlFor="admin-editorial-date">Data de publicação</label>
+          <input
+            id="admin-editorial-date"
+            type="date"
+            value={draft.date}
+            onChange={(event) => onChange({ date: event.target.value })}
+          />
+        </div>
+        <div className="admin-form-field admin-editorial-reading-estimate">
+          <span className="admin-editorial-reading-estimate__label">Tempo de leitura (estimado)</span>
+          <strong className="admin-editorial-reading-estimate__value">{preview.readingLabel}</strong>
+        </div>
+      </div>
+      <div className="admin-form-field">
+        <label htmlFor="admin-editorial-author-avatar">Foto do autor (URL opcional)</label>
+        <input
+          id="admin-editorial-author-avatar"
+          type="url"
+          inputMode="url"
+          value={draft.authorAvatarUrl}
+          onChange={(event) => onChange({ authorAvatarUrl: event.target.value })}
+          placeholder="https://..."
+        />
+      </div>
+      <div className="admin-editorial-byline-preview" aria-hidden="true">
+        <span className="admin-editorial-byline-preview__author">{preview.authorName}</span>
+        <span className="admin-editorial-byline-preview__sep" />
+        <span className="admin-editorial-byline-preview__dates">
+          {preview.publishedLabel || '—'}
+          {preview.updatedLabel ? ` · ${preview.updatedLabel}` : ''}
+        </span>
+        <span className="admin-editorial-byline-preview__sep" />
+        <span className="admin-editorial-byline-preview__reading">{preview.readingLabel}</span>
+      </div>
+    </div>
   );
 }
 
@@ -2641,7 +2778,7 @@ function AdminEditorialSourcesFields({ sources, onChange }) {
       {list.map((item, idx) => (
         <div key={`admin-editorial-source-${idx}`} className="admin-editorial-source-row">
           <div className="admin-form-field">
-            <label htmlFor={`admin-source-label-${idx}`}>Nome da fonte</label>
+            <label htmlFor={`admin-source-label-${idx}`}>Título da referência</label>
             <input
               id={`admin-source-label-${idx}`}
               value={item.label}
@@ -2761,25 +2898,26 @@ function EditorialArticlePage({ editorialPosts }) {
   }
 
   const coverUrl = String(post.coverUrl || '').trim();
-  const displayDate = formatEditorialDisplayDate(post);
-  const meta = [post.source, post.issue, displayDate].filter(Boolean).join(' · ');
+  const issueMeta = [post.source, post.issue].filter(Boolean).join(' · ');
 
   return (
     <main>
-      <article className="section editorial-article-section editorial-article-section--reading">
-        <div className="container editorial-article">
+      <article className="section editorial-article-section editorial-article-section--reading" lang="pt-BR">
+        <div className="container editorial-article editorial-article--reading">
           <Link className="editorial-article__back" to="/editorial">
             ← Editorial
           </Link>
 
           <header className="editorial-article__head">
             <span className="editorial-article__category">{editorialMosaicCategoryLabel(post)}</span>
-            {meta ? <p className="editorial-article__meta">{meta}</p> : null}
+            {issueMeta ? <p className="editorial-article__meta">{issueMeta}</p> : null}
             <h1 className="editorial-article__title">{post.title}</h1>
             {String(post.deck || '').trim() ? (
               <p className="editorial-article__deck">{post.deck}</p>
             ) : null}
           </header>
+
+          <EditorialArticleByline post={post} />
 
           {coverUrl ? (
             <figure className="editorial-article__hero">
@@ -2791,7 +2929,7 @@ function EditorialArticlePage({ editorialPosts }) {
             <EditorialArticleBody body={post.body} />
           </div>
 
-          <EditorialArticleSources sources={post.sources} />
+          <EditorialArticleReferences sources={post.sources} />
         </div>
       </article>
     </main>
@@ -3194,6 +3332,8 @@ function AdminPage({
     deck: '',
     body: '',
     sources: [],
+    authorName: '',
+    authorAvatarUrl: '',
     source: 'DOUHA CLUB',
     issue: '',
     category: '',
@@ -3834,6 +3974,8 @@ function AdminPage({
       deck: '',
       body: '',
       sources: [],
+      authorName: '',
+      authorAvatarUrl: '',
       source: 'DOUHA CLUB',
       issue: '',
       category: '',
@@ -3851,6 +3993,8 @@ function AdminPage({
       deck: clampEditorialDeck(post.deck),
       body: post.body || '',
       sources: normalizeEditorialSourcesList(post.sources),
+      authorName: post.authorName || '',
+      authorAvatarUrl: post.authorAvatarUrl || '',
       source: post.source || 'DOUHA CLUB',
       issue: post.issue || '',
       category: post.category || '',
@@ -3929,12 +4073,16 @@ function AdminPage({
       if (!isSupabaseConfigured || !supabase) {
         throw new Error(supabaseConfigError || 'Supabase nao configurado');
       }
+      const publishDate = String(draftEditorial.date || '').trim();
       const nextItem = normalizeEditorialItem(
         {
           ...draftEditorial,
           id: editingEditorialId || `editorial-${Date.now()}`,
           title,
           deck,
+          date: publishDate,
+          publishedAt: publishDate || null,
+          updatedAt: new Date().toISOString(),
         },
         editorialPosts.length,
       );
@@ -4772,6 +4920,10 @@ function AdminPage({
                   placeholder="Linha de apoio abaixo da chamada (ate 90 caracteres, aparece inteira no card)"
                 />
               </div>
+              <AdminEditorialBylineFields
+                draft={draftEditorial}
+                onChange={(patch) => setDraftEditorial((prev) => ({ ...prev, ...patch }))}
+              />
               <div className="admin-form-field">
                 <label htmlFor="admin-editorial-body">Texto completo</label>
                 <p className="about-copy image-spec-note">
@@ -4787,7 +4939,7 @@ function AdminPage({
                 />
               </div>
               <div className="admin-form-field">
-                <h4 className="admin-subheading">Fontes (links)</h4>
+                <h4 className="admin-subheading">Referências (links)</h4>
                 <AdminEditorialSourcesFields
                   sources={draftEditorial.sources}
                   onChange={(sources) => setDraftEditorial((prev) => ({ ...prev, sources }))}
@@ -4810,12 +4962,6 @@ function AdminPage({
                 value={draftEditorial.category}
                 onChange={(event) => setDraftEditorial((prev) => ({ ...prev, category: event.target.value }))}
                 placeholder="Ex: CULTURA"
-              />
-              <label>Data (YYYY-MM-DD)</label>
-              <input
-                value={draftEditorial.date}
-                onChange={(event) => setDraftEditorial((prev) => ({ ...prev, date: event.target.value }))}
-                placeholder="2026-05-20"
               />
               <div className="admin-form-field">
                 <label htmlFor="admin-editorial-cover-file">Capa da materia (mosaico)</label>
