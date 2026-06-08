@@ -18,7 +18,7 @@ function renderTableShape(table, layout, occupiedTableIds, selectedTableId, onSe
   const selected = selectedTableId === table.id;
   const zone = table.zone || 'mesa';
   const fill = tableFill(occupied, selected, zone);
-  const statusLabel = occupied ? 'Reservado' : selected ? 'Selecionado' : 'Disponivel';
+  const statusLabel = occupied ? 'Reservado' : selected ? 'Selecionado' : 'Disponível';
   const hasBg = Boolean(layout.backgroundImage);
   const fillOpacity = hasBg ? (occupied ? 0.92 : selected ? 0.88 : 0.72) : 1;
   const showLabel = !hasBg;
@@ -27,7 +27,7 @@ function renderTableShape(table, layout, occupiedTableIds, selectedTableId, onSe
     className: `reservation-table-hit${occupied ? ' is-busy' : ''}${selected ? ' is-selected' : ''}`,
     tabIndex: occupied ? -1 : 0,
     role: 'button',
-    'aria-label': `${table.label}, ${statusLabel}, ate ${table.capacity} pessoas`,
+    'aria-label': `${table.label}, ${statusLabel}, até ${table.capacity} pessoas`,
     'aria-pressed': selected,
     'aria-disabled': occupied,
     fill,
@@ -118,7 +118,7 @@ export function ReservationMap({
   return (
     <div className="reservation-map-wrap">
       <div className="reservation-map-legend" aria-hidden="true">
-        <span className="reservation-legend-item reservation-legend-item--free">Disponivel</span>
+        <span className="reservation-legend-item reservation-legend-item--free">Disponível</span>
         <span className="reservation-legend-item reservation-legend-item--busy">Reservado</span>
         <span className="reservation-legend-item reservation-legend-item--pick">Selecionado</span>
         {legend.map(([key, label]) => (
@@ -168,7 +168,7 @@ export function ReservationMap({
         </svg>
       </div>
       <p className="about-copy reservation-map-hint">
-        Toque na mesa ou camarote no mapa. Verde = disponivel, cinza = ja reservado.
+        Toque na mesa ou camarote no mapa. Verde = disponível, cinza = já reservado.
       </p>
     </div>
   );

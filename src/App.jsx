@@ -83,7 +83,7 @@ const editorial = [
     category: 'AGENDA',
     coverUrl: '/brand/elements/01.png',
     title: 'Abertura oficial da temporada e nova fase editorial do clube',
-    deck: 'Resumo semanal com agenda, bastidores e curadoria para quem acompanha o movimento desde o inicio.',
+    deck: 'Resumo semanal com agenda, bastidores e curadoria para quem acompanha o movimento desde o início.',
   },
   {
     source: 'REPORTAGEM',
@@ -92,7 +92,7 @@ const editorial = [
     category: 'CENA',
     coverUrl: '/brand/elements/02.png',
     title: 'Como a pista conversa com moda, arte e comportamento noturno',
-    deck: 'Leitura de cena com foco em artistas residentes, convidados e referencias que moldam a experiencia Douha.',
+    deck: 'Leitura de cena com foco em artistas residentes, convidados e referências que moldam a experiência Douha.',
   },
   {
     source: 'NEWSLETTER',
@@ -100,8 +100,8 @@ const editorial = [
     date: 'MAI 2026',
     category: 'GUIA',
     coverUrl: '/brand/elements/03.png',
-    title: 'Guia de proximas datas, links oficiais e cobertura pos-evento',
-    deck: 'O que abre, o que muda e onde acessar ingressos, fotos e conteudo completo em um unico lugar.',
+    title: 'Guia de próximas datas, links oficiais e cobertura pós-evento',
+    deck: 'O que abre, o que muda e onde acessar ingressos, fotos e conteúdo completo em um único lugar.',
   },
   {
     source: 'CULTURA',
@@ -110,7 +110,7 @@ const editorial = [
     category: 'CULTURA',
     coverUrl: '/brand/elements/04.png',
     title: 'Rockstar, label culture e o novo ciclo criativo das pistas',
-    deck: 'Panorama rapido sobre referencias globais que influenciam a narrativa visual e sonora do clube.',
+    deck: 'Panorama rápido sobre referências globais que influenciam a narrativa visual e sonora do clube.',
   },
 ];
 
@@ -125,7 +125,7 @@ const defaultEditorialPosts = editorial.map((item, idx) => ({
   id: `editorial-${idx + 1}`,
   source: String(item.source || 'DOUHA CLUB'),
   issue: String(item.issue || ''),
-  date: String(item.date || ''),
+  date: String(item.daté || ''),
   title: String(item.title || ''),
   deck: clampEditorialDeck(item.deck),
   body: '',
@@ -271,7 +271,7 @@ const WHO_WE_ARE_TEXT =
 const LEGACY_WHO_WE_ARE_MARKERS = [
   'inspirado no estilo',
   'tropical noir',
-  'narrativa editorial para criar experiencias de pista',
+  'narrativa editorial para criar experiências de pista',
 ];
 
 function resolveWhoWeAreText(value) {
@@ -301,17 +301,17 @@ const defaultSiteContent = {
   socialSoundCloudUrl: 'https://soundcloud.com/',
   socialYouTubeHandle: 'Douha',
   socialYouTubeUrl: 'https://www.youtube.com/channel/UCOzUfp-FC2acGvWiCijckbA',
-  /** URL da faixa visual acima de "Conheca a experiencia Douha" na Home (vazio = fundo padrao) */
+  /** URL da faixa visual acima de "Conheça a experiência Douha" na Home (vazio = fundo padrão) */
   experienceHeroImageUrl: '',
-  /** Textura/fundo da faixa amarela "Conheca a experiencia" (2º plano; texto por cima) */
+  /** Textura/fundo da faixa amarela "Conheça a experiência" (2º plano; texto por cima) */
   experienceCopyBannerBgUrl: '',
   /** Textura/fundo da faixa amarela Sets (2º plano; texto por cima) */
   setsBannerBgUrl: '',
   /** Textura/fundo da faixa diagonal de fotos do role (2º plano; cards FOTO por cima) */
   rolePhotosStageBgUrl: '',
-  /** Logo centralizada no rodape (vazio = sem bloco extra no footer) */
+  /** Logo centralizada no rodapé (vazio = sem bloco extra no footer) */
   footerLogoUrl: '',
-  /** Mosaico fixo da pagina /editorial — IDs de douha_editorial_posts */
+  /** Mosaico fixo da página /editorial — IDs de douha_editorial_posts */
   editorialMosaicLeadId: '',
   editorialMosaicSide1Id: '',
   editorialMosaicSide2Id: '',
@@ -326,7 +326,7 @@ const YELLOW_BANNER_PX = {
 /** Faixa diagonal de fotos do role (fundo atras dos cards). */
 const ROLE_PHOTOS_STAGE_PX = { width: 1920, height: 760 };
 
-/** Logo do rodape (emblema circular). */
+/** Logo do rodapé (emblema circular). */
 const FOOTER_LOGO_PX = { size: 400 };
 
 function footerLogoImageClassName(url) {
@@ -335,7 +335,7 @@ function footerLogoImageClassName(url) {
   return 'footer-logo-img';
 }
 
-/** Camada de arte da faixa (proporcao fixa; nao usa cover para nao esticar/cortar). */
+/** Camada de arte da faixa (proporção fixa; não usa cover para não esticar/cortar). */
 function YellowStripBg({ imageUrl }) {
   const url = String(imageUrl || '').trim();
   if (!url) return null;
@@ -373,14 +373,14 @@ const DOUHA_GOOGLE_MAPS_URL =
 const faq = [
   {
     q: 'Como compro ingresso para um evento?',
-    a: 'Va em Calendário, selecione o mes e clique no poster do role. Se houver venda aberta, aparece a opcao de ingresso e voce e levado para a plataforma oficial daquele evento (Sympla, Ingresso Nacional, etc.).',
+    a: 'Vá em Calendário, selecione o mês e clique no poster do role. Se houver venda aberta, aparece a opção de ingresso e você é levado para a plataforma oficial daquele evento (Sympla, Ingresso Nacional, etc.).',
   },
   {
     q: 'Como funciona o Members Club?',
     paragraphs: [
-      'O Members Club e o espaco exclusivo do Douha para quem quer viver a experiencia antes de todo mundo.',
-      'Participando, voce recebe acesso antecipado a line-up e as novidades, pode fazer reservas de mesas e camarotes um dia antes da abertura geral, participa de enquetes que ajudam a definir o role, alem de concorrer a sorteios e receber descontos exclusivos.',
-      'Ou seja: sua opiniao entra no jogo, e voce fica sempre um passo a frente.',
+      'O Members Club é o espaço exclusivo do Douha para quem quer viver a experiência antes de todo mundo.',
+      'Participando, você recebe acesso antecipado a line-up e as novidades, pode fazer reservas de mesas e camarotes um dia antes da abertura geral, participa de enquetes que ajudam a definir o role, além de concorrer a sorteios e receber descontos exclusivos.',
+      'Ou seja: sua opinião entra no jogo, e você fica sempre um passo à frente.',
     ],
   },
   {
@@ -389,12 +389,12 @@ const faq = [
     link: { href: DOUHA_GOOGLE_MAPS_URL, label: 'Ver no Google Maps' },
   },
   {
-    q: 'Voces possuem estacionamento?',
+    q: 'Vocês possuem estacionamento?',
     a: 'Sim, temos estacionamento (pago) e pontos de retirada de uber, taxis e afins.',
   },
   {
-    q: 'O que e proibido no dress code?',
-    a: 'Itens nao permitidos:',
+    q: 'O que é proibido no dress code?',
+    a: 'Itens não permitidos:',
     list: [
       'Correntes muito grossas',
       'Camiseta de Time',
@@ -408,32 +408,32 @@ const faq = [
     q: 'Bar e Cozinha',
     paragraphs: [
       'Garantimos um bar completo, pronto para agradar qualquer paladar.',
-      'E se bater aquela fome, fique a vontade e aproveite o Douha Pub! Temos diversos sabores de pizzas pra te salvar da larica.',
+      'E se bater aquela fome, fique à vontade e aproveite o Douha Pub! Temos diversos sabores de pizzas pra te salvar da larica.',
     ],
   },
   {
     q: 'Como exercer meus direitos na LGPD?',
-    a: 'Mande um e-mail para o contato comercial dizendo o que precisa: saber se tratamos seus dados, corrigir informacao, pedir exclusao ou revogar consentimento de cache/analytics. Respondemos em prazo razoavel, conforme a lei.',
+    a: 'Mande um e-mail para o contato comercial dizendo o que precisa: saber se tratamos seus dados, corrigir informação, pedir exclusão ou revogar consentimento de cache/analytics. Respondemos em prazo razoável, conforme a lei.',
   },
 ];
 
 /** Referencia de tamanho para exportar arquivos (alinha com o layout do site) */
 const IMAGE_SPEC = {
-  agendaPoster: `Tamanho sugerido para poster na agenda: 1080×1620 px (proporcao 2:3, retrato). Tamanho maximo recomendado: ${POSTER_MAX_LABEL}.`,
+  agendaPoster: `Tamanho sugerido para poster na agenda: 1080×1620 px (proporção 2:3, retrato). Tamanho máximo recomendado: ${POSTER_MAX_LABEL}.`,
   gallery:
-    'Tamanho sugerido para galeria: largura minima 1200 px; proporcao livre (imagem inteira). Foto larga: panoramas ou banners largos ocupam 2 colunas no carrossel.',
-  experienceCopyBanner: `Faixa amarela "Conheca a experiencia": ${YELLOW_BANNER_PX.experienceCopy.width}×${YELLOW_BANNER_PX.experienceCopy.height} px (paisagem). Exporte nessa proporcao; o texto vai na propria imagem.`,
-  setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). Exporte com o texto ja na imagem (o site nao sobrepoe copy HTML).`,
-  rolePhotosStage: `Fundo da faixa de fotos do role: ${ROLE_PHOTOS_STAGE_PX.width}×${ROLE_PHOTOS_STAGE_PX.height} px (paisagem). Exporte nessa proporcao; cards FOTO ficam por cima.`,
-  footerLogo: `Logo do rodape: ${FOOTER_LOGO_PX.size}×${FOOTER_LOGO_PX.size} px (quadrado 1:1). Use PNG com fundo transparente (obrigatorio para nao aparecer quadrado preto).`,
+    'Tamanho sugerido para galeria: largura mínima 1200 px; proporção livre (imagem inteira). Foto larga: panoramas ou banners largos ocupam 2 colunas no carrossel.',
+  experienceCopyBanner: `Faixa amarela "Conheça a experiência": ${YELLOW_BANNER_PX.experienceCopy.width}×${YELLOW_BANNER_PX.experienceCopy.height} px (paisagem). Exporte nessa proporção; o texto vai na própria imagem.`,
+  setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). Exporte com o texto já na imagem (o site não sobrepõe copy HTML).`,
+  rolePhotosStage: `Fundo da faixa de fotos do role: ${ROLE_PHOTOS_STAGE_PX.width}×${ROLE_PHOTOS_STAGE_PX.height} px (paisagem). Exporte nessa proporção; cards FOTO ficam por cima.`,
+  footerLogo: `Logo do rodapé: ${FOOTER_LOGO_PX.size}×${FOOTER_LOGO_PX.size} px (quadrado 1:1). Use PNG com fundo transparente (obrigatório para não aparecer quadrado preto).`,
   editorialCover:
-    'Capa editorial (mosaico): 1600×1200 px ou maior, paisagem (4:3). Aparece no site somente nas 3 posicoes do mosaico; acervo fica sem imagem ate a pagina da materia.',
+    'Capa editorial (mosaico): 1600×1200 px ou maior, paisagem (4:3). Aparece no site somente nas 3 posições do mosaico; acervo fica sem imagem até a página da matéria.',
 };
 
 function normalizeAgendaItem(item, idx = 0) {
   return {
     id: String(item?.id || `event-${idx + 1}`),
-    date: String(item?.date || ''),
+    date: String(item?.daté || ''),
     time: String(item?.time || ''),
     lineup: String(item?.lineup || ''),
     poster: String(item?.poster || ''),
@@ -463,7 +463,7 @@ function mapDbEventToAgendaItem(row, idx = 0) {
 function mapAgendaItemToDbEvent(item) {
   return {
     id: String(item.id),
-    date: String(item.date || ''),
+    date: String(item.daté || ''),
     time: String(item.time || ''),
     lineup: String(item.lineup || ''),
     poster: String(item.poster || ''),
@@ -480,9 +480,9 @@ function isMissingPhotosUrlColumnError(message) {
 
 function formatSupabaseAgendaSaveError(error) {
   const detail = String(error?.message || 'erro desconhecido');
-  let msg = `Nao foi possivel salvar no Supabase: ${detail}`;
+  let msg = `Não foi possível salvar no Supabase: ${detail}`;
   if (/photos_url/i.test(detail)) {
-    msg += ' Rode no SQL Editor o arquivo supabase/migrations/001_douha_events_photos_url.sql (adiciona a coluna no banco que ja existia).';
+    msg += ' Rode no SQL Editor o arquivo supabase/migrations/001_douha_events_photos_url.sql (adiciona a coluna no banco que já existia).';
   }
   return msg;
 }
@@ -642,7 +642,7 @@ function normalizeEditorialItem(item, idx = 0) {
     issue: String(item?.issue || ''),
     category: String(item?.category || ''),
     coverUrl: String(item?.coverUrl || ''),
-    date: String(item?.date || item?.publishedAt || ''),
+    date: String(item?.daté || item?.publishedAt || ''),
     publishedAt: item?.publishedAt || null,
     authorName: String(item?.authorName || item?.author_name || ''),
     authorAvatarUrl: String(item?.authorAvatarUrl || item?.author_avatar_url || ''),
@@ -678,7 +678,7 @@ function mapDbEditorialPostToItem(row, idx = 0) {
 }
 
 function mapEditorialItemToDbPost(item) {
-  const publishRaw = String(item?.publishedAt || item?.date || '').trim();
+  const publishRaw = String(item?.publishedAt || item?.daté || '').trim();
   return {
     id: String(item.id),
     title: String(item.title || ''),
@@ -700,7 +700,7 @@ function mapEditorialItemToDbPost(item) {
 
 /**
  * Garante link absoluto do WhatsApp (wa.me). Valores como "whatsapp", "/wpp" ou "5511..."
- * viram path no proprio site e geram 404 — aqui sempre https://wa.me/...
+ * viram path no próprio site e geram 404 — aqui sempre https://wa.me/...
  */
 function normalizeWhatsAppUrl(value) {
   const raw = String(value || '').trim();
@@ -822,7 +822,7 @@ function parseAgendaDateParts(value) {
   return null;
 }
 
-/** Mes/ano do calendario mais perto de hoje que tenha eventos (prioriza mes atual). */
+/** Mes/ano do calendário mais perto de hoje que tenha eventos (prioriza mês atual). */
 function findDefaultCalendarMonthWithEvents(agendaEvents, now = new Date()) {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
@@ -856,7 +856,7 @@ function findDefaultCalendarMonthWithEvents(agendaEvents, now = new Date()) {
   return best;
 }
 
-/** Ordem do calendario: dia do evento (crescente), depois horario. */
+/** Ordem do calendario: dia do evento (crescente), depois horário. */
 function compareAgendaEventsByDate(a, b) {
   const pa = parseAgendaDateParts(a?.date);
   const pb = parseAgendaDateParts(b?.date);
@@ -874,7 +874,7 @@ function getRollingCalendarYears(now = new Date()) {
   return [currentYear - 1, currentYear];
 }
 
-/** Anos no calendario/admin: janela fixa + qualquer ano que ja exista nos eventos (evita sumir mes com dados). */
+/** Anos no calendario/admin: janela fixa + qualquer ano que já exista nos eventos (evita sumir mês com dados). */
 function getCalendarYearOptions(agendaEvents, now = new Date()) {
   const years = new Set(getRollingCalendarYears(now));
   (agendaEvents || []).forEach((item) => {
@@ -897,7 +897,7 @@ function getEventEndOfDay(value) {
   return new Date(parsed.year, parsed.monthIndex, parsed.day || 1, 23, 59, 59, 999);
 }
 
-/** True quando ja passou o "carencia" pos-evento: ai o site prioriza o link do Drive. */
+/** True quando já passou o "carência" pós-evento: ai o site prioriza o link do Drive. */
 function shouldUseEventPhotosLink(eventDateValue, now = new Date()) {
   const end = getEventEndOfDay(eventDateValue);
   if (!end) return false;
@@ -980,7 +980,7 @@ function sanitizeFileName(name) {
 }
 
 async function uploadPosterToSupabaseStorage(file) {
-  if (!supabase) throw new Error('Supabase indisponivel para upload.');
+  if (!supabase) throw new Error('Supabase indisponível para upload.');
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
   const safeExt = /^[a-z0-9]+$/.test(ext) ? ext : 'jpg';
   const fileName = sanitizeFileName(file.name || `poster.${safeExt}`);
@@ -991,12 +991,12 @@ async function uploadPosterToSupabaseStorage(file) {
     .upload(path, file, { upsert: false, contentType: file.type || `image/${safeExt}` });
   if (uploadError) throw new Error(formatSupabaseStorageUploadError(uploadError));
   const { data } = supabase.storage.from(SUPABASE_POSTERS_BUCKET).getPublicUrl(path);
-  if (!data?.publicUrl) throw new Error('Falha ao gerar URL publica do poster.');
+  if (!data?.publicUrl) throw new Error('Falha ao gerar URL pública do poster.');
   return data.publicUrl;
 }
 
 async function uploadGalleryImageToSupabaseStorage(file) {
-  if (!supabase) throw new Error('Supabase indisponivel para upload da galeria.');
+  if (!supabase) throw new Error('Supabase indisponível para upload da galeria.');
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
   const safeExt = /^[a-z0-9]+$/.test(ext) ? ext : 'jpg';
   const fileName = sanitizeFileName(file.name || `gallery.${safeExt}`);
@@ -1007,12 +1007,12 @@ async function uploadGalleryImageToSupabaseStorage(file) {
     .upload(path, file, { upsert: false, contentType: file.type || `image/${safeExt}` });
   if (uploadError) throw new Error(formatSupabaseStorageUploadError(uploadError));
   const { data } = supabase.storage.from(SUPABASE_GALLERY_BUCKET).getPublicUrl(path);
-  if (!data?.publicUrl) throw new Error('Falha ao gerar URL publica da galeria.');
+  if (!data?.publicUrl) throw new Error('Falha ao gerar URL pública da galeria.');
   return data.publicUrl;
 }
 
 async function uploadEditorialCoverToSupabaseStorage(file) {
-  if (!supabase) throw new Error('Supabase indisponivel para upload da capa editorial.');
+  if (!supabase) throw new Error('Supabase indisponível para upload da capa editorial.');
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
   const safeExt = /^[a-z0-9]+$/.test(ext) ? ext : 'jpg';
   const fileName = sanitizeFileName(file.name || `editorial-cover.${safeExt}`);
@@ -1023,12 +1023,12 @@ async function uploadEditorialCoverToSupabaseStorage(file) {
     .upload(path, file, { upsert: false, contentType: file.type || `image/${safeExt}` });
   if (uploadError) throw new Error(formatSupabaseStorageUploadError(uploadError));
   const { data } = supabase.storage.from(SUPABASE_POSTERS_BUCKET).getPublicUrl(path);
-  if (!data?.publicUrl) throw new Error('Falha ao gerar URL publica da capa editorial.');
+  if (!data?.publicUrl) throw new Error('Falha ao gerar URL pública da capa editorial.');
   return data.publicUrl;
 }
 
 async function uploadRolePhotoToSupabaseStorage(file) {
-  if (!supabase) throw new Error('Supabase indisponivel para upload das fotos do role.');
+  if (!supabase) throw new Error('Supabase indisponível para upload das fotos do role.');
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
   const safeExt = /^[a-z0-9]+$/.test(ext) ? ext : 'jpg';
   const fileName = sanitizeFileName(file.name || `role.${safeExt}`);
@@ -1039,7 +1039,7 @@ async function uploadRolePhotoToSupabaseStorage(file) {
     .upload(path, file, { upsert: false, contentType: file.type || `image/${safeExt}` });
   if (uploadError) throw new Error(formatSupabaseStorageUploadError(uploadError));
   const { data } = supabase.storage.from(SUPABASE_ROLE_PHOTOS_BUCKET).getPublicUrl(path);
-  if (!data?.publicUrl) throw new Error('Falha ao gerar URL publica da foto do role.');
+  if (!data?.publicUrl) throw new Error('Falha ao gerar URL pública da foto do role.');
   return data.publicUrl;
 }
 
@@ -1076,7 +1076,7 @@ async function withTimeout(promise, ms, timeoutMessage) {
   }
 }
 
-/** Link publico do canal: URL no conteudo do site ou canal padrao acima. */
+/** Link publico do canal: URL no conteúdo do site ou canal padrão acima. */
 function resolvePublicYoutubeChannelUrl(siteContent) {
   const u = String(siteContent?.socialYouTubeUrl || '').trim();
   if (
@@ -1099,7 +1099,7 @@ function SetsBannerSection({ siteContent }) {
   );
 }
 
-/** SVG do logo YouTube — so na faixa de sets (Home /sets), nao no header global. */
+/** SVG do logo YouTube — só na faixa de sets (Home /sets), não no header global global. */
 function SetsYoutubeIcon() {
   return (
     <svg className="sets-youtube-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -1525,7 +1525,7 @@ function AgendaEventBlock({ night }) {
         <p className="event-lineup">{night.lineup}</p>
         {night.reservationsEnabled && !isPhotosPhase ? (
           <Link to={`/reservas/${night.id}`} className="pill agenda-reserve-link">
-            Pre-reservar mesa
+            Pré-reservar mesa
           </Link>
         ) : null}
       </div>
@@ -1576,14 +1576,14 @@ function AgendaCalendarSection({
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const calendarAutoFocusedRef = useRef(false);
 
-  /** Abre no mes mais proximo de hoje que tenha eventos (ex.: junho/2026 se estamos em junho). */
+  /** Abre no mês mais próximo de hoje que tenha eventos (ex.: junho/2026 se estamos em junho). */
   useEffect(() => {
     if (calendarAutoFocusedRef.current || focusTarget) return;
     if (applySavedFocus) {
       try {
         if (localStorage.getItem(CALENDAR_FOCUS_KEY)) return;
       } catch {
-        /* segue para foco padrao */
+        /* segue para foco padrão */
       }
     }
     if (!agendaEvents.length) return;
@@ -1665,7 +1665,7 @@ function AgendaCalendarSection({
             )) : <span className="calendar-empty-note">Sem anos cadastrados ainda.</span>}
           </div>
 
-          <div className="calendar-month-tabs" role="tablist" aria-label="Selecionar mes da agenda">
+          <div className="calendar-month-tabs" role="tablist" aria-label="Selecionar mês da agenda">
             {MONTH_LABELS.map((monthLabel, idx) => {
               return (
                 <button
@@ -1684,7 +1684,7 @@ function AgendaCalendarSection({
         {adminMode ? (
           <p className="calendar-admin-limit-note" role="status">
             <strong>{monthEvents.length}/{MAX_EVENTS_PER_MONTH}</strong> eventos em{' '}
-            {MONTH_LABELS[selectedMonth]} {selectedYear}. Grade: ate {CALENDAR_CARDS_PER_ROW} na 1ª linha;
+            {MONTH_LABELS[selectedMonth]} {selectedYear}. Grade: até {CALENDAR_CARDS_PER_ROW} na 1ª linha;
             do {CALENDAR_CARDS_PER_ROW + 1}º ao {MAX_EVENTS_PER_MONTH}º na 2ª linha (esquerda → direita). Ordem por data do evento.
           </p>
         ) : null}
@@ -1695,7 +1695,7 @@ function AgendaCalendarSection({
           {monthEvents.length ? monthEvents.map((night) => (
             adminMode ? (
               <article key={`calendar-${night.id}`} className="admin-calendar-slot">
-                <p><strong>{night.date}</strong> · {night.time || 'Sem horario'}</p>
+                <p><strong>{night.date}</strong> · {night.time || 'Sem horário'}</p>
                 <p>{night.lineup}</p>
                 <p className="admin-url">
                   Ingresso: {night.ticketUrl || 'Sem link'}
@@ -1718,7 +1718,7 @@ function AgendaCalendarSection({
               className="admin-calendar-slot admin-calendar-slot-empty"
             >
               <p><strong>Slot {slotNum} livre</strong></p>
-              <p>Linha {row} · max. {MAX_EVENTS_PER_MONTH} por mes ({CALENDAR_CARDS_PER_ROW}+{MAX_EVENTS_PER_MONTH - CALENDAR_CARDS_PER_ROW}).</p>
+              <p>Linha {row} · max. {MAX_EVENTS_PER_MONTH} por mês ({CALENDAR_CARDS_PER_ROW}+{MAX_EVENTS_PER_MONTH - CALENDAR_CARDS_PER_ROW}).</p>
               {adminMode ? (
                 <button
                   type="button"
@@ -1754,7 +1754,7 @@ function heroCarouselImageProps(index) {
   };
 }
 
-/** Faixa pos-experiencia: mosaico denso em "trilhos"; repetimos entradas pra preencher o loop. */
+/** Faixa pós-experiência: mosaico denso em "trilhos"; repetimos entradas pra preencher o loop. */
 const ROLE_STRIP_LANES = 7;
 const ROLE_STRIP_LANES_MOBILE = 2;
 const ROLE_STRIP_MIN_CARDS = 21;
@@ -1795,7 +1795,7 @@ function buildRoleCardStyle(lane, slot, cardsInLane, globalIdx, mobile = false) 
   const count = Math.max(1, cardsInLane);
   let roleDelay;
   if (mobile && count === 1) {
-    /* Direita ja cai enquanto esquerda ainda desce (cruzamento, nunca trilho vazio). */
+    /* Direita já cai enquanto esquerda ainda desce (cruzamento, nunca trilho vazio). */
     const staggerSec = ROLE_STRIP_MOBILE_STAGGER_SEC;
     roleDelay = lane === 0 ? '0s' : `${-staggerSec}s`;
   } else {
@@ -1859,6 +1859,24 @@ function getRoleStripCardCount(photoCount) {
   return Math.min(ROLE_STRIP_MAX_CARDS, Math.max(ROLE_STRIP_MIN_CARDS, Math.round(photoCount * 2.2)));
 }
 
+const HERO_STRIP_MIN_COPIES = 4;
+const HERO_STRIP_MAX_COPIES = 20;
+
+/** Repete a lista o suficiente para scrollWidth > viewport (monitores largos + poucas fotos). */
+function buildHeroPhotoStrip(base, viewportWidth = 1280) {
+  if (!base.length) return [];
+  const vw = Math.max(320, viewportWidth);
+  const frameW = Math.min(400, Math.max(220, vw * 0.32));
+  const onePassW = base.reduce((sum, item) => {
+    if (item.mode === 'wide' || item.mode === 'double') return sum + frameW * 2;
+    return sum + frameW;
+  }, 0);
+  const needed = Math.ceil((vw * 2.2) / Math.max(onePassW, frameW));
+  let copies = Math.min(HERO_STRIP_MAX_COPIES, Math.max(HERO_STRIP_MIN_COPIES, needed));
+  if (copies % 2 !== 0) copies += 1;
+  return Array.from({ length: copies }, () => base).flat();
+}
+
 function HomePage({
   agendaEvents,
   sitePhotos,
@@ -1875,18 +1893,18 @@ function HomePage({
     () => photos.map(parsePhotoEntry).filter((item) => item.primary),
     [photos],
   );
-  const heroPhotoStrip = useMemo(() => {
-    const base = parsedHeroPhotos;
-    if (!base.length) return [];
-    /* Pelo menos 4x a lista: em monitores largos 2x ainda deixa scrollWidth <= viewport e o carrossel nao anda. */
-    return [...base, ...base, ...base, ...base];
-  }, [parsedHeroPhotos]);
+  const [heroViewportWidth, setHeroViewportWidth] = useState(
+    () => (typeof window !== 'undefined' ? window.innerWidth : 1280),
+  );
+  const heroPhotoStrip = useMemo(
+    () => buildHeroPhotoStrip(parsedHeroPhotos, heroViewportWidth),
+    [parsedHeroPhotos, heroViewportWidth],
+  );
   const heroShellRef = useRef(null);
   const draggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, scrollLeft: 0 });
   const heroDragCleanupRef = useRef(null);
   const heroMarqueeOffscreenRef = useRef(false);
-  const reduceMotionRef = useRef(false);
   const [heroDragging, setHeroDragging] = useState(false);
   const [videoCards, setVideoCards] = useState([]);
   const [roleStripMobile, setRoleStripMobile] = useState(
@@ -1950,22 +1968,18 @@ function HomePage({
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    reduceMotionRef.current = mq.matches;
-    const onMq = () => {
-      reduceMotionRef.current = mq.matches;
-    };
-    mq.addEventListener('change', onMq);
-    return () => mq.removeEventListener('change', onMq);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
     const mq = window.matchMedia('(max-width: 767px)');
-    const onMq = () => setRoleStripMobile(mq.matches);
-    onMq();
-    mq.addEventListener('change', onMq);
-    return () => mq.removeEventListener('change', onMq);
+    const onLayout = () => {
+      setRoleStripMobile(mq.matches);
+      setHeroViewportWidth(window.innerWidth);
+    };
+    onLayout();
+    mq.addEventListener('change', onLayout);
+    window.addEventListener('resize', onLayout);
+    return () => {
+      mq.removeEventListener('change', onLayout);
+      window.removeEventListener('resize', onLayout);
+    };
   }, []);
 
   useEffect(() => {
@@ -2002,18 +2016,12 @@ function HomePage({
       last = now;
       const paused =
         draggingRef.current
-        || reduceMotionRef.current
         || document.visibilityState !== 'visible'
         || heroMarqueeOffscreenRef.current;
       if (!paused && el.scrollWidth > el.clientWidth + 1) {
         const half = el.scrollWidth / 2;
         const speed = half / HERO_MARQUEE_HALF_LOOP_SEC;
-        const nextLeft = el.scrollLeft + speed * dt;
-        if (typeof el.scrollTo === 'function') {
-          el.scrollTo({ left: nextLeft, behavior: 'auto' });
-        } else {
-          el.scrollLeft = nextLeft;
-        }
+        el.scrollLeft = el.scrollLeft + speed * dt;
         normalizeScroll();
       }
       rafId = requestAnimationFrame(tick);
@@ -2168,7 +2176,7 @@ function HomePage({
 
       <AgendaCalendarSection
         agendaEvents={agendaEvents}
-        ctaLabel="Abrir pagina"
+        ctaLabel="Abrir página"
         ctaTo="/calendario"
         applySavedFocus
         focusTarget={calendarFocus}
@@ -2496,7 +2504,7 @@ function findEditorialPostById(editorialPosts, postId) {
 }
 
 function formatEditorialDisplayDate(post) {
-  const raw = String(post?.date || post?.publishedAt || '').trim();
+  const raw = String(post?.daté || post?.publishedAt || '').trim();
   if (!raw) return '';
   const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (iso) {
@@ -2578,7 +2586,7 @@ function renderEditorialContentBlock(block, blockIdx) {
   );
 }
 
-/** Preserva paragrafos e quebras de linha como no admin (linha em branco = espaco; Enter = quebra). */
+/** Preserva parágrafos e quebras de linha como no admin (linha em branco = espaço; Enter = quebra). */
 function EditorialArticleBody({ body }) {
   const text = String(body ?? '');
   if (!text.trim()) {
@@ -2633,7 +2641,7 @@ function EditorialArticleByline({ post }) {
         {publishedLabel ? (
           <span className="editorial-article__byline-date">{publishedLabel}</span>
         ) : (
-          <span className="editorial-article__byline-date editorial-article__byline-date--empty">Data a definir</span>
+          <span className="editorial-article__byline-daté editorial-article__byline-date--empty">Data a definir</span>
         )}
         {updatedLabel ? <span className="editorial-article__byline-updated">{updatedLabel}</span> : null}
       </div>
@@ -2694,8 +2702,8 @@ function AdminEditorialBylineFields({ draft, onChange }) {
     <div className="admin-editorial-byline-block">
       <h4 className="admin-subheading">Autoria, data e tempo de leitura</h4>
       <p className="about-copy image-spec-note">
-        Aparece na barra abaixo do titulo (autor · data · relógio + minutos). O tempo de leitura é calculado
-        automaticamente pelo texto. &quot;Atualizado há…&quot; usa a data da ultima gravacao no admin.
+        Aparece na barra abaixo do título (autor · data · relógio + minutos). O tempo de leitura é calculado
+        automaticamente pelo texto. &quot;Atualizado há…&quot; usa a data da última gravação no admin.
       </p>
       <div className="admin-editorial-byline-row">
         <div className="admin-form-field">
@@ -2772,8 +2780,8 @@ function AdminEditorialSourcesFields({ sources, onChange }) {
   return (
     <div className="admin-editorial-sources">
       <p className="about-copy">
-        Adicione uma fonte por vez ou cole varias linhas (uma por linha). Formatos: <code>Nome — https://...</code>,{' '}
-        <code>Nome | url</code> ou so o link.
+        Adicione uma fonte por vez ou cole várias linhas (uma por linha). Formatos: <code>Nome — https://...</code>,{' '}
+        <code>Nome | url</code> ou só o link.
       </p>
       {list.map((item, idx) => (
         <div key={`admin-editorial-source-${idx}`} className="admin-editorial-source-row">
@@ -2808,7 +2816,7 @@ function AdminEditorialSourcesFields({ sources, onChange }) {
         </button>
       </div>
       <div className="admin-form-field admin-editorial-sources-bulk">
-        <label htmlFor="admin-editorial-sources-bulk">Colar varias fontes de uma vez</label>
+        <label htmlFor="admin-editorial-sources-bulk">Colar várias fontes de uma vez</label>
         <textarea
           id="admin-editorial-sources-bulk"
           rows={4}
@@ -2881,7 +2889,7 @@ function EditorialArticlePage({ editorialPosts }) {
   useDocumentMeta(
     post
       ? buildEditorialArticleMeta(post)
-      : { title: `Materia | Douha Club`, description: 'Materia nao encontrada.', canonicalPath: '/editorial' },
+      : { title: `Matéria | Douha Club`, description: 'Matéria não encontrada.', canonicalPath: '/editorial' },
   );
 
   if (!post) {
@@ -2889,7 +2897,7 @@ function EditorialArticlePage({ editorialPosts }) {
       <main>
         <section className="section">
           <div className="container editorial-article">
-            <p className="about-copy">Materia nao encontrada ou nao publicada.</p>
+            <p className="about-copy">Matéria não encontrada ou não publicada.</p>
             <Link className="pill" to="/editorial">Voltar ao Editorial</Link>
           </div>
         </section>
@@ -3009,7 +3017,7 @@ function AdminEditorialMosaicBoard({ posts, draft, onChange }) {
             </button>
           </div>
         ) : (
-          <p className="admin-mosaic-slot__empty">Arraste uma materia aqui</p>
+          <p className="admin-mosaic-slot__empty">Arraste uma matéria aqui</p>
         )}
       </div>
     );
@@ -3020,8 +3028,8 @@ function AdminEditorialMosaicBoard({ posts, draft, onChange }) {
       <div className="admin-mosaic-board__layout" aria-label="Layout do mosaico no site">
         {renderSlot('lead', 'Principal', 'lead')}
         <div className="admin-mosaic-board__side">
-          {renderSlot('side1', 'Secundaria 1', 'side')}
-          {renderSlot('side2', 'Secundaria 2', 'side')}
+          {renderSlot('side1', 'Secundária 1', 'side')}
+          {renderSlot('side2', 'Secundária 2', 'side')}
         </div>
       </div>
 
@@ -3031,11 +3039,11 @@ function AdminEditorialMosaicBoard({ posts, draft, onChange }) {
         onDrop={onDropPool}
       >
         <p className="admin-mosaic-pool__title">
-          Materias publicadas
+          Matérias publicadas
           <span className="admin-mosaic-pool__hint">Arraste para o mosaico · solte aqui para tirar do mosaico</span>
         </p>
         {!posts.length ? (
-          <p className="about-copy">Nenhuma materia publicada ainda.</p>
+          <p className="about-copy">Nenhuma matéria publicada ainda.</p>
         ) : (
           <div className="admin-mosaic-pool__grid">
             {posts.map((post) => (
@@ -3066,7 +3074,7 @@ function AdminMosaicDragThumb({ post }) {
   );
 }
 
-/** Secao Editorial da Home — layout proprio (nao usa editorial-news-*). */
+/** Seção Editorial da Home — layout próprio (não usa editorial-news-*). */
 function HomeEditorialSection({ editorialPosts }) {
   const posts = useMemo(() => getPublishedEditorialPosts(editorialPosts, 4), [editorialPosts]);
   const railIssue = posts[0]?.issue || 'ED. —';
@@ -3081,7 +3089,7 @@ function HomeEditorialSection({ editorialPosts }) {
             <span className="editorial-home-head__rule" aria-hidden="true" />
           </div>
           <Link className="editorial-home-open" to="/editorial">
-            Abrir pagina
+            Abrir página
           </Link>
         </header>
 
@@ -3106,7 +3114,7 @@ function HomeEditorialSection({ editorialPosts }) {
                   ) : null}
                 </div>
                 <span className="editorial-home-card__hover" aria-hidden="true">
-                  Ler materia completa
+                  Ler matéria completa
                 </span>
               </Link>
             ))}
@@ -3225,7 +3233,7 @@ function ContactPage({ siteContent }) {
           <p className="eyebrow">Contato</p>
           <h1>Comercial</h1>
           <p className="contact-page__lead">
-            Escolha o canal abaixo. Respondemos o mais rapido possivel em dias uteis.
+            Escolha o canal abaixo. Respondemos o mais rápido possível em dias úteis.
           </p>
           <ul className="contact-channel-list">
             {channels.map((channel) => (
@@ -3249,7 +3257,7 @@ function ContactPage({ siteContent }) {
             ))}
           </ul>
           <p className="about-copy contact-lgpd-note">
-            Duvidas sobre dados pessoais:{' '}
+            Dúvidas sobre dados pessoais:{' '}
             <Link to="/privacidade">Política de privacidade</Link>
             {email ? (
               <>
@@ -3411,7 +3419,7 @@ function AdminPage({
   }, [sortedAgenda]);
 
   const flashSaved = () => {
-    setSaveHint('Alteracoes salvas no site.');
+    setSaveHint('Alterações salvas no site.');
     window.setTimeout(() => setSaveHint(''), 2800);
     window.alert('Salvo com sucesso.');
   };
@@ -3459,7 +3467,7 @@ function AdminPage({
     }
     setEditingId(item.id);
     setDraft({
-      date: item.date || '',
+      date: item.daté || '',
       time: item.time || '',
       lineup: item.lineup || '',
       ticketUrl: item.ticketUrl || '',
@@ -3506,7 +3514,7 @@ function AdminPage({
   const onDelete = async (id) => {
     try {
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error(supabaseConfigError || 'Supabase nao configurado');
+        throw new Error(supabaseConfigError || 'Supabase não configurado');
       }
       const { error } = await supabase.from(SUPABASE_EVENTS_TABLE).delete().eq('id', id);
       if (error) throw error;
@@ -3515,7 +3523,7 @@ function AdminPage({
       if (editingId === id) resetDraft();
       setAgendaSaveError('');
     } catch (error) {
-      setAgendaSaveError(`Nao foi possivel excluir no Supabase: ${error.message || 'erro desconhecido'}`);
+      setAgendaSaveError(`Não foi possível excluir no Supabase: ${error.message || 'erro desconhecido'}`);
     }
   };
 
@@ -3524,7 +3532,7 @@ function AdminPage({
     if (!file) return;
     try {
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error('Supabase nao configurado para upload do poster.');
+        throw new Error('Supabase não configurado para upload do poster.');
       }
       setIsUploadingPoster(true);
       setPosterUploadError('');
@@ -3552,7 +3560,7 @@ function AdminPage({
           : 'Poster enviado com sucesso.',
       );
     } catch (error) {
-      const msg = error.message || 'Nao foi possivel preparar o poster.';
+      const msg = error.message || 'Não foi possível preparar o poster.';
       setAgendaSaveError(msg);
       setPosterUploadError(msg);
       setPosterUploadInfo('');
@@ -3565,7 +3573,7 @@ function AdminPage({
     if (!file) return;
     try {
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error(supabaseConfigError || 'Supabase nao configurado para upload.');
+        throw new Error(supabaseConfigError || 'Supabase não configurado para upload.');
       }
       setBusy(true);
       setError('');
@@ -3590,7 +3598,7 @@ function AdminPage({
         mergeSiteContentWithDefaults({ ...prev, [fieldKey]: String(publicUrl) }),
       );
     } catch (error) {
-      setError(error.message || 'Nao foi possivel enviar a imagem.');
+      setError(error.message || 'Não foi possível enviar a imagem.');
     } finally {
       setBusy(false);
     }
@@ -3602,7 +3610,7 @@ function AdminPage({
     event.target.value = '';
     try {
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error(supabaseConfigError || 'Supabase nao configurado para upload.');
+        throw new Error(supabaseConfigError || 'Supabase não configurado para upload.');
       }
       setIsUploadingExperienceHero(true);
       setExperienceHeroUploadError('');
@@ -3616,14 +3624,14 @@ function AdminPage({
       const publicUrl = await withTimeout(
         uploadGalleryImageToSupabaseStorage(fileForUpload),
         20000,
-        'Timeout ao enviar imagem da experiencia (20s).',
+        'Timeout ao enviar imagem da experiência (20s).',
       );
       setExperienceHeroPreviewFailed(false);
       setDraftSiteContent((prev) =>
         mergeSiteContentWithDefaults({ ...prev, experienceHeroImageUrl: String(publicUrl) }),
       );
     } catch (error) {
-      setExperienceHeroUploadError(error.message || 'Nao foi possivel enviar a imagem.');
+      setExperienceHeroUploadError(error.message || 'Não foi possível enviar a imagem.');
     } finally {
       setIsUploadingExperienceHero(false);
     }
@@ -3671,7 +3679,7 @@ function AdminPage({
     event.target.value = '';
     try {
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error(supabaseConfigError || 'Supabase nao configurado para upload.');
+        throw new Error(supabaseConfigError || 'Supabase não configurado para upload.');
       }
       setIsUploadingEditorialCover(true);
       setEditorialCoverUploadError('');
@@ -3689,7 +3697,7 @@ function AdminPage({
       );
       setDraftEditorial((prev) => ({ ...prev, coverUrl: String(publicUrl) }));
     } catch (error) {
-      setEditorialCoverUploadError(error.message || 'Nao foi possivel enviar a capa.');
+      setEditorialCoverUploadError(error.message || 'Não foi possível enviar a capa.');
     } finally {
       setIsUploadingEditorialCover(false);
     }
@@ -3701,7 +3709,7 @@ function AdminPage({
     event.target.value = '';
     try {
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error(supabaseConfigError || 'Supabase nao configurado para upload.');
+        throw new Error(supabaseConfigError || 'Supabase não configurado para upload.');
       }
       setIsUploadingFooterLogo(true);
       setFooterLogoUploadError('');
@@ -3722,13 +3730,13 @@ function AdminPage({
       const publicUrl = await withTimeout(
         uploadGalleryImageToSupabaseStorage(fileForUpload),
         20000,
-        'Timeout ao enviar logo do rodape (20s).',
+        'Timeout ao enviar logo do rodapé (20s).',
       );
       setDraftSiteContent((prev) =>
         mergeSiteContentWithDefaults({ ...prev, footerLogoUrl: String(publicUrl) }),
       );
     } catch (error) {
-      setFooterLogoUploadError(error.message || 'Nao foi possivel enviar a logo.');
+      setFooterLogoUploadError(error.message || 'Não foi possível enviar a logo.');
     } finally {
       setIsUploadingFooterLogo(false);
     }
@@ -3756,7 +3764,7 @@ function AdminPage({
       return;
     }
     setIsSavingEvent(true);
-    const normalizedDate = formatAgendaDate(draftDay, draftMonthIndex, draftYear);
+    const normalizedDaté = formatAgendaDate(draftDay, draftMonthIndex, draftYear);
     const existingEvent = editingId ? agendaEvents.find((item) => item.id === editingId) : null;
     const nextItem = {
       id: editingId || `event-${Date.now()}`,
@@ -3769,7 +3777,7 @@ function AdminPage({
       reservationsEnabled: Boolean(existingEvent?.reservationsEnabled),
       reservationLayout: existingEvent?.reservationLayout ?? null,
     };
-    if (!nextItem.date || !nextItem.lineup) {
+    if (!nextItem.daté || !nextItem.lineup) {
       setAgendaSaveError('Preencha data e lineup para salvar o evento.');
       setIsSavingEvent(false);
       return;
@@ -3785,7 +3793,7 @@ function AdminPage({
       );
       if (inMonth >= MAX_EVENTS_PER_MONTH) {
         setAgendaSaveError(
-          `${MONTH_LABELS[targetParts.monthIndex]} ${targetParts.year} ja tem ${MAX_EVENTS_PER_MONTH} eventos (limite do calendário). Edite ou exclua um antes de adicionar outro.`,
+          `${MONTH_LABELS[targetParts.monthIndex]} ${targetParts.year} já tem ${MAX_EVENTS_PER_MONTH} eventos (limite do calendário). Edite ou exclua um antes de adicionar outro.`,
         );
         setIsSavingEvent(false);
         return;
@@ -3798,7 +3806,7 @@ function AdminPage({
         : [nextItem, ...agendaEvents];
 
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error(supabaseConfigError || 'Supabase nao configurado');
+        throw new Error(supabaseConfigError || 'Supabase não configurado');
       }
       const payload = mapAgendaItemToDbEvent(nextItem);
       const saveResult = await withTimeout(
@@ -3881,7 +3889,7 @@ function AdminPage({
     } catch (error) {
       const msg = isMissingSiteContentTableError(error.message)
         ? 'Tabela douha_site_content ausente no Supabase. Rode no SQL Editor: supabase/migrations/004_douha_site_content.sql'
-        : `Nao foi possivel salvar conteudo no Supabase: ${error.message || 'erro desconhecido'}`;
+        : `Não foi possível salvar conteúdo no Supabase: ${error.message || 'erro desconhecido'}`;
       setSiteContentSaveError(msg);
     } finally {
       setIsSavingSiteContent(false);
@@ -3893,7 +3901,7 @@ function AdminPage({
     setIsSavingGallery(true);
     try {
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error(supabaseConfigError || 'Supabase nao configurado');
+        throw new Error(supabaseConfigError || 'Supabase não configurado');
       }
 
       const normalized = [];
@@ -3957,8 +3965,8 @@ function AdminPage({
       flashSaved();
     } catch (error) {
       const msg = isMissingGalleryTableError(error.message)
-        ? 'Nao foi possivel salvar galeria: tabela douha_site_photos ausente no Supabase. Rode o SQL de setup novamente no projeto novo.'
-        : `Nao foi possivel salvar galeria no Supabase: ${error.message || 'erro desconhecido'}`;
+        ? 'Não foi possível salvar galeria: tabela douha_site_photos ausente no Supabase. Rode o SQL de setup novamente no projeto novo.'
+        : `Não foi possível salvar galeria no Supabase: ${error.message || 'erro desconhecido'}`;
       setAgendaSaveError(msg);
       window.alert(msg);
     } finally {
@@ -3999,7 +4007,7 @@ function AdminPage({
       issue: post.issue || '',
       category: post.category || '',
       coverUrl: post.coverUrl || '',
-      date: post.date || '',
+      date: post.daté || '',
       isPublished: post.isPublished !== false,
     });
     setEditorialError('');
@@ -4021,7 +4029,7 @@ function AdminPage({
     const side2Id = String(draftEditorialMosaic.side2Id || '').trim();
     const ids = [leadId, side1Id, side2Id].filter(Boolean);
     if (new Set(ids).size !== ids.length) {
-      setEditorialMosaicError('Cada posicao do mosaico precisa de uma materia diferente (ou deixe vazio para preenchimento automatico).');
+      setEditorialMosaicError('Cada posição do mosaico precisa de uma matéria diferente (ou deixe vazio para preenchimento automático).');
       return;
     }
     const merged = mergeSiteContentWithDefaults({
@@ -4051,7 +4059,7 @@ function AdminPage({
     } catch (error) {
       const msg = isMissingSiteContentTableError(error.message)
         ? 'Tabela douha_site_content ausente no Supabase. Rode supabase/migrations/004_douha_site_content.sql'
-        : `Nao foi possivel salvar mosaico editorial: ${error.message || 'erro desconhecido'}`;
+        : `Não foi possível salvar mosaico editorial: ${error.message || 'erro desconhecido'}`;
       setEditorialMosaicError(msg);
     } finally {
       setIsSavingEditorialMosaic(false);
@@ -4065,15 +4073,15 @@ function AdminPage({
     const title = String(draftEditorial.title || '').trim();
     const deck = clampEditorialDeck(draftEditorial.deck).trim();
     if (!title || !deck) {
-      setEditorialError('Preencha pelo menos titulo e deck para salvar a materia.');
+      setEditorialError('Preencha pelo menos título e deck para salvar a matéria.');
       return;
     }
     setIsSavingEditorial(true);
     try {
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error(supabaseConfigError || 'Supabase nao configurado');
+        throw new Error(supabaseConfigError || 'Supabase não configurado');
       }
-      const publishDate = String(draftEditorial.date || '').trim();
+      const publishDaté = String(draftEditorial.daté || '').trim();
       const nextItem = normalizeEditorialItem(
         {
           ...draftEditorial,
@@ -4081,7 +4089,7 @@ function AdminPage({
           title,
           deck,
           date: publishDate,
-          publishedAt: publishDate || null,
+          publishedAt: publishDaté || null,
           updatedAt: new Date().toISOString(),
         },
         editorialPosts.length,
@@ -4098,7 +4106,7 @@ function AdminPage({
     } catch (error) {
       const msg = isMissingEditorialTableError(error.message)
         ? 'Tabela douha_editorial_posts ausente no Supabase. Rode a migration 002.'
-        : `Nao foi possivel salvar materia no Supabase: ${error.message || 'erro desconhecido'}`;
+        : `Não foi possível salvar matéria no Supabase: ${error.message || 'erro desconhecido'}`;
       setEditorialError(msg);
     } finally {
       setIsSavingEditorial(false);
@@ -4108,7 +4116,7 @@ function AdminPage({
   const onDeleteEditorial = async (id) => {
     try {
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error(supabaseConfigError || 'Supabase nao configurado');
+        throw new Error(supabaseConfigError || 'Supabase não configurado');
       }
       const { error } = await supabase.from(SUPABASE_EDITORIAL_TABLE).delete().eq('id', id);
       if (error) throw error;
@@ -4117,7 +4125,7 @@ function AdminPage({
     } catch (error) {
       const msg = isMissingEditorialTableError(error.message)
         ? 'Tabela douha_editorial_posts ausente no Supabase. Rode a migration 002.'
-        : `Nao foi possivel remover materia: ${error.message || 'erro desconhecido'}`;
+        : `Não foi possível remover matéria: ${error.message || 'erro desconhecido'}`;
       setEditorialError(msg);
     }
   };
@@ -4143,7 +4151,7 @@ function AdminPage({
     setIsSavingRolePhotos(true);
     try {
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error(supabaseConfigError || 'Supabase nao configurado');
+        throw new Error(supabaseConfigError || 'Supabase não configurado');
       }
       const normalized = [];
       for (const raw of draftRolePhotos) {
@@ -4188,7 +4196,7 @@ function AdminPage({
     } catch (error) {
       const msg = isMissingRolePhotosTableError(error.message)
         ? 'Tabela douha_role_photos ausente no Supabase. Rode a migration 002.'
-        : `Nao foi possivel salvar fotos do role no Supabase: ${error.message || 'erro desconhecido'}`;
+        : `Não foi possível salvar fotos do role no Supabase: ${error.message || 'erro desconhecido'}`;
       setRolePhotosError(msg);
     } finally {
       setIsSavingRolePhotos(false);
@@ -4242,7 +4250,7 @@ function AdminPage({
           <div className="container admin-box">
             <h2>Admin</h2>
             <p className="about-copy">
-              Acesso restrito com conta Supabase Auth (e-mail + senha). O usuario precisa ter{' '}
+              Acesso restrito com conta Supabase Auth (e-mail + senha). O usuário precisa ter{' '}
               <code>app_metadata.role = admin</code> no painel do Supabase.
             </p>
             <form className="admin-login-form" onSubmit={onLogin}>
@@ -4477,12 +4485,12 @@ function AdminPage({
               <div className="admin-yellow-banners-block">
                 <h4 className="admin-subheading">Faixas amarelas (2) — textura atras do texto</h4>
                 <p className="about-copy">
-                  Sao <strong>duas faixas separadas</strong> na Home. Cada uma tem seu upload. Vazio = amarelo padrao.
-                  Depois de enviar as duas, clique em <strong>Salvar alteracoes</strong>.
+                  São <strong>duas faixas separadas</strong> na Home. Cada uma tem seu upload. Vazio = amarelo padrão.
+                  Depois de enviar as duas, clique em <strong>Salvar alterações</strong>.
                 </p>
               </div>
               <article className="admin-panel-card admin-yellow-strip-card">
-                <h3>Faixa 1 — Conheca a experiencia Douha</h3>
+                <h3>Faixa 1 — Conheça a experiência Douha</h3>
                 <p className="about-copy image-spec-note">{IMAGE_SPEC.experienceCopyBanner}</p>
                 <div className="admin-form">
                   <label htmlFor="admin-experience-copy-banner-url">URL da textura</label>
@@ -4498,7 +4506,7 @@ function AdminPage({
                       experienceCopyBannerBgUrl: event.target.value,
                     }))}
                   />
-                  <label htmlFor="admin-experience-copy-banner-file">Enviar textura (experiencia)</label>
+                  <label htmlFor="admin-experience-copy-banner-file">Enviar textura (experiência)</label>
                   <input
                     id="admin-experience-copy-banner-file"
                     type="file"
@@ -4507,7 +4515,7 @@ function AdminPage({
                     disabled={isUploadingExperienceCopyBannerBg}
                   />
                   {isUploadingExperienceCopyBannerBg ? (
-                    <p className="admin-save-hint" role="status">Enviando textura da faixa experiencia...</p>
+                    <p className="admin-save-hint" role="status">Enviando textura da faixa experiência...</p>
                   ) : null}
                   {experienceCopyBannerUploadError ? (
                     <p className="admin-error">{experienceCopyBannerUploadError}</p>
@@ -4559,25 +4567,25 @@ function AdminPage({
               </article>
               <div className="admin-yellow-banners-block">
                 <p className="about-copy admin-yellow-banners-save-hint">
-                  Lembre de <strong>Salvar alteracoes</strong> no bloco de textos/links acima para gravar as duas faixas no site.
+                  Lembre de <strong>Salvar alterações</strong> no bloco de textos/links acima para gravar as duas faixas no site.
                 </p>
               </div>
               {siteContentSaveError ? <p className="admin-error">{siteContentSaveError}</p> : null}
               <div className="admin-actions">
                 <button type="button" className="pill pill-light" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
-                  {isSavingSiteContent ? 'Salvando...' : 'Salvar alteracoes'}
+                  {isSavingSiteContent ? 'Salvando...' : 'Salvar alterações'}
                 </button>
-                <button type="button" className="pill" onClick={onResetSiteContentDraft} disabled={isSavingSiteContent}>Restaurar textos padrao</button>
+                <button type="button" className="pill" onClick={onResetSiteContentDraft} disabled={isSavingSiteContent}>Restaurar textos padrão</button>
               </div>
             </div>
           </article> : null}
 
           {isGeneralSection ? (
           <article id="admin-footer-logo" className="admin-panel-card">
-            <h3>Logo do rodape</h3>
+            <h3>Logo do rodapé</h3>
             <p className="about-copy">
               Detalhe <strong>pequeno e redondo</strong> na mesma linha do copyright (centro). Use <strong>PNG com fundo transparente</strong>.
-              Envie em <strong>PNG com fundo transparente</strong> para nao aparecer o quadrado preto.
+              Envie em <strong>PNG com fundo transparente</strong> para não aparecer o quadrado preto.
             </p>
             <p className="about-copy image-spec-note">{IMAGE_SPEC.footerLogo}</p>
             <div className="admin-form">
@@ -4608,7 +4616,7 @@ function AdminPage({
               {footerLogoUploadError ? <p className="admin-error">{footerLogoUploadError}</p> : null}
               {String(draftSiteContent.footerLogoUrl || '').trim() ? (
                 <div className="admin-footer-logo-preview">
-                  <p className="about-copy admin-preview-label">Preview (redonda, acima da linha do rodape)</p>
+                  <p className="about-copy admin-preview-label">Preview (redonda, acima da linha do rodapé)</p>
                   <div className="footer-logo-mark">
                     <img
                       className={footerLogoImageClassName(draftSiteContent.footerLogoUrl)}
@@ -4620,11 +4628,11 @@ function AdminPage({
                   </div>
                 </div>
               ) : (
-                <p className="about-copy admin-muted">Sem logo: nenhum bloco extra no rodape do site.</p>
+                <p className="about-copy admin-muted">Sem logo: nenhum bloco extra no rodapé do site.</p>
               )}
               <div className="admin-actions">
                 <button type="button" className="pill pill-light" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
-                  {isSavingSiteContent ? 'Salvando...' : 'Salvar logo do rodape'}
+                  {isSavingSiteContent ? 'Salvando...' : 'Salvar logo do rodapé'}
                 </button>
               </div>
             </div>
@@ -4633,12 +4641,12 @@ function AdminPage({
 
           {isPhotosSection ? (
           <article id="admin-experience-hero" className="admin-panel-card">
-            <h3>Faixa acima de &quot;Conheca a experiencia Douha&quot;</h3>
+            <h3>Faixa acima de &quot;Conheça a experiência Douha&quot;</h3>
             <p className="about-copy">
               Salvar grava no site e no navegador.
             </p>
             <p className="about-copy">
-              Proporcao da arte: <strong>3:1</strong> ou <strong>5:1</strong> (paisagem). Vazio = fundo padrao.
+              Proporção da arte: <strong>3:1</strong> ou <strong>5:1</strong> (paisagem). Vazio = fundo padrão.
             </p>
             <div className="admin-form">
               <label htmlFor="admin-experience-hero-url">URL da imagem</label>
@@ -4680,11 +4688,11 @@ function AdminPage({
                       onError={() => setExperienceHeroPreviewFailed(true)}
                     />
                   ) : (
-                    <p className="admin-error">Nao foi possivel carregar esta URL. Confira o link, tente outro endereco ou use o upload.</p>
+                    <p className="admin-error">Não foi possível carregar esta URL. Confira o link, tente outro endereço ou use o upload.</p>
                   )}
                 </div>
               ) : (
-                <p className="about-copy admin-muted">Sem imagem: a Home mostra so o fundo padrao nessa faixa.</p>
+                <p className="about-copy admin-muted">Sem imagem: a Home mostra só o fundo padrão nessa faixa.</p>
               )}
               <div className="admin-actions">
                 <button type="button" className="pill pill-light" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
@@ -4696,10 +4704,10 @@ function AdminPage({
           ) : null}
 
           {isPhotosSection ? <article id="admin-gallery" className="admin-panel-card">
-            <h3>Galeria principal (carrossel do topo + pagina Fotos)</h3>
+            <h3>Galeria principal (carrossel do topo + página Fotos)</h3>
             <p className="about-copy">
-              As fotos daqui alimentam o carrossel inicial do site (topo) e a pagina de Fotos. Esta secao NAO altera a faixa de fotos do bloco pos
-              &quot;Conheca a Experiencia Douha&quot;.
+              As fotos daqui alimentam o carrossel inicial do site (topo) e a página de Fotos. Esta seção NAO altera a faixa de fotos do bloco pos
+              &quot;Conheça a Experiência Douha&quot;.
             </p>
             <p className="about-copy image-spec-note">{IMAGE_SPEC.gallery}</p>
             <label className="admin-checkbox-row">
@@ -4774,15 +4782,15 @@ function AdminPage({
           {isPhotosSection ? <article id="admin-role-photos" className="admin-panel-card">
             <h3>Fotos do role (faixa da home)</h3>
             <p className="about-copy">
-              Envie imagens em proporcao 3:4 (retrato) ou 4:3 (paisagem); no site todas aparecem no mesmo quadro 3:4 com recorte central (object-fit).
-              A faixa rola em diagonal apos &quot;Conheca a Experiencia Douha&quot;; nao altera o carrossel do topo.
+              Envie imagens em proporção 3:4 (retrato) ou 4:3 (paisagem); no site todas aparecem no mesmo quadro 3:4 com recorte central (object-fit).
+              A faixa rola em diagonal apos &quot;Conheça a Experiência Douha&quot;; não altera o carrossel do topo.
             </p>
             <div className="admin-role-stage-bg-block">
               <h4 className="admin-subheading">Fundo da faixa (2º plano — atras dos cards)</h4>
               <p className="about-copy image-spec-note">{IMAGE_SPEC.rolePhotosStage}</p>
               <p className="about-copy">
-                Substitui o fundo bege/ilustracoes padrao. Os cards <strong>FOTO</strong> continuam por cima. Vazio = visual padrao.
-                Depois de enviar, use <strong>Salvar alteracoes</strong> em Geral ou o botao abaixo.
+                Substitui o fundo bege/ilustrações padrão. Os cards <strong>FOTO</strong> continuam por cima. Vazio = visual padrão.
+                Depois de enviar, use <strong>Salvar alterações</strong> em Geral ou o botao abaixo.
               </p>
               <div className="admin-form">
                 <label htmlFor="admin-role-stage-bg-url">URL do fundo</label>
@@ -4860,10 +4868,10 @@ function AdminPage({
           </article> : null}
 
           {isEditorialSection ? <article id="admin-editorial-mosaic" className="admin-panel-card">
-            <h3>Mosaico da pagina Editorial</h3>
+            <h3>Mosaico da página Editorial</h3>
             <p className="about-copy">
-              Arraste as materias publicadas para o layout fixo do site (1 principal + 2 secundarias).
-              As demais ficam no <strong>Acervo</strong> na pagina publica. Slot vazio = preenchimento automatico.
+              Arraste as matérias publicadas para o layout fixo do site (1 principal + 2 secundárias).
+              As demais ficam no <strong>Acervo</strong> na página pública. Slot vazio = preenchimento automático.
             </p>
             {editorialMosaicError ? <p className="admin-error">{editorialMosaicError}</p> : null}
             <AdminEditorialMosaicBoard
@@ -4873,7 +4881,7 @@ function AdminPage({
             />
             <div className="admin-actions">
               <button type="button" className="pill" onClick={onSwapEditorialMosaicSides}>
-                Trocar secundarias
+                Trocar secundárias
               </button>
               <button
                 type="button"
@@ -4887,17 +4895,17 @@ function AdminPage({
           </article> : null}
 
           {isEditorialSection ? <article id="admin-editorial" className="admin-panel-card">
-            <h3>Materias / Editorial</h3>
+            <h3>Matérias / Editorial</h3>
             <p className="about-copy">
-              Crie e atualize materias. A capa aparece no site <strong>apenas no mosaico</strong> (3 posicoes); no acervo fica sem imagem ate a pagina da materia.
+              Crie e atualize matérias. A capa aparece no site <strong>apenas no mosaico</strong> (3 posições); no acervo fica sem imagem até a página da matéria.
             </p>
             {editorialError ? <p className="admin-error">{editorialError}</p> : null}
             <form className="admin-form" onSubmit={onSaveEditorial}>
-              <label>Titulo</label>
+              <label>Título</label>
               <input
                 value={draftEditorial.title}
                 onChange={(event) => setDraftEditorial((prev) => ({ ...prev, title: event.target.value }))}
-                placeholder="Manchete da materia"
+                placeholder="Manchete da matéria"
               />
               <div className="admin-form-field">
                 <label htmlFor="admin-editorial-deck">
@@ -4917,7 +4925,7 @@ function AdminPage({
                       deck: clampEditorialDeck(event.target.value),
                     }))
                   }
-                  placeholder="Linha de apoio abaixo da chamada (ate 90 caracteres, aparece inteira no card)"
+                  placeholder="Linha de apoio abaixo da chamada (até 90 caracteres, aparece inteira no card)"
                 />
               </div>
               <AdminEditorialBylineFields
@@ -4927,15 +4935,15 @@ function AdminPage({
               <div className="admin-form-field">
                 <label htmlFor="admin-editorial-body">Texto completo</label>
                 <p className="about-copy image-spec-note">
-                  Enter = quebra de linha no mesmo paragrafo. Linha em branco = novo paragrafo (o site repete igual).
-                  Bloco so com ## titulo, ### subtitulo ou linhas com - item = lista.
+                  Enter = quebra de linha no mesmo parágrafo. Linha em branco = novo parágrafo (o site repete igual).
+                  Bloco só com ## titulo, ### subtitulo ou linhas com - item = lista.
                 </p>
                 <textarea
                   id="admin-editorial-body"
                   value={draftEditorial.body}
                   onChange={(event) => setDraftEditorial((prev) => ({ ...prev, body: event.target.value }))}
                   rows={14}
-                  placeholder="Corpo da materia"
+                  placeholder="Corpo da matéria"
                 />
               </div>
               <div className="admin-form-field">
@@ -4945,13 +4953,13 @@ function AdminPage({
                   onChange={(sources) => setDraftEditorial((prev) => ({ ...prev, sources }))}
                 />
               </div>
-              <label>Rotulo editorial</label>
+              <label>Rótulo editorial</label>
               <input
                 value={draftEditorial.source}
                 onChange={(event) => setDraftEditorial((prev) => ({ ...prev, source: event.target.value }))}
-                placeholder="Ex: BOLETIM DOUHA (aparece no cabecalho da materia)"
+                placeholder="Ex: BOLETIM DOUHA (aparece no cabeçalho da matéria)"
               />
-              <label>Edicao / issue</label>
+              <label>Edição / issue</label>
               <input
                 value={draftEditorial.issue}
                 onChange={(event) => setDraftEditorial((prev) => ({ ...prev, issue: event.target.value }))}
@@ -4964,7 +4972,7 @@ function AdminPage({
                 placeholder="Ex: CULTURA"
               />
               <div className="admin-form-field">
-                <label htmlFor="admin-editorial-cover-file">Capa da materia (mosaico)</label>
+                <label htmlFor="admin-editorial-cover-file">Capa da matéria (mosaico)</label>
                 <p className="about-copy image-spec-note">{IMAGE_SPEC.editorialCover}</p>
                 <input
                   id="admin-editorial-cover-file"
@@ -5016,9 +5024,9 @@ function AdminPage({
               </label>
               <div className="admin-actions">
                 <button type="submit" className="pill pill-light" disabled={isSavingEditorial}>
-                  {isSavingEditorial ? 'Salvando materia...' : (editingEditorialId ? 'Salvar alteracoes da materia' : 'Adicionar materia')}
+                  {isSavingEditorial ? 'Salvando matéria...' : (editingEditorialId ? 'Salvar alterações da matéria' : 'Adicionar matéria')}
                 </button>
-                <button type="button" className="pill" onClick={resetEditorialDraft}>Limpar formulario</button>
+                <button type="button" className="pill" onClick={resetEditorialDraft}>Limpar formulário</button>
               </div>
             </form>
             <div className="admin-list">
@@ -5026,7 +5034,7 @@ function AdminPage({
                 <article key={`admin-editorial-${post.id}`} className="admin-list-item">
                   <div>
                     <strong>{post.title}</strong>
-                    <p>{post.source} · {post.issue} · {post.date || 'SEM DATA'}</p>
+                    <p>{post.source} · {post.issue} · {post.daté || 'SEM DATA'}</p>
                   </div>
                   <div className="admin-actions">
                     <button type="button" className="pill" onClick={() => onEditEditorial(post)}>Editar</button>
@@ -5044,7 +5052,7 @@ function AdminPage({
           {isCalendarSection ? <article id="admin-calendar" className="admin-panel-card">
             <h3>Calendário do Admin</h3>
             <p className="about-copy">
-              Ate <strong>{MAX_EVENTS_PER_MONTH} eventos por mes</strong>, ordenados pela <strong>data do evento</strong> (nao pela ordem de cadastro).
+              Até <strong>{MAX_EVENTS_PER_MONTH} eventos por mês</strong>, ordenados pela <strong>data do evento</strong> (não pela ordem de cadastro).
               {CALENDAR_CARDS_PER_ROW} na 1ª linha; do 5º em diante na 2ª, preenchendo da esquerda para a direita.
             </p>
             <AgendaCalendarSection
@@ -5064,13 +5072,13 @@ function AdminPage({
               Novo evento manual
             </button>
             {showEventForm ? (
-              <button type="button" className="pill" onClick={() => setShowEventForm(false)}>Fechar formulario</button>
+              <button type="button" className="pill" onClick={() => setShowEventForm(false)}>Fechar formulário</button>
             ) : null}
           </div> : null}
 
           {isCalendarSection && showEventForm ? (
             <form id="admin-event-form" ref={formRef} className="admin-form" onSubmit={onSave}>
-              <h3>Formulario de evento</h3>
+              <h3>Formulário de evento</h3>
               {createSlotLabel ? (
                 <p className="admin-save-hint" role="status">{createSlotLabel}</p>
               ) : null}
@@ -5094,8 +5102,8 @@ function AdminPage({
                   ))}
                 </select>
               </div>
-              <small>Data final que sera salva: {formatAgendaDate(draftDay, draftMonthIndex, draftYear)}</small>
-              <label>Horario</label>
+              <small>Data final que será salva: {formatAgendaDate(draftDay, draftMonthIndex, draftYear)}</small>
+              <label>Horário</label>
               <select value={draft.time || 'A CONFIRMAR'} onChange={(event) => setDraft((prev) => ({ ...prev, time: event.target.value }))}>
                 {timeOptions.map((timeOption) => (
                   <option key={`time-option-${timeOption}`} value={timeOption}>{timeOption}</option>
@@ -5107,7 +5115,7 @@ function AdminPage({
               <input value={draft.ticketUrl} onChange={(event) => setDraft((prev) => ({ ...prev, ticketUrl: event.target.value }))} placeholder="https://..." />
               <label>Link das fotos (Drive)</label>
               <small className="about-copy image-spec-note">
-                No site publico, esse link so aparece 48 horas depois do fim do dia do evento (ate la continua o link de ingresso).
+                No site público, esse link só aparece 48 horas depois do fim do dia do evento (até lá continua o link de ingresso).
               </small>
               <input value={draft.photosUrl} onChange={(event) => setDraft((prev) => ({ ...prev, photosUrl: event.target.value }))} placeholder="https://drive.google.com/..." />
 
@@ -5136,9 +5144,9 @@ function AdminPage({
                     ? 'Aguardando upload do poster...'
                     : isSavingEvent
                       ? 'Salvando...'
-                      : (editingId ? 'Salvar alteracoes' : 'Adicionar evento')}
+                      : (editingId ? 'Salvar alterações' : 'Adicionar evento')}
                 </button>
-                <button type="button" className="pill" onClick={resetDraft}>Limpar formulario</button>
+                <button type="button" className="pill" onClick={resetDraft}>Limpar formulário</button>
               </div>
             </form>
           ) : null}
@@ -5188,8 +5196,8 @@ export default function App() {
       if (!isSupabaseConfigured || !supabase) {
         setAgendaSyncError(
           supabaseConfigError
-            ? `Configuracao Supabase invalida: ${supabaseConfigError}`
-            : 'Supabase nao configurado. Agenda vazia.',
+            ? `Configuração Supabase inválida: ${supabaseConfigError}`
+            : 'Supabase não configurado. Agenda vazia.',
         );
         setAgendaEvents([]);
         return;
@@ -5223,7 +5231,7 @@ export default function App() {
           rowsData = fallback.data || [];
           if (active) {
             setAgendaSyncError(
-              'Pre-reservas: rode supabase/migrations/007_douha_reservations.sql no Supabase.',
+              'Pré-reservas: rode supabase/migrations/007_douha_reservations.sql no Supabase.',
             );
           }
         } else if (firstAttempt.error) {
@@ -5236,7 +5244,7 @@ export default function App() {
       } catch (error) {
         if (!active) return;
         setAgendaEvents([]);
-        setAgendaSyncError(`Nao foi possivel carregar a agenda. Detalhe: ${error.message || 'erro desconhecido'}`);
+        setAgendaSyncError(`Não foi possível carregar a agenda. Detalhe: ${error.message || 'erro desconhecido'}`);
       }
     };
 
@@ -5276,7 +5284,7 @@ export default function App() {
         if (!active) return;
         const msg = isMissingEditorialTableError(error.message)
           ? 'Tabela douha_editorial_posts ausente no Supabase (rode a migration 002).'
-          : `Nao foi possivel carregar materias do Supabase: ${error.message || error}`;
+          : `Não foi possível carregar matérias do Supabase: ${error.message || error}`;
         console.warn(msg);
       }
     };
@@ -5310,7 +5318,7 @@ export default function App() {
         if (!active) return;
         const msg = isMissingRolePhotosTableError(error.message)
           ? 'Tabela douha_role_photos ausente no Supabase (rode a migration 002).'
-          : `Nao foi possivel carregar fotos do role no Supabase: ${error.message || error}`;
+          : `Não foi possível carregar fotos do role no Supabase: ${error.message || error}`;
         console.warn(msg);
       }
     };
@@ -5342,7 +5350,7 @@ export default function App() {
         if (!active) return;
         const msg = isMissingGalleryTableError(error.message)
           ? 'Tabela douha_site_photos ausente no Supabase (rode o SQL de setup).'
-          : `Nao foi possivel carregar galeria do Supabase: ${error.message || error}`;
+          : `Não foi possível carregar galeria do Supabase: ${error.message || error}`;
         console.warn(msg);
       }
     };
@@ -5375,7 +5383,7 @@ export default function App() {
         if (!active) return;
         const msg = isMissingSiteContentTableError(error.message)
           ? 'Tabela douha_site_content ausente no Supabase (rode supabase/migrations/004_douha_site_content.sql).'
-          : `Nao foi possivel carregar conteudo do site: ${error.message || error}`;
+          : `Não foi possível carregar conteúdo do site: ${error.message || error}`;
         console.warn(msg);
       }
     };
@@ -5447,7 +5455,7 @@ export default function App() {
       setAgendaEvents([]);
       setAgendaSyncError('');
     } catch (error) {
-      setAgendaSyncError(`Nao foi possivel limpar a agenda: ${formatAdminAuthError(error)}`);
+      setAgendaSyncError(`Não foi possível limpar a agenda: ${formatAdminAuthError(error)}`);
     }
   };
 

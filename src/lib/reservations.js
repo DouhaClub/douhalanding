@@ -168,7 +168,7 @@ export async function createTableReservation({
   notes,
 }) {
   if (!isSupabaseConfigured || !supabase) {
-    throw new Error('Supabase nao configurado.');
+    throw new Error('Supabase não configurado.');
   }
   const id = `res-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   const { data, error } = await supabase
@@ -192,7 +192,7 @@ export async function createTableReservation({
 
 export async function updateReservationStatus(reservationId, status) {
   if (!isSupabaseConfigured || !supabase) {
-    throw new Error('Supabase nao configurado.');
+    throw new Error('Supabase não configurado.');
   }
   const { error } = await supabase
     .from(SUPABASE_RESERVATIONS_TABLE)
@@ -203,7 +203,7 @@ export async function updateReservationStatus(reservationId, status) {
 
 export async function saveEventReservationConfig(eventId, { enabled, layout }) {
   if (!isSupabaseConfigured || !supabase) {
-    throw new Error('Supabase nao configurado.');
+    throw new Error('Supabase não configurado.');
   }
   const payload = {
     reservations_enabled: Boolean(enabled),

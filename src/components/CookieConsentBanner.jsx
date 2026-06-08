@@ -39,9 +39,9 @@ export function CookieConsentBanner() {
               Cookies e armazenamento local
             </h2>
             <p id="cookie-consent-desc" className="cookie-consent-copy">
-              Usamos <strong>armazenamento local</strong> para o site funcionar (preferencias, agenda,
-              consentimento). Se voce aceitar, tambem ativamos <strong>cache</strong> (Service Worker) e{' '}
-              <strong>estatisticas de visita</strong> (analytics), quando configurados. Saiba mais na{' '}
+              Usamos <strong>armazenamento local</strong> para o site funcionar (preferências, agenda,
+              consentimento). Se você aceitar, também ativamos <strong>cache</strong> (Service Worker) e{' '}
+              <strong>estatísticas de visita</strong> (analytics), quando configurados. Saiba mais na{' '}
               <Link to="/privacidade">Política de privacidade</Link> ou fale conosco em{' '}
               <Link to="/contato">Contato</Link>.
             </p>

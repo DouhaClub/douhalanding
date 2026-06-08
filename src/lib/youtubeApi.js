@@ -1,11 +1,11 @@
 /**
- * YouTube Data API v3 — ultimos videos do canal pela playlist oficial de uploads
+ * YouTube Data API v3 — ultimos vídeos do canal pela playlist oficial de uploads
  * (playlistItems + channels), mais estavel e barato em quota que search.list.
  */
 
 const YT_API = 'https://www.googleapis.com/youtube/v3';
 
-/** Aspas no .env ou espacos; chave nao pode ter prefixo errado. */
+/** Aspas no .env ou espaços; chave não pode ter prefixo errado. */
 export function normalizeYoutubeApiKey(value) {
   let s = String(value ?? '').trim();
   if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
@@ -61,7 +61,7 @@ function parseYouTubeApiError(json) {
     return 'Cota da API YouTube esgotada. No Google Cloud: APIs e servicos > Painel de cotas, ou aguarde o reset diario (meia-noite Pacifico).';
   }
   if (err?.reason === 'keyInvalid') {
-    return 'Chave da API YouTube invalida (VITE_YOUTUBE_API_KEY).';
+    return 'Chave da API YouTube inválida (VITE_YOUTUBE_API_KEY).';
   }
   if (err?.reason === 'accessNotConfigured' || err?.reason === 'forbidden') {
     return 'Ative "YouTube Data API v3" no Google Cloud (APIs e servicos → Biblioteca) e confira restricoes da chave (HTTP referrer: localhost).';
@@ -82,7 +82,7 @@ function thumbFromSnippet(snippet) {
   );
 }
 
-/** Se a API nao mandar thumb no snippet, o i.ytimg padrao ainda funciona no front. */
+/** Se a API não mandar thumb no snippet, o i.ytimg padrão ainda funciona no front. */
 export function defaultYoutubeVideoThumbUrl(videoId) {
   const id = String(videoId || '').trim();
   return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : '';
@@ -102,7 +102,7 @@ export function parseIso8601DurationToSeconds(iso) {
   return sec;
 }
 
-/** Playlist de uploads mistura videos e Shorts; Shorts costumam ter ate 60s (configuravel). */
+/** Playlist de uploads mistura videos e Shorts; Shorts costumam ter até 60s (configuravel). */
 const PLAYLIST_PAGE_SIZE = 50;
 /** Paginas playlistItems ao procurar videos longos (limite de requests). */
 const MAX_UPLOADS_PLAYLIST_PAGES = 2;
@@ -180,7 +180,7 @@ function pickChannelIdFromSearchItems(items, queryRaw) {
   if (import.meta.env.DEV && first) {
     const title = itemsArr[0]?.snippet?.title;
     console.warn(
-      `[Douha] YouTube: search.list usou o 1º resultado (${title || '?'}). Se nao for o canal certo, use VITE_YOUTUBE_CHANNEL_ID=UC... (YouTube → Sobre → ID do canal).`,
+      `[Douha] YouTube: search.list usou o 1º resultado (${title || '?'}). Se não for o canal certo, use VITE_YOUTUBE_CHANNEL_ID=UC... (YouTube → Sobre → ID do canal).`,
     );
   }
   return first;
@@ -204,11 +204,11 @@ async function logResolvedChannelTitleDev(apiKey, uc, rawQuery) {
 }
 
 /**
- * Resolve ID UC... a partir de ID ja UC, forHandle, ou busca por nome/handle (fallback).
+ * Resolve ID UC... a partir de ID já UC, forHandle, ou busca por nome/handle (fallback).
  */
 async function resolveChannelIdToUc(apiKey, channelIdOrHandle) {
   const raw = normalizeYoutubeChannelEnv(channelIdOrHandle);
-  if (!raw) throw new Error('Canal YouTube nao configurado (VITE_YOUTUBE_CHANNEL_ID).');
+  if (!raw) throw new Error('Canal YouTube não configurado (VITE_YOUTUBE_CHANNEL_ID).');
   const key = apiKey.trim();
   const cachedUc = youtubeUcCache.get(raw);
   if (cachedUc && (Date.now() - cachedUc.ts) < YOUTUBE_CACHE_TTL_MS) {
@@ -240,7 +240,7 @@ async function resolveChannelIdToUc(apiKey, channelIdOrHandle) {
   }
 
   if (import.meta.env.DEV) {
-    console.info('[Douha] YouTube: forHandle nao retornou canal; tentando search...');
+    console.info('[Douha] YouTube: forHandle não retornou canal; tentando search...');
   }
 
   const pSearch = new URLSearchParams({
@@ -259,7 +259,7 @@ async function resolveChannelIdToUc(apiKey, channelIdOrHandle) {
   const channelId = pickChannelIdFromSearchItems(items, raw.replace(/^@/, ''));
   if (!channelId) {
     throw new Error(
-      'Canal nao encontrado para este handle. No YouTube, abra o canal > Sobre e copie o "ID do canal" (comeca com UC). O @ na URL precisa existir; muitos canais so tem /channel/UC...',
+      'Canal não encontrado para este handle. No YouTube, abra o canal > Sobre e copie o "ID do canal" (começa com UC). O @ na URL precisa existir; muitos canais só têm /channel/UC...',
     );
   }
   youtubeUcCache.set(raw, { ts: Date.now(), uc: channelId });
@@ -317,7 +317,7 @@ function mapPlaylistItemsToVideos(items) {
 }
 
 /**
- * Uma pagina da playlist de uploads (playlistItems.list).
+ * Uma página da playlist de uploads (playlistItems.list).
  * @returns {{ videos: Array, nextPageToken: string }}
  */
 async function fetchUploadsPlaylistPage(apiKey, uploadsPlaylistId, maxResults, pageToken) {
@@ -349,8 +349,8 @@ export async function fetchVideosFromUploadsPlaylist(apiKey, uploadsPlaylistId, 
 
 /**
  * @param {{ apiKey: string, channelId: string, maxResults?: number }} args
- * Lista vem da playlist oficial de uploads (playlistItems) — nao depende de videos.list para montar a lista.
- * Assim, cota esgotada em videos.list nao deixa so 1 video.
+ * Lista vem da playlist oficial de uploads (playlistItems) — não depende de videos.list para montar a lista.
+ * Assim, cota esgotada em videos.list não deixa só 1 video.
  * Shorts: opcionalmente filtrados se videos.list responder (ver comentario abaixo).
  */
 export async function fetchLatestYouTubeVideos({ apiKey, channelId, maxResults = 12 }) {
@@ -385,7 +385,7 @@ export async function fetchLatestYouTubeVideos({ apiKey, channelId, maxResults =
   let videos = fromPlaylist.slice(0, PLAYLIST_PAGE_SIZE * MAX_UPLOADS_PLAYLIST_PAGES);
   if (videos.length === 0) return [];
 
-  /* Modo estrito: sem duracao valida, nao entra (evita Shorts). */
+  /* Modo estrito: sem duracao valida, não entra (evita Shorts). */
   const durationMap = await fetchVideoDurationMap(
     apiKey,
     videos.map((v) => String(v.videoId || '').trim()),
@@ -453,7 +453,7 @@ function parseYoutubeRssFeedXml(xml, maxResults) {
   return out;
 }
 
-/** Titulo do canal no Atom feed (antes do primeiro &lt;entry&gt;). */
+/** Título do canal no Atom feed (antes do primeiro &lt;entry&gt;). */
 function parseChannelTitleFromYoutubeFeedXml(xml) {
   const s = String(xml || '');
   const head = s.split(/<entry[\s>]/i)[0] || s;
@@ -485,8 +485,8 @@ export async function fetchYoutubeChannelTitleFromRssProxy(channelIdUc) {
 }
 
 /**
- * Foto do canal quando a Data API nao responde (cota etc.): servico publico por ID UC.
- * So use com canal ja conhecido (mesmo UC do .env).
+ * Foto do canal quando a Data API não responde (cota etc.): serviço público por ID UC.
+ * Só use com canal já conhecido (mesmo UC do .env).
  */
 export function youtubeChannelAvatarFallbackUrl(channelIdUc) {
   const id = String(channelIdUc || '').trim();
@@ -494,7 +494,7 @@ export function youtubeChannelAvatarFallbackUrl(channelIdUc) {
   return `https://unavatar.io/youtube/${id}`;
 }
 
-/** URL publica do canal: UC... -> /channel/UC..., handle -> /@handle */
+/** URL pública do canal: UC... -> /channel/UC..., handle -> /@handle */
 export function resolveYoutubeChannelWebUrl(channelIdOrHandle) {
   const raw = normalizeYoutubeChannelEnv(channelIdOrHandle);
   if (!raw) return '';

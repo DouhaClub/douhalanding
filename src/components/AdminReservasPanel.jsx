@@ -77,7 +77,7 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
       return;
     }
     try {
-      if (!isSupabaseConfigured) throw new Error('Supabase nao configurado.');
+      if (!isSupabaseConfigured) throw new Error('Supabase não configurado.');
       await saveEventReservationConfig(selectedEvent.id, {
         enabled: true,
         layout,
@@ -100,13 +100,13 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
   };
 
   const onDisableReservations = async () => {
-    if (!selectedEvent || !window.confirm('Desativar pre-reservas neste evento?')) return;
+    if (!selectedEvent || !window.confirm('Desativar pré-reservas neste evento?')) return;
     setIsSaving(true);
     setError('');
     try {
       await saveEventReservationConfig(selectedEvent.id, { enabled: false, layout: selectedEvent.reservationLayout });
       patchLocalEvent(selectedEvent.id, { reservationsEnabled: false });
-      setHint('Pre-reservas desativadas.');
+      setHint('Pré-reservas desativadas.');
     } catch (err) {
       setError(String(err?.message || err));
     } finally {
@@ -178,10 +178,10 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
 
       {selectedEvent ? (
         <article className="admin-panel-card">
-          <h3>Pre-reservas recebidas</h3>
+          <h3>Pré-reservas recebidas</h3>
           {isLoading ? <p className="admin-save-hint">Carregando...</p> : null}
           {!reservations.length && !isLoading ? (
-            <p className="about-copy admin-muted">Nenhuma pre-reserva ainda.</p>
+            <p className="about-copy admin-muted">Nenhuma pré-reserva ainda.</p>
           ) : (
             <ul className="admin-res-list">
               {reservations.map((row) => (

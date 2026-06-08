@@ -25,7 +25,7 @@ function applyFaviconLink(rel, href) {
   document.head.appendChild(link);
 }
 
-/** Favicon = logo redonda (arquivo local ou URL do rodape no admin). */
+/** Favicon = logo redonda (arquivo local ou URL do rodapé no admin). */
 export function SiteFavicon({ footerLogoUrl }) {
   useEffect(() => {
     const fromAdmin = String(footerLogoUrl || '').trim();

@@ -759,12 +759,6 @@ body.site-mobile-nav-open {
   display: block;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .role-photo-card {
-    animation-duration: 160s;
-  }
-}
-
 /*
  * Mobile: 2 trilhos, 1 foto por trilho (JS) — mesma queda diagonal, sem empilhar.
  */

@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 
-/** Admin = usuario Supabase Auth com app_metadata.role === 'admin' (definir no painel). */
+/** Admin = usuário Supabase Auth com app_metadata.role === 'admin' (definir no painel). */
 export function isDouhaAdminUser(user) {
   if (!user) return false;
   return user.app_metadata?.role === 'admin';
@@ -19,7 +19,7 @@ export async function getAdminSession() {
 
 export async function signInDouhaAdmin(email, password) {
   if (!supabase) {
-    throw new Error('Supabase nao configurado.');
+    throw new Error('Supabase não configurado.');
   }
   const { data, error } = await supabase.auth.signInWithPassword({
     email: String(email || '').trim(),
@@ -28,7 +28,7 @@ export async function signInDouhaAdmin(email, password) {
   if (error) throw error;
   if (!isDouhaAdminUser(data.user)) {
     await supabase.auth.signOut();
-    throw new Error('Conta sem permissao de administrador. Verifique app_metadata.role no Supabase.');
+    throw new Error('Conta sem permissão de administrador. Verifique app_metadata.role no Supabase.');
   }
   return data.session;
 }
@@ -53,13 +53,13 @@ export function formatAdminAuthError(error) {
   const msg = String(error?.message || error || '');
   const lower = msg.toLowerCase();
   if (lower.includes('invalid login credentials')) {
-    return 'E-mail ou senha invalidos.';
+    return 'E-mail ou senha inválidos.';
   }
   if (lower.includes('email not confirmed')) {
-    return 'Confirme o e-mail do usuario no painel Supabase (Authentication).';
+    return 'Confirme o e-mail do usuário no painel Supabase (Authentication).';
   }
   if (lower.includes('row-level security') || lower.includes('policy')) {
-    return `Permissao negada (RLS). Rode supabase/migrations/006_douha_rls_admin_auth.sql e confira app_metadata.role = admin. Detalhe: ${msg}`;
+    return `Permissão negada (RLS). Rode supabase/migrations/006_douha_rls_admin_auth.sql e confira app_metadata.role = admin. Detalhe: ${msg}`;
   }
-  return msg || 'Erro de autenticacao.';
+  return msg || 'Erro de autenticação.';
 }

@@ -11,10 +11,10 @@ const configIssues = [];
 if (!rawSupabaseUrl) configIssues.push('VITE_SUPABASE_URL ausente');
 if (!rawSupabaseAnonKey) configIssues.push('VITE_SUPABASE_ANON_KEY ausente');
 if (rawSupabaseUrl && !isLikelyHttpUrl(rawSupabaseUrl)) {
-  configIssues.push('VITE_SUPABASE_URL invalida (use https://<project-ref>.supabase.co)');
+  configIssues.push('VITE_SUPABASE_URL inválida (use https://<project-ref>.supabase.co)');
 }
 if (rawSupabaseAnonKey && !rawSupabaseAnonKey.startsWith('eyJ')) {
-  configIssues.push('VITE_SUPABASE_ANON_KEY invalida (deve ser token JWT anon)');
+  configIssues.push('VITE_SUPABASE_ANON_KEY inválida (deve ser token JWT anon)');
 }
 
 export const isSupabaseConfigured = configIssues.length === 0;
@@ -30,7 +30,7 @@ export const supabase = isSupabaseConfigured
     })
   : null;
 
-/** ID do projeto (ex.: abcdefgh) extraido da URL, para o admin conferir se bate com o painel do Supabase. */
+/** ID do projeto (ex.: abcdefgh) extraido da URL, para o admin conferir se baté com o painel do Supabase. */
 export function getSupabaseProjectRef() {
   if (!rawSupabaseUrl || !isLikelyHttpUrl(rawSupabaseUrl)) return '';
   try {
@@ -58,16 +58,16 @@ export function formatSupabaseStorageUploadError(error) {
     || code === 404
   ) {
     return (
-      'Bucket de Storage nao encontrado (ou URL do projeto errada). '
+      'Bucket de Storage não encontrado (ou URL do projeto errada). '
       + 'No Supabase deste projeto, abra Storage e confira buckets douha-posters e douha-role-photos. '
       + 'Se faltarem, rode no SQL Editor: supabase-events.sql e supabase/migrations/002_douha_editorial_and_role_photos.sql'
     );
   }
   if (lower.includes('row-level security') || lower.includes('policy')) {
-    return `Permissao negada no Storage (RLS/politicas): ${raw}`;
+    return `Permissão negada no Storage (RLS/políticas): ${raw}`;
   }
   if (lower.includes('jwt') || lower.includes('invalid api key') || lower.includes('apikey')) {
-    return `Chave ou URL do Supabase invalida no build: ${raw}. Use Project URL + anon public key (Settings > API), com prefixo VITE_ no Amplify, e faca novo deploy.`;
+    return `Chave ou URL do Supabase inválida no build: ${raw}. Use Project URL + anon public key (Settings > API), com prefixo VITE_ no Amplify, e faça novo deploy.`;
   }
   return raw || 'Erro desconhecido no upload ao Storage.';
 }

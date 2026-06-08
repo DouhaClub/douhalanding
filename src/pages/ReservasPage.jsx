@@ -36,7 +36,7 @@ function isEventStillBookable(event) {
 
 export function ReservasPage({ agendaEvents }) {
   const { eventId: routeEventId } = useParams();
-  const navigate = useNavigate();
+  const navigaté = useNavigate();
   const [selectedEventId, setSelectedEventId] = useState(routeEventId || '');
   const [reservations, setReservations] = useState([]);
   const [loadError, setLoadError] = useState('');
@@ -52,8 +52,8 @@ export function ReservasPage({ agendaEvents }) {
   const [successMessage, setSuccessMessage] = useState('');
 
   useDocumentMeta({
-    title: 'Pre-reservas | Douha Club',
-    description: 'Escolha mesa ou camarote e faca sua pre-reserva para o evento.',
+    title: 'Pré-reservas | Douha Club',
+    description: 'Escolha mesa ou camarote e faça sua pré-reserva para o evento.',
   });
 
   const bookableEvents = useMemo(
@@ -89,8 +89,8 @@ export function ReservasPage({ agendaEvents }) {
       const msg = String(error?.message || error);
       setLoadError(
         isMissingReservationColumnsError(msg)
-          ? 'Pre-reservas ainda nao configuradas no Supabase. Rode supabase/migrations/007_douha_reservations.sql'
-          : `Nao foi possivel carregar reservas: ${msg}`,
+          ? 'Pré-reservas ainda não configuradas no Supabase. Rode supabase/migrations/007_douha_reservations.sql'
+          : `Não foi possível carregar reservas: ${msg}`,
       );
       setReservations([]);
     } finally {
@@ -140,7 +140,7 @@ export function ReservasPage({ agendaEvents }) {
         notes,
       });
       setSuccessMessage(
-        `Pre-reserva enviada para ${selectedTable.label}. Nossa equipe confirma pelo WhatsApp em breve — sem pagamento neste site.`,
+        `Pré-reserva enviada para ${selectedTable.label}. Nossa equipe confirma pelo WhatsApp em breve — sem pagamento neste site.`,
       );
       setGuestName('');
       setGuestPhone('');
@@ -151,11 +151,11 @@ export function ReservasPage({ agendaEvents }) {
       await refreshReservations(activeEvent.id);
     } catch (error) {
       const msg = String(error?.message || error);
-      if (msg.includes('duplicate key') || msg.includes('unique')) {
+      if (msg.includes('duplicaté key') || msg.includes('unique')) {
         setSubmitError('Esta mesa acabou de ser reservada. Escolha outra.');
         await refreshReservations(activeEvent.id);
       } else {
-        setSubmitError(msg || 'Nao foi possivel enviar a pre-reserva.');
+        setSubmitError(msg || 'Não foi possível enviar a pré-reserva.');
       }
     } finally {
       setIsSubmitting(false);
@@ -167,10 +167,10 @@ export function ReservasPage({ agendaEvents }) {
       <section className="section">
         <div className="container reservas-page__inner">
           <p className="eyebrow">Reservas</p>
-          <h1>Pre-reserva de mesa</h1>
+          <h1>Pré-reserva de mesa</h1>
           <p className="reservas-page__lead">
-            Escolha o evento, clique em uma mesa ou camarote disponivel e envie seus dados.
-            Sem pagamento aqui — confirmamos com voce depois.
+            Escolha o evento, clique em uma mesa ou camarote disponível e envie seus dados.
+            Sem pagamento aqui — confirmamos com você depois.
           </p>
 
           {bookableEvents.length === 0 ? (
@@ -223,9 +223,9 @@ export function ReservasPage({ agendaEvents }) {
 
                   {selectedTable ? (
                     <form className="reservas-form admin-form" onSubmit={onSubmitReservation}>
-                      <h3>Pre-reservar: {selectedTable.label}</h3>
+                      <h3>Pré-reservar: {selectedTable.label}</h3>
                       <p className="about-copy">
-                        Capacidade ate {selectedTable.capacity} pessoas · zona {selectedTable.zone}
+                        Capacidade até {selectedTable.capacity} pessoas · zona {selectedTable.zone}
                       </p>
                       <label htmlFor="res-guest-name">Nome completo</label>
                       <input
@@ -262,7 +262,7 @@ export function ReservasPage({ agendaEvents }) {
                         onChange={(e) => setPartySize(Number(e.target.value))}
                         required
                       />
-                      <label htmlFor="res-notes">Observacoes (opcional)</label>
+                      <label htmlFor="res-notes">Observações (opcional)</label>
                       <textarea
                         id="res-notes"
                         rows={3}
@@ -272,7 +272,7 @@ export function ReservasPage({ agendaEvents }) {
                       {submitError ? <p className="admin-error">{submitError}</p> : null}
                       <div className="admin-actions">
                         <button type="submit" className="pill pill-light" disabled={isSubmitting}>
-                          {isSubmitting ? 'Enviando...' : 'Enviar pre-reserva'}
+                          {isSubmitting ? 'Enviando...' : 'Enviar pré-reserva'}
                         </button>
                         <button
                           type="button"

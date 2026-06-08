@@ -1,6 +1,6 @@
 /**
  * Service Worker: cache de assets do mesmo site apos consentimento.
- * So em producao (HTTPS); em dev o Vite nao deve registrar SW.
+ * So em producao (HTTPS); em dev o Vite não deve registrar SW.
  */
 
 const SW_URL = '/sw.js';
@@ -16,7 +16,7 @@ export async function registerServiceWorkerIfAccepted() {
     });
     return reg;
   } catch (err) {
-    console.warn('[Douha] Service Worker nao registrado:', err?.message || err);
+    console.warn('[Douha] Service Worker não registrado:', err?.message || err);
     return null;
   }
 }

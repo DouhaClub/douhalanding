@@ -1,4 +1,4 @@
-/** SEO, Open Graph e URLs canonicas do site publico. */
+/** SEO, Open Graph e URLs canônicas do site público. */
 
 export const SITE_NAME = 'Douha Club';
 
@@ -28,27 +28,27 @@ const ROUTE_META = {
   },
   '/calendario': {
     title: `Calendário | ${SITE_NAME}`,
-    description: 'Agenda de eventos do Douha Club: datas, horarios e lineups.',
+    description: 'Agenda de eventos do Douha Club: datas, horários e lineups.',
   },
   '/agenda': {
     title: `Agenda | ${SITE_NAME}`,
-    description: 'Agenda de eventos do Douha Club: datas, horarios e lineups.',
+    description: 'Agenda de eventos do Douha Club: datas, horários e lineups.',
   },
   '/sets': {
     title: `Sets | ${SITE_NAME}`,
-    description: 'Sets e videos do canal Douha Club no YouTube.',
+    description: 'Sets e vídeos do canal Douha Club no YouTube.',
   },
   '/editorial': {
     title: `Editorial | ${SITE_NAME}`,
-    description: 'Reportagens, entrevistas e materias do editorial Douha Club.',
+    description: 'Reportagens, entrevistas e matérias do editorial Douha Club.',
   },
   '/contato': {
     title: `Contato | ${SITE_NAME}`,
-    description: 'Fale com o Douha Club: comercial, parcerias e duvidas frequentes.',
+    description: 'Fale com o Douha Club: comercial, parcerias e dúvidas frequentes.',
   },
   '/reservas': {
-    title: `Pre-reservas | ${SITE_NAME}`,
-    description: 'Pre-reserve mesa ou camarote no mapa do evento — sem pagamento no site.',
+    title: `Pré-reservas | ${SITE_NAME}`,
+    description: 'Pré-reserve mesa ou camarote no mapa do evento — sem pagamento no site.',
   },
   '/privacidade': {
     title: `Política de privacidade | ${SITE_NAME}`,
@@ -74,15 +74,15 @@ export function absoluteUrl(path) {
 export function resolveRouteMeta(pathname) {
   if (pathname.startsWith('/admin')) {
     return {
-      title: `Administracao | ${SITE_NAME}`,
-      description: 'Area restrita do Douha Club.',
+      title: `Administração | ${SITE_NAME}`,
+      description: 'Área restrita do Douha Club.',
       canonicalPath: pathname,
       noIndex: true,
     };
   }
   if (pathname.startsWith('/editorial/') && pathname !== '/editorial') {
     return {
-      title: `Materia | ${SITE_NAME}`,
+      title: `Matéria | ${SITE_NAME}`,
       description: 'Leia no editorial Douha Club.',
       canonicalPath: pathname,
     };
@@ -98,7 +98,7 @@ export function buildEditorialArticleMeta(post) {
   const title = String(post?.title || '').trim();
   const deck = String(post?.deck || '').trim();
   return {
-    title: title ? `${title} | ${SITE_NAME}` : `Materia | ${SITE_NAME}`,
+    title: title ? `${title} | ${SITE_NAME}` : `Matéria | ${SITE_NAME}`,
     description: deck || DEFAULT_DESCRIPTION,
     canonicalPath: post?.id ? `/editorial/${post.id}` : '/editorial',
     ogImage: post?.coverUrl ? absoluteUrl(post.coverUrl.startsWith('/') ? post.coverUrl : `/${post.coverUrl}`) : undefined,
