@@ -699,20 +699,23 @@ function mapEditorialItemToDbPost(item) {
 }
 
 /**
- * Garante link absoluto do WhatsApp (wa.me). Valores como "whatsapp", "/wpp" ou "5511..."
- * viram path no próprio site e geram 404 — aqui sempre https://wa.me/...
+ * Garante link absoluto do WhatsApp. Aceita wa.me, api.whatsapp.com e também
+ * links de comunidade/grupo/canal (chat.whatsapp.com, whatsapp.com/...).
+ * Valores como "whatsapp", "/wpp" ou "5511..." viram wa.me com o número.
  */
+const WHATSAPP_LINK_PATTERN = /(?:^|\/\/)(?:www\.)?(wa\.me|api\.whatsapp\.com|chat\.whatsapp\.com|whatsapp\.com)\//i;
+
 function normalizeWhatsAppUrl(value) {
   const raw = String(value || '').trim();
   if (!raw) return '';
 
   if (/^https?:\/\//i.test(raw)) {
     const https = raw.replace(/^http:\/\//i, 'https://');
-    if (/wa\.me|api\.whatsapp\.com/i.test(https)) return https;
+    if (WHATSAPP_LINK_PATTERN.test(https)) return https;
   }
 
   const withoutScheme = raw.replace(/^https?:\/\//i, '');
-  if (/^(wa\.me|api\.whatsapp\.com)\//i.test(withoutScheme)) {
+  if (/^(www\.)?(wa\.me|api\.whatsapp\.com|chat\.whatsapp\.com|whatsapp\.com)\//i.test(withoutScheme)) {
     return `https://${withoutScheme}`;
   }
 
