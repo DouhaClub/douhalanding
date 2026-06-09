@@ -3473,6 +3473,13 @@ button:disabled,
   stroke-linejoin: round;
 }
 
+.contact-channel-icon img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  object-fit: contain;
+}
+
 .contact-channel-copy {
   flex: 1;
   min-width: 0;
