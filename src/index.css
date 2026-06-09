@@ -253,6 +253,11 @@ body.site-mobile-nav-open {
     border-bottom: none;
   }
 
+  .nav--header a.nav-cta-ingresso {
+    margin-top: 10px;
+    text-align: center;
+  }
+
   .header--overlay .nav--header a {
     text-shadow: none;
   }
@@ -353,6 +358,30 @@ body.site-mobile-nav-open {
   opacity: 1;
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+
+/* CTA de ingresso no header (Ingresso Nacional) */
+.nav a.nav-cta-ingresso {
+  padding: 8px 16px;
+  border: 1.6px solid #2d2916;
+  border-radius: 999px;
+  background: #2d2916;
+  color: #fcefda;
+  font-weight: 800;
+  opacity: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav a.nav-cta-ingresso:hover,
+.nav a.nav-cta-ingresso:focus-visible {
+  background: #c53a34;
+  border-color: #c53a34;
+  color: #fcefda;
+}
+
+.header--overlay .nav--header a.nav-cta-ingresso {
+  text-shadow: none;
 }
 
 .hero {
@@ -3149,6 +3178,13 @@ button:disabled,
   shape-rendering: geometricPrecision;
 }
 
+.footer-social-icon img {
+  width: 22px;
+  height: 22px;
+  display: block;
+  object-fit: contain;
+}
+
 .footer-social-name {
   min-width: 0;
   font-weight: 800;
@@ -4352,6 +4388,24 @@ button:disabled,
 /* —— Pre-reservas / mapa —— */
 .reservas-page__inner {
   max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.reservas-event-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
+.reservas-event-layout .reservation-map-wrap,
+.reservas-event-layout .reservas-form,
+.reservas-event-layout .reservas-success,
+.reservas-event-layout .reservas-hint {
+  width: 100%;
+  max-width: 920px;
 }
 
 .reservas-page__lead {
@@ -4377,17 +4431,55 @@ button:disabled,
   font: inherit;
 }
 
+.reservas-event-head {
+  width: 100%;
+  max-width: 920px;
+  text-align: center;
+}
+
 .reservas-event-head h2 {
   margin: 0 0 12px;
   font-size: 1.1rem;
   letter-spacing: 0.04em;
 }
 
+.reservas-page__map-block {
+  margin-top: 8px;
+  scroll-margin-top: 96px;
+}
+
+.reservas-page .agenda-calendar-section.is-embedded {
+  margin-bottom: 8px;
+}
+
+/* Calendário de reservas: mesma largura/grade do calendário normal (classe .container). */
+.reservas-page .agenda-calendar-section.is-embedded .calendar-content {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.agenda-event--reservation .agenda-poster-link--reserve .agenda-poster-overlay {
+  opacity: 0;
+}
+
+.agenda-event--reservation .agenda-poster-link--reserve:hover .agenda-poster-overlay,
+.agenda-event--reservation .agenda-poster-link--reserve:focus-visible .agenda-poster-overlay,
+.agenda-event--reservation .agenda-poster-link--reserve:active .agenda-poster-overlay {
+  opacity: 1;
+}
+
+.agenda-event--reservation .agenda-poster-link-disabled {
+  opacity: 0.72;
+}
+
 .reservation-map-wrap {
   --res-free: #4a7c59;
   --res-busy: #9a9a9a;
   --res-pick: #c9a227;
-  margin-bottom: 24px;
+  margin: 0 auto 24px;
+  width: 100%;
+  max-width: 920px;
 }
 
 .reservation-map-legend {
@@ -4441,6 +4533,28 @@ button:disabled,
   pointer-events: none;
 }
 
+.reservation-map-visual {
+  position: relative;
+  width: 100%;
+}
+
+.reservation-map-bg-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.reservation-map-svg--overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .reservation-map-palco {
   fill: rgba(139, 105, 20, 0.2);
   stroke: rgba(139, 105, 20, 0.5);
@@ -4449,7 +4563,7 @@ button:disabled,
 
 .reservation-table-hit {
   cursor: pointer;
-  transition: fill-opacity 0.15s ease, stroke-width 0.15s ease;
+  transition: fill 0.15s ease, fill-opacity 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease;
 }
 
 .reservation-table-hit:hover:not(.is-busy) {
@@ -4458,6 +4572,125 @@ button:disabled,
 
 .reservation-table-hit.is-busy {
   cursor: not-allowed;
+}
+
+.reservation-map-legend--text {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  opacity: 0.78;
+}
+
+.reservation-map-wrap--floor-plan .reservation-table-hit.is-ghost {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 0;
+}
+
+/* Na planta os hits são 100% invisíveis — o feedback é só o tooltip. */
+.reservation-map-wrap--floor-plan .reservation-table-hit.is-ghost:hover,
+.reservation-map-wrap--floor-plan .reservation-table-hit.is-ghost:focus-visible,
+.reservation-map-wrap--floor-plan .reservation-table-hit.is-ghost.is-selected {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 0;
+  outline: none;
+}
+
+.reservation-map-wrap--floor-plan .reservation-table-hit.is-ghost.is-busy {
+  cursor: not-allowed;
+}
+
+/* Tooltip de status no hover do mapa */
+.reservation-map-tooltip {
+  position: absolute;
+  z-index: 5;
+  transform: translate(-50%, calc(-100% - 10px));
+  min-width: 150px;
+  max-width: 220px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(35, 31, 18, 0.96);
+  color: #f9f6ee;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  text-align: center;
+  animation: reservation-tooltip-in 0.14s ease;
+}
+
+.reservation-map-tooltip.is-below {
+  transform: translate(-50%, 10px);
+}
+
+.reservation-map-tooltip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  transform: translateX(-50%) rotate(45deg);
+  width: 10px;
+  height: 10px;
+  background: rgba(35, 31, 18, 0.96);
+}
+
+.reservation-map-tooltip.is-below::after {
+  bottom: auto;
+  top: -5px;
+}
+
+.reservation-map-tooltip__name {
+  margin: 0 0 2px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.reservation-map-tooltip__status {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reservation-map-tooltip__status.is-free {
+  color: #8fd6a3;
+}
+
+.reservation-map-tooltip__status.is-busy {
+  color: #e0a3a3;
+}
+
+.reservation-map-tooltip__price {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.reservation-map-tooltip__meta {
+  margin: 2px 0 0;
+  font-size: 0.72rem;
+  opacity: 0.85;
+}
+
+.reservation-map-tooltip__hint {
+  margin: 6px 0 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+@keyframes reservation-tooltip-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .reservation-map-hint {
@@ -4528,11 +4761,50 @@ button:disabled,
 }
 
 .reservas-form {
-  max-width: 420px;
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
   padding: 20px;
   border: 1px solid rgba(45, 41, 22, 0.15);
   border-radius: 12px;
   background: rgba(255, 249, 240, 0.6);
+}
+
+.reservas-package-card {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(201, 162, 39, 0.1);
+  border: 1px solid rgba(201, 162, 39, 0.28);
+}
+
+.reservas-package-card__price {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.reservas-package-card__price strong {
+  font-size: 1.15rem;
+}
+
+.reservas-package-card__meta {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.reservas-package-card__perks {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.reservas-package-card__fine {
+  margin: 0;
+  font-size: 0.82rem;
+  opacity: 0.78;
 }
 
 .reservas-success {
@@ -4545,14 +4817,241 @@ button:disabled,
 
 .reservas-hint {
   margin-top: 8px;
+  text-align: center;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.agenda-reserve-link {
-  display: inline-flex;
-  margin-top: 10px;
+.agenda-calendar-section--reservations .section-head h2 {
+  letter-spacing: 0.06em;
+}
+
+.agenda-poster-link--reserve .agenda-poster-overlay {
+  background: rgba(45, 41, 22, 0.52);
+}
+
+.agenda-poster-link--reserve .agenda-poster-cta {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+.calendar-reservation-empty {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(45, 41, 22, 0.05);
+}
+
+.admin-res-preview-card .reservation-map-wrap {
+  margin-bottom: 0;
+}
+
+.admin-res-preview-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-res-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.admin-res-bulk-actions {
+  flex-wrap: wrap;
+}
+
+.admin-res-events-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(45, 41, 22, 0.12);
+  border-radius: 12px;
+}
+
+.admin-res-events-table {
   width: 100%;
-  justify-content: center;
-  font-size: 0.78rem;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.admin-res-events-table th,
+.admin-res-events-table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(45, 41, 22, 0.08);
+  vertical-align: middle;
+}
+
+.admin-res-events-table th {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(45, 41, 22, 0.04);
+}
+
+.admin-res-event-row.is-selected {
+  background: rgba(201, 162, 39, 0.08);
+}
+
+.admin-res-event-row.is-active td:nth-child(3) {
+  font-weight: 600;
+}
+
+.admin-res-event-select {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.admin-res-event-select span {
+  opacity: 0.85;
+}
+
+.admin-res-event-select small {
+  opacity: 0.65;
+  font-size: 0.82rem;
+}
+
+/* Grid de abrir/fechar cada mesa/camarote do evento */
+.admin-res-spots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 8px;
+  margin: 12px 0 10px;
+}
+
+.admin-res-spot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid rgba(74, 124, 89, 0.55);
+  border-radius: 10px;
+  background: rgba(74, 124, 89, 0.1);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.admin-res-spot strong {
+  font-size: 0.86rem;
+  letter-spacing: 0.04em;
+}
+
+.admin-res-spot span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.admin-res-spot:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(45, 41, 22, 0.55);
+}
+
+.admin-res-spot.is-closed {
+  border-color: rgba(154, 60, 60, 0.55);
+  background: rgba(154, 60, 60, 0.12);
+}
+
+.admin-res-spot.is-guest {
+  border-color: rgba(154, 154, 154, 0.6);
+  background: rgba(154, 154, 154, 0.16);
+  cursor: not-allowed;
+}
+
+.admin-res-spot:disabled {
+  opacity: 0.75;
+}
+
+.admin-res-spots-note {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.admin-res-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-res-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-res-toggle-ui {
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgba(45, 41, 22, 0.18);
+  position: relative;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.admin-res-toggle-ui::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease;
+}
+
+.admin-res-toggle input:checked + .admin-res-toggle-ui {
+  background: #4a7c59;
+}
+
+.admin-res-toggle input:checked + .admin-res-toggle-ui::after {
+  transform: translateX(18px);
+}
+
+.admin-res-toggle input:disabled + .admin-res-toggle-ui {
+  opacity: 0.55;
+}
+
+.admin-res-toggle-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 4.5rem;
+}
+
+.admin-res-advanced summary {
+  cursor: pointer;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.reservation-map-wrap--preview .reservation-table-hit.is-preview {
+  cursor: default;
+  pointer-events: none;
 }
 
 .admin-res-layout-json {

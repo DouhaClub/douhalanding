@@ -50,7 +50,7 @@ const PT_MONTHS_SHORT = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago',
 
 /** Ex.: 21 de jan de 2025 */
 export function formatEditorialArticleDate(post) {
-  const raw = String(post?.daté || post?.publishedAt || '').trim();
+  const raw = String(post?.date || post?.publishedAt || '').trim();
   if (!raw) return '';
   const d = parseEditorialDateValue(raw);
   if (!d) return raw;

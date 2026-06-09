@@ -2,7 +2,7 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 export const SUPABASE_RESERVATIONS_TABLE = 'douha_table_reservations';
 
-export const DOUHA_FLOOR_MAP_IMAGE = '/brand/reservation/douha-floor-map.svg';
+export const DOUHA_FLOOR_MAP_IMAGE = '/brand/reservation/douha-floor-map.png';
 
 export const RESERVATION_STATUS = {
   PENDING: 'pending',
@@ -12,59 +12,186 @@ export const RESERVATION_STATUS = {
 
 const ACTIVE_STATUSES = [RESERVATION_STATUS.PENDING, RESERVATION_STATUS.CONFIRMED];
 
-const DOUHA_LAYOUT_WIDTH = 1000;
-const DOUHA_LAYOUT_HEIGHT = 700;
+const DOUHA_LAYOUT_WIDTH = 1024;
+const DOUHA_LAYOUT_HEIGHT = 992;
+
+const MESA_PACKAGE = {
+  packageName: 'Mesa / bistrô',
+  priceTotal: 500,
+  priceConsumption: 290,
+  entriesIncluded: 1,
+  capacity: 4,
+};
+
+/** Pacotes oficiais Douha (valores e entradas por spot). */
+export const DOUHA_SPOT_PACKAGES = {
+  C2: {
+    label: 'Camarote C2 — Sidestage ⭐️',
+    packageName: 'Sidestage',
+    priceTotal: 4000,
+    priceConsumption: 2000,
+    entriesIncluded: 10,
+    capacity: 35,
+    perks: ['Segurança exclusivo', 'Garçom exclusivo', 'Ao lado do palco'],
+  },
+  C3: {
+    label: 'Camarote C3',
+    packageName: 'Camarote C3',
+    priceTotal: 2500,
+    priceConsumption: 1500,
+    entriesIncluded: 8,
+    capacity: 20,
+  },
+  C4: {
+    label: 'Camarote C4',
+    packageName: 'Camarote C4',
+    priceTotal: 2200,
+    priceConsumption: 1200,
+    entriesIncluded: 6,
+    capacity: 20,
+  },
+  C5: {
+    label: 'Camarote C5',
+    packageName: 'Camarote C5',
+    priceTotal: 2000,
+    priceConsumption: 1000,
+    entriesIncluded: 5,
+    capacity: 20,
+  },
+  C6: {
+    label: 'Camarote C6',
+    packageName: 'Camarote C6',
+    priceTotal: 1800,
+    priceConsumption: 1000,
+    entriesIncluded: 5,
+    capacity: 20,
+  },
+  mesa: MESA_PACKAGE,
+};
+
+function formatBrl(value) {
+  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+}
 
 function spot(id, label, zone, x, y, options = {}) {
   const shape = options.shape || 'circle';
+  const pkg = DOUHA_SPOT_PACKAGES[id] || (zone === 'mesa' ? MESA_PACKAGE : null);
   return {
     id,
-    label,
+    label: pkg?.label || label,
     zone,
     shape,
     x,
     y,
-    r: options.r ?? 0.04,
+    r: options.r ?? 0.038,
     w: options.w,
     h: options.h,
-    capacity: options.capacity ?? (zone === 'camarote' ? 8 : 4),
+    capacity: options.capacity ?? pkg?.capacity ?? (zone === 'camarote' ? 20 : 4),
+    reservable: options.reservable !== false,
+    packageName: options.packageName ?? pkg?.packageName,
+    priceTotal: options.priceTotal ?? pkg?.priceTotal,
+    priceConsumption: options.priceConsumption ?? pkg?.priceConsumption,
+    entriesIncluded: options.entriesIncluded ?? pkg?.entriesIncluded,
+    perks: Array.isArray(options.perks) ? options.perks : pkg?.perks,
   };
 }
 
-/** Mapa oficial Douha: palco, mesas 1–14, camarotes C1–C6 (coordenadas alinhadas ao SVG). */
+export function enrichSpotWithPackage(table) {
+  if (!table || typeof table !== 'object') return table;
+  const pkg = DOUHA_SPOT_PACKAGES[table.id] || (table.zone === 'mesa' ? MESA_PACKAGE : null);
+  if (!pkg) return table;
+  return {
+    ...table,
+    label: table.label || pkg.label || table.id,
+    packageName: table.packageName ?? pkg.packageName,
+    priceTotal: Number(table.priceTotal) > 0 ? Number(table.priceTotal) : pkg.priceTotal,
+    priceConsumption: Number(table.priceConsumption) > 0 ? Number(table.priceConsumption) : pkg.priceConsumption,
+    entriesIncluded: Number(table.entriesIncluded) > 0 ? Number(table.entriesIncluded) : pkg.entriesIncluded,
+    capacity: Number(table.capacity) > 0 ? Number(table.capacity) : pkg.capacity,
+    perks: Array.isArray(table.perks) && table.perks.length ? table.perks : pkg.perks,
+  };
+}
+
+export function formatSpotPackageSummary(table) {
+  const spot = enrichSpotWithPackage(table);
+  if (!spot?.priceTotal) return '';
+  const parts = [
+    formatBrl(spot.priceTotal),
+    spot.priceConsumption ? `${formatBrl(spot.priceConsumption)} em consumação` : null,
+    spot.entriesIncluded ? `${spot.entriesIncluded} entrada${spot.entriesIncluded > 1 ? 's' : ''}` : null,
+    spot.capacity ? `até ${spot.capacity} pessoas` : null,
+  ].filter(Boolean);
+  return parts.join(' · ');
+}
+
+export function formatSpotPackageNote(table) {
+  const spot = enrichSpotWithPackage(table);
+  const summary = formatSpotPackageSummary(spot);
+  if (!summary) return '';
+  const perks = Array.isArray(spot.perks) && spot.perks.length
+    ? ` | Incluso: ${spot.perks.join(', ')}`
+    : '';
+  return `Pacote ${spot.label}: ${summary}${perks}`;
+}
+
+/**
+ * Versão do layout default. Aumentar quando as coordenadas forem recalibradas,
+ * para layouts antigos salvos no Supabase serem substituídos pelo novo default.
+ */
+export const DOUHA_LAYOUT_VERSION = 2;
+
+const MESA_HIT_R = 0.033;
+
+/** Mapa oficial Douha (1024×992): mesas 1–14, camarotes C2–C6 reserváveis; C1 fixo. */
 export function buildDefaultReservationLayout() {
   return {
+    layoutVersion: DOUHA_LAYOUT_VERSION,
     width: DOUHA_LAYOUT_WIDTH,
     height: DOUHA_LAYOUT_HEIGHT,
     backgroundImage: DOUHA_FLOOR_MAP_IMAGE,
-    stage: { x: 0.103, y: 0.5, w: 0.11, h: 0.57, label: 'PALCO' },
+    stage: { x: 0.27, y: 0.47, w: 0.08, h: 0.32, label: 'PALCO' },
     zones: {
       mesa: { label: 'Mesas' },
       camarote: { label: 'Camarotes' },
     },
+    /* Coordenadas medidas pixel a pixel na planta douha-floor-map.png (1024×992). */
     tables: [
-      spot('C1', 'Camarote C1', 'camarote', 0.064, 0.168, { shape: 'rect', w: 0.072, h: 0.126 }),
-      spot('C2', 'Camarote C2', 'camarote', 0.064, 0.325, { shape: 'rect', w: 0.072, h: 0.126 }),
-      spot('C3', 'Camarote C3', 'camarote', 0.292, 0.086, { shape: 'rect', w: 0.088, h: 0.091 }),
-      spot('C4', 'Camarote C4', 'camarote', 0.4, 0.086, { shape: 'rect', w: 0.088, h: 0.091 }),
-      spot('C5', 'Camarote C5', 'camarote', 0.508, 0.086, { shape: 'rect', w: 0.088, h: 0.091 }),
-      spot('C6', 'Camarote C6', 'camarote', 0.616, 0.086, { shape: 'rect', w: 0.088, h: 0.091 }),
-      spot('1', 'Mesa 1', 'mesa', 0.3, 0.311, { r: 0.04 }),
-      spot('2', 'Mesa 2', 'mesa', 0.3, 0.426, { r: 0.04 }),
-      spot('3', 'Mesa 3', 'mesa', 0.3, 0.589, { r: 0.04 }),
-      spot('4', 'Mesa 4', 'mesa', 0.3, 0.703, { r: 0.04 }),
-      spot('5', 'Mesa 5', 'mesa', 0.42, 0.311, { r: 0.04 }),
-      spot('6', 'Mesa 6', 'mesa', 0.42, 0.426, { r: 0.04 }),
-      spot('7', 'Mesa 7', 'mesa', 0.42, 0.589, { r: 0.04 }),
-      spot('8', 'Mesa 8', 'mesa', 0.42, 0.703, { r: 0.04 }),
-      spot('9', 'Mesa 9', 'mesa', 0.54, 0.311, { r: 0.04 }),
-      spot('10', 'Mesa 10', 'mesa', 0.54, 0.426, { r: 0.04 }),
-      spot('11', 'Mesa 11', 'mesa', 0.54, 0.589, { r: 0.04 }),
-      spot('12', 'Mesa 12', 'mesa', 0.54, 0.703, { r: 0.04 }),
-      spot('13', 'Mesa 13', 'mesa', 0.66, 0.369, { r: 0.04 }),
-      spot('14', 'Mesa 14', 'mesa', 0.66, 0.646, { r: 0.04 }),
+      spot('C1', 'Camarote C1', 'camarote', 0.185, 0.596, { shape: 'rect', w: 0.076, h: 0.19, reservable: false }),
+      spot('C2', 'Camarote C2', 'camarote', 0.185, 0.335, { shape: 'rect', w: 0.076, h: 0.187 }),
+      spot('C3', 'Camarote C3', 'camarote', 0.305, 0.127, { shape: 'rect', w: 0.098, h: 0.073 }),
+      spot('C4', 'Camarote C4', 'camarote', 0.439, 0.127, { shape: 'rect', w: 0.12, h: 0.073 }),
+      spot('C5', 'Camarote C5', 'camarote', 0.584, 0.127, { shape: 'rect', w: 0.117, h: 0.073 }),
+      spot('C6', 'Camarote C6', 'camarote', 0.716, 0.127, { shape: 'rect', w: 0.098, h: 0.073 }),
+      spot('1', 'Mesa 1', 'mesa', 0.41, 0.274, { r: MESA_HIT_R, capacity: 4 }),
+      spot('2', 'Mesa 2', 'mesa', 0.41, 0.374, { r: MESA_HIT_R }),
+      spot('3', 'Mesa 3', 'mesa', 0.41, 0.553, { r: MESA_HIT_R }),
+      spot('4', 'Mesa 4', 'mesa', 0.41, 0.651, { r: MESA_HIT_R }),
+      spot('5', 'Mesa 5', 'mesa', 0.51, 0.274, { r: MESA_HIT_R }),
+      spot('6', 'Mesa 6', 'mesa', 0.51, 0.374, { r: MESA_HIT_R }),
+      spot('7', 'Mesa 7', 'mesa', 0.51, 0.553, { r: MESA_HIT_R }),
+      spot('8', 'Mesa 8', 'mesa', 0.51, 0.651, { r: MESA_HIT_R }),
+      spot('9', 'Mesa 9', 'mesa', 0.614, 0.274, { r: MESA_HIT_R }),
+      spot('10', 'Mesa 10', 'mesa', 0.614, 0.374, { r: MESA_HIT_R }),
+      spot('11', 'Mesa 11', 'mesa', 0.614, 0.553, { r: MESA_HIT_R }),
+      spot('12', 'Mesa 12', 'mesa', 0.614, 0.651, { r: MESA_HIT_R }),
+      spot('13', 'Mesa 13', 'mesa', 0.71, 0.374, { r: MESA_HIT_R }),
+      spot('14', 'Mesa 14', 'mesa', 0.71, 0.553, { r: MESA_HIT_R }),
     ],
   };
+}
+
+function isLegacyFloorMapLayout(raw) {
+  const bg = String(raw?.backgroundImage || '');
+  const missingPackages = Array.isArray(raw?.tables)
+    && raw.tables.some((table) => table?.reservable !== false && !(Number(table?.priceTotal) > 0));
+  const outdatedVersion = Number(raw?.layoutVersion || 0) < DOUHA_LAYOUT_VERSION;
+  return (
+    !bg
+    || bg.includes('douha-floor-map.svg')
+    || (Number(raw.width) === 1000 && Number(raw.height) === 700)
+    || missingPackages
+    || outdatedVersion
+  );
 }
 
 export function isMissingReservationColumnsError(message) {
@@ -88,30 +215,58 @@ function normalizeTableEntry(table, idx) {
     zone: String(table?.zone || 'mesa'),
     shape,
     capacity: Number(table?.capacity) > 0 ? Number(table.capacity) : 4,
+    reservable: table?.reservable !== false,
     x: Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : 0.5,
     y: Number.isFinite(y) ? Math.min(1, Math.max(0, y)) : 0.5,
-    r: Number(table?.r) > 0 ? Number(table.r) : 0.04,
+    r: Number(table?.r) > 0 ? Number(table.r) : 0.038,
   };
   if (shape === 'rect') {
     entry.w = Number(table?.w) > 0 ? Number(table.w) : 0.08;
     entry.h = Number(table?.h) > 0 ? Number(table.h) : 0.1;
   }
-  return entry;
+  if (table?.packageName) entry.packageName = String(table.packageName);
+  if (Number(table?.priceTotal) > 0) entry.priceTotal = Number(table.priceTotal);
+  if (Number(table?.priceConsumption) > 0) entry.priceConsumption = Number(table.priceConsumption);
+  if (Number(table?.entriesIncluded) > 0) entry.entriesIncluded = Number(table.entriesIncluded);
+  if (Array.isArray(table?.perks)) entry.perks = table.perks;
+  return enrichSpotWithPackage(entry);
+}
+
+function sanitizeBlockedTableIds(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map((id) => String(id || '').trim()).filter(Boolean))];
+}
+
+/** IDs de mesas/camarotes fechados manualmente pelo admin neste evento. */
+export function getBlockedTableIdSet(layout) {
+  return new Set(sanitizeBlockedTableIds(layout?.blockedTableIds));
 }
 
 export function normalizeReservationLayout(raw) {
   if (!raw || typeof raw !== 'object') return null;
+  const blockedTableIds = sanitizeBlockedTableIds(raw.blockedTableIds);
+  if (isLegacyFloorMapLayout(raw)) {
+    const defaults = buildDefaultReservationLayout();
+    return {
+      ...defaults,
+      zones: { ...defaults.zones, ...(raw.zones && typeof raw.zones === 'object' ? raw.zones : {}) },
+      stage: raw.stage && typeof raw.stage === 'object' ? raw.stage : defaults.stage,
+      blockedTableIds,
+    };
+  }
   const tables = Array.isArray(raw.tables)
     ? raw.tables.map((table, idx) => normalizeTableEntry(table, idx)).filter(Boolean)
     : [];
   if (!tables.length) return null;
   return {
+    layoutVersion: Number(raw.layoutVersion) || DOUHA_LAYOUT_VERSION,
     width: Number(raw.width) > 0 ? Number(raw.width) : DOUHA_LAYOUT_WIDTH,
     height: Number(raw.height) > 0 ? Number(raw.height) : DOUHA_LAYOUT_HEIGHT,
-    backgroundImage: String(raw.backgroundImage || '').trim() || undefined,
+    backgroundImage: String(raw.backgroundImage || '').trim() || DOUHA_FLOOR_MAP_IMAGE,
     stage: raw.stage && typeof raw.stage === 'object' ? raw.stage : undefined,
     zones: raw.zones && typeof raw.zones === 'object' ? raw.zones : {},
     tables,
+    blockedTableIds,
   };
 }
 

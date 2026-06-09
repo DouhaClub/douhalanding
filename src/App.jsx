@@ -125,7 +125,7 @@ const defaultEditorialPosts = editorial.map((item, idx) => ({
   id: `editorial-${idx + 1}`,
   source: String(item.source || 'DOUHA CLUB'),
   issue: String(item.issue || ''),
-  date: String(item.daté || ''),
+  date: String(item.date || ''),
   title: String(item.title || ''),
   deck: clampEditorialDeck(item.deck),
   body: '',
@@ -433,7 +433,7 @@ const IMAGE_SPEC = {
 function normalizeAgendaItem(item, idx = 0) {
   return {
     id: String(item?.id || `event-${idx + 1}`),
-    date: String(item?.daté || ''),
+    date: String(item?.date || ''),
     time: String(item?.time || ''),
     lineup: String(item?.lineup || ''),
     poster: String(item?.poster || ''),
@@ -463,7 +463,7 @@ function mapDbEventToAgendaItem(row, idx = 0) {
 function mapAgendaItemToDbEvent(item) {
   return {
     id: String(item.id),
-    date: String(item.daté || ''),
+    date: String(item.date || ''),
     time: String(item.time || ''),
     lineup: String(item.lineup || ''),
     poster: String(item.poster || ''),
@@ -642,7 +642,7 @@ function normalizeEditorialItem(item, idx = 0) {
     issue: String(item?.issue || ''),
     category: String(item?.category || ''),
     coverUrl: String(item?.coverUrl || ''),
-    date: String(item?.daté || item?.publishedAt || ''),
+    date: String(item?.date || item?.publishedAt || ''),
     publishedAt: item?.publishedAt || null,
     authorName: String(item?.authorName || item?.author_name || ''),
     authorAvatarUrl: String(item?.authorAvatarUrl || item?.author_avatar_url || ''),
@@ -678,7 +678,7 @@ function mapDbEditorialPostToItem(row, idx = 0) {
 }
 
 function mapEditorialItemToDbPost(item) {
-  const publishRaw = String(item?.publishedAt || item?.daté || '').trim();
+  const publishRaw = String(item?.publishedAt || item?.date || '').trim();
   return {
     id: String(item.id),
     title: String(item.title || ''),
@@ -1253,39 +1253,10 @@ function AppShell({
     },
   ];
 
-  const renderSocialIcon = (id) => {
-    if (id === 'instagram') {
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="4.5" y="4.5" width="15" height="15" rx="4.2" fill="none" />
-          <circle cx="12" cy="12" r="3.5" fill="none" />
-          <circle cx="16.9" cy="7.1" r="1.1" />
-        </svg>
-      );
-    }
-    if (id === 'tiktok') {
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M14.1 4.6v7.5a3.5 3.5 0 1 1-2.3-3.25V7.2a5.5 5.5 0 1 0 4 5.2V9.35a5.2 5.2 0 0 0 3.6 1.45V8.5a3.95 3.95 0 0 1-3.9-3.9h-1.4z" />
-        </svg>
-      );
-    }
-    if (id === 'soundcloud') {
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M8.3 17.9h8.9a3.5 3.5 0 0 0 .55-6.95 5.35 5.35 0 0 0-10.35-1.45A3.35 3.35 0 0 0 8.3 17.9z" fill="none" />
-          <rect x="4.2" y="10.1" width="1.1" height="7.8" rx=".55" fill="none" />
-          <rect x="5.8" y="9.2" width="1.1" height="8.7" rx=".55" fill="none" />
-        </svg>
-      );
-    }
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <rect x="3.6" y="6" width="16.8" height="12" rx="2.8" fill="none" />
-        <polygon points="10.2,9.3 15.6,12 10.2,14.7" fill="none" />
-      </svg>
-    );
-  };
+  /* Ícones oficiais coloridos (PNG em /brand/icons). */
+  const renderSocialIcon = (id) => (
+    <img src={`/brand/icons/${id}.png`} alt="" loading="lazy" decoding="async" />
+  );
 
   const renderContactIcon = (id) => {
     if (id === 'email') {
@@ -1296,12 +1267,7 @@ function AppShell({
         </svg>
       );
     }
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 4.2a7.9 7.9 0 0 0-6.8 12l-1 3.6 3.7-1A7.9 7.9 0 1 0 12 4.2Z" fill="none" />
-        <path d="M9.1 9.2c.15-.35.3-.36.56-.36h.48c.15 0 .38-.06.59.43.2.49.68 1.68.74 1.8.06.12.1.27 0 .44-.1.16-.15.26-.3.4-.15.14-.3.31-.42.42-.14.14-.29.29-.12.57.17.28.77 1.27 1.66 2.06 1.15 1.01 2.12 1.33 2.4 1.48.28.15.44.13.6-.08.17-.21.71-.83.9-1.12.18-.29.37-.24.62-.15.25.09 1.6.76 1.87.9.27.13.45.2.52.32.07.12.07.71-.17 1.4-.24.69-1.4 1.32-1.93 1.4-.5.08-1.14.12-1.84-.11-.43-.14-.98-.32-1.7-.63-2.98-1.29-4.92-4.45-5.07-4.65-.15-.2-1.2-1.6-1.2-3.06 0-1.46.77-2.17 1.04-2.47Z" />
-      </svg>
-    );
+    return <img src="/brand/icons/whatsapp.png" alt="" loading="lazy" decoding="async" />;
   };
 
   return (
@@ -1349,6 +1315,15 @@ function AppShell({
             <NavLink to="/sets" className={({ isActive }) => (isActive ? 'is-active' : '')} onClick={() => setMobileNavOpen(false)}>SETS</NavLink>
             <NavLink to="/editorial" className={({ isActive }) => (isActive ? 'is-active' : '')} onClick={() => setMobileNavOpen(false)}>EDITORIAL</NavLink>
             <NavLink to="/contato" className={({ isActive }) => (isActive ? 'is-active' : '')} onClick={() => setMobileNavOpen(false)}>CONTATO</NavLink>
+            <a
+              href="https://www.ingressonacional.com.br/Douha"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-cta-ingresso"
+              onClick={() => setMobileNavOpen(false)}
+            >
+              COMPRAR INGRESSO
+            </a>
           </nav>
         </div>
         {mobileNavOpen ? (
@@ -1465,19 +1440,9 @@ function AppShell({
   );
 }
 
-function AgendaEventBlock({ night }) {
+function AgendaEventPoster({ night, overlayLabel }) {
   const hasPoster = Boolean(night.poster?.trim());
-  const isPhotosPhase = shouldUseEventPhotosLink(night.date);
-  const ticketUrl = String(night.ticketUrl || '').trim();
-  const photosUrl = String(night.photosUrl || '').trim();
-  const hasTicketUrl = Boolean(ticketUrl);
-  const hasPhotosUrl = Boolean(photosUrl);
-  /** Antes do evento: so ingresso. Depois: so fotos (se tiver link). */
-  const isClickable = isPhotosPhase ? hasPhotosUrl : hasTicketUrl;
-  const actionUrl = isPhotosPhase ? photosUrl : ticketUrl;
-  const ctaLabel = isPhotosPhase ? 'Ver fotos do role' : 'Comprar ingressos';
-  const ariaLabel = isClickable ? `${ctaLabel} — ${night.lineup}` : `${night.lineup} — ${night.date}`;
-  const posterInner = (
+  return (
     <div className="agenda-poster">
       {hasPoster ? (
         <img
@@ -1492,13 +1457,62 @@ function AgendaEventBlock({ night }) {
           <small className="poster-spec-hint">{IMAGE_SPEC.agendaPoster}</small>
         </div>
       )}
-      {isClickable ? (
+      {overlayLabel ? (
         <div className="agenda-poster-overlay" aria-hidden="true">
-          <span className="agenda-poster-cta">{ctaLabel}</span>
+          <span className="agenda-poster-cta">{overlayLabel}</span>
         </div>
       ) : null}
     </div>
   );
+}
+
+/** Card do calendário de RESERVAS (clone do normal — poster leva ao mapa, nunca ao ingresso). */
+function ReservationEventBlock({ night }) {
+  const isPhotosPhase = shouldUseEventPhotosLink(night.date);
+  const canReserve = Boolean(night.reservationsEnabled) && !isPhotosPhase;
+  const ctaLabel = canReserve ? 'Abrir mapa de reservas' : 'Sem pré-reserva';
+  const ariaLabel = canReserve
+    ? `${ctaLabel} — ${night.lineup}`
+    : `${night.lineup} — ${night.date} (reservas indisponíveis)`;
+
+  return (
+    <article className="agenda-event agenda-event--reservation">
+      {canReserve ? (
+        <Link
+          to={`/reservas/${night.id}`}
+          className="agenda-poster-link agenda-poster-link--reserve"
+          aria-label={ariaLabel}
+        >
+          <AgendaEventPoster night={night} overlayLabel={ctaLabel} />
+        </Link>
+      ) : (
+        <div className="agenda-poster-link agenda-poster-link-disabled" aria-label={ariaLabel}>
+          <AgendaEventPoster night={night} overlayLabel={null} />
+        </div>
+      )}
+      <div className="agenda-event-details">
+        <p className="event-date">
+          {night.date}
+          <span>{night.time}</span>
+        </p>
+        <p className="event-lineup">{night.lineup}</p>
+      </div>
+    </article>
+  );
+}
+
+/** Card do calendário NORMAL — só ingresso/fotos, nada de reserva. */
+function AgendaEventBlock({ night }) {
+  const isPhotosPhase = shouldUseEventPhotosLink(night.date);
+  const ticketUrl = String(night.ticketUrl || '').trim();
+  const photosUrl = String(night.photosUrl || '').trim();
+  const hasTicketUrl = Boolean(ticketUrl);
+  const hasPhotosUrl = Boolean(photosUrl);
+  /** Antes do evento: so ingresso. Depois: so fotos (se tiver link). */
+  const isClickable = isPhotosPhase ? hasPhotosUrl : hasTicketUrl;
+  const actionUrl = isPhotosPhase ? photosUrl : ticketUrl;
+  const ctaLabel = isPhotosPhase ? 'Ver fotos do role' : 'Comprar ingressos';
+  const ariaLabel = isClickable ? `${ctaLabel} — ${night.lineup}` : `${night.lineup} — ${night.date}`;
 
   return (
     <article className="agenda-event">
@@ -1510,11 +1524,11 @@ function AgendaEventBlock({ night }) {
           className="agenda-poster-link"
           aria-label={ariaLabel}
         >
-          {posterInner}
+          <AgendaEventPoster night={night} overlayLabel={ctaLabel} />
         </a>
       ) : (
         <div className="agenda-poster-link agenda-poster-link-disabled" aria-label={ariaLabel}>
-          {posterInner}
+          <AgendaEventPoster night={night} overlayLabel={null} />
         </div>
       )}
       <div className="agenda-event-details">
@@ -1523,11 +1537,6 @@ function AgendaEventBlock({ night }) {
           <span>{night.time}</span>
         </p>
         <p className="event-lineup">{night.lineup}</p>
-        {night.reservationsEnabled && !isPhotosPhase ? (
-          <Link to={`/reservas/${night.id}`} className="pill agenda-reserve-link">
-            Pré-reservar mesa
-          </Link>
-        ) : null}
       </div>
     </article>
   );
@@ -1540,6 +1549,7 @@ function AgendaCalendarSection({
   ctaTo,
   showEmptySlots = false,
   adminMode = false,
+  reservationMode = false,
   onEditEvent,
   onDeleteEvent,
   onCreateEvent,
@@ -1645,7 +1655,7 @@ function AgendaCalendarSection({
   const InnerTag = 'div';
 
   return (
-    <WrapperTag className={`agenda-calendar-section${embedded ? ' is-embedded' : ' section'}`}>
+    <WrapperTag className={`agenda-calendar-section${embedded ? ' is-embedded' : ' section'}${reservationMode ? ' agenda-calendar-section--reservations' : ''}`}>
       <InnerTag className={`calendar-content${embedded ? '' : ' container'}`}>
         <div className="section-head">
           <h2>{title}</h2>
@@ -1689,6 +1699,13 @@ function AgendaCalendarSection({
           </p>
         ) : null}
 
+        {reservationMode && monthEvents.length && !monthEvents.some((night) => night.reservationsEnabled) ? (
+          <p className="calendar-empty-note calendar-reservation-empty" role="status">
+            Nenhum evento deste mês está com pré-reserva aberta. Escolha outro mês ou confira o{' '}
+            <Link to="/calendario">calendário geral</Link>.
+          </p>
+        ) : null}
+
         <div
           className={`calendar-event-grid${centerCalendarEvents ? ' calendar-event-grid--centered' : ''}${calendarHasSecondRow ? ' calendar-event-grid--two-rows' : ''}${adminMode && showEmptySlots ? ' calendar-event-grid--admin-slots' : ''}`}
         >
@@ -1707,7 +1724,9 @@ function AgendaCalendarSection({
                   <button type="button" className="pill" onClick={() => onDeleteEvent?.(night.id)}>Excluir</button>
                 </div>
               </article>
-            ) : <AgendaEventBlock key={`calendar-${night.id}`} night={night} />
+            ) : reservationMode
+              ? <ReservationEventBlock key={`calendar-${night.id}`} night={night} />
+              : <AgendaEventBlock key={`calendar-${night.id}`} night={night} />
           )) : null}
           {showEmptySlots ? Array.from({ length: emptySlots }).map((_, idx) => {
             const slotIndex = monthEvents.length + idx;
@@ -2504,7 +2523,7 @@ function findEditorialPostById(editorialPosts, postId) {
 }
 
 function formatEditorialDisplayDate(post) {
-  const raw = String(post?.daté || post?.publishedAt || '').trim();
+  const raw = String(post?.date || post?.publishedAt || '').trim();
   if (!raw) return '';
   const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (iso) {
@@ -2641,7 +2660,7 @@ function EditorialArticleByline({ post }) {
         {publishedLabel ? (
           <span className="editorial-article__byline-date">{publishedLabel}</span>
         ) : (
-          <span className="editorial-article__byline-daté editorial-article__byline-date--empty">Data a definir</span>
+          <span className="editorial-article__byline-date editorial-article__byline-date--empty">Data a definir</span>
         )}
         {updatedLabel ? <span className="editorial-article__byline-updated">{updatedLabel}</span> : null}
       </div>
@@ -3467,7 +3486,7 @@ function AdminPage({
     }
     setEditingId(item.id);
     setDraft({
-      date: item.daté || '',
+      date: item.date || '',
       time: item.time || '',
       lineup: item.lineup || '',
       ticketUrl: item.ticketUrl || '',
@@ -3764,7 +3783,7 @@ function AdminPage({
       return;
     }
     setIsSavingEvent(true);
-    const normalizedDaté = formatAgendaDate(draftDay, draftMonthIndex, draftYear);
+    const normalizedDate = formatAgendaDate(draftDay, draftMonthIndex, draftYear);
     const existingEvent = editingId ? agendaEvents.find((item) => item.id === editingId) : null;
     const nextItem = {
       id: editingId || `event-${Date.now()}`,
@@ -3777,7 +3796,7 @@ function AdminPage({
       reservationsEnabled: Boolean(existingEvent?.reservationsEnabled),
       reservationLayout: existingEvent?.reservationLayout ?? null,
     };
-    if (!nextItem.daté || !nextItem.lineup) {
+    if (!nextItem.date || !nextItem.lineup) {
       setAgendaSaveError('Preencha data e lineup para salvar o evento.');
       setIsSavingEvent(false);
       return;
@@ -4007,7 +4026,7 @@ function AdminPage({
       issue: post.issue || '',
       category: post.category || '',
       coverUrl: post.coverUrl || '',
-      date: post.daté || '',
+      date: post.date || '',
       isPublished: post.isPublished !== false,
     });
     setEditorialError('');
@@ -4081,7 +4100,7 @@ function AdminPage({
       if (!isSupabaseConfigured || !supabase) {
         throw new Error(supabaseConfigError || 'Supabase não configurado');
       }
-      const publishDaté = String(draftEditorial.daté || '').trim();
+      const publishDate = String(draftEditorial.date || '').trim();
       const nextItem = normalizeEditorialItem(
         {
           ...draftEditorial,
@@ -4089,7 +4108,7 @@ function AdminPage({
           title,
           deck,
           date: publishDate,
-          publishedAt: publishDaté || null,
+          publishedAt: publishDate || null,
           updatedAt: new Date().toISOString(),
         },
         editorialPosts.length,
@@ -5034,7 +5053,7 @@ function AdminPage({
                 <article key={`admin-editorial-${post.id}`} className="admin-list-item">
                   <div>
                     <strong>{post.title}</strong>
-                    <p>{post.source} · {post.issue} · {post.daté || 'SEM DATA'}</p>
+                    <p>{post.source} · {post.issue} · {post.date || 'SEM DATA'}</p>
                   </div>
                   <div className="admin-actions">
                     <button type="button" className="pill" onClick={() => onEditEditorial(post)}>Editar</button>
@@ -5518,8 +5537,8 @@ export default function App() {
           />
           <Route path="/editorial" element={<EditorialPage editorialPosts={editorialPosts} siteContent={siteContent} />} />
           <Route path="/contato" element={<ContactPage siteContent={siteContent} />} />
-          <Route path="/reservas" element={<ReservasPage agendaEvents={agendaEvents} />} />
-          <Route path="/reservas/:eventId" element={<ReservasPage agendaEvents={agendaEvents} />} />
+          <Route path="/reservas" element={<ReservasPage agendaEvents={agendaEvents} CalendarSection={AgendaCalendarSection} />} />
+          <Route path="/reservas/:eventId" element={<ReservasPage agendaEvents={agendaEvents} CalendarSection={AgendaCalendarSection} />} />
           <Route path="/privacidade" element={<PrivacyPolicyPage siteContent={siteContent} />} />
           <Route
             path="/admin"

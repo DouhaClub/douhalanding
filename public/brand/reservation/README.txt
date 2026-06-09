@@ -1,8 +1,9 @@
-Mapa de pre-reservas (Douha Club)
+Mapa de pré-reservas (Douha Club)
 
-Arquivo atual: douha-floor-map.svg (vetor no estilo do layout oficial)
+Arquivo oficial: douha-floor-map.png (1024×992)
 
-Para usar a planta oficial em PNG/JPG:
-1. Salve como douha-floor-map.png nesta pasta
-2. Em src/lib/reservations.js altere DOUHA_FLOOR_MAP_IMAGE para '/brand/reservation/douha-floor-map.png'
-   OU no admin → Reservas → JSON do layout, campo "backgroundImage"
+Coordenadas dos cliques: src/lib/reservations.js → buildDefaultReservationLayout()
+C1 não é reservável; mesas 1–14 e camarotes C2–C6 são clicáveis.
+
+Para trocar a imagem: substitua douha-floor-map.png nesta pasta e ajuste as coordenadas se necessário.
+No admin → Reservas → JSON do layout, campo "backgroundImage" (opcional).

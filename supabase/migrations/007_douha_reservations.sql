@@ -1,4 +1,17 @@
 -- Pre-reservas de mesas/camarotes por evento (sem pagamento no site).
+-- Requer Supabase Auth com admin em app_metadata.role = 'admin' (ver 006_douha_rls_admin_auth.sql).
+
+-- Garante helper de admin (idempotente se 006 ja foi aplicada).
+create or replace function public.douha_is_admin()
+returns boolean
+language sql
+stable
+as $$
+  select coalesce(
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin',
+    false
+  );
+$$;
 
 alter table public.douha_events
   add column if not exists reservations_enabled boolean not null default false;
