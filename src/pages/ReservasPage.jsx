@@ -154,11 +154,6 @@ export function ReservasPage({ agendaEvents, CalendarSection, douhaWhatsAppUrl }
         <div className="container reservas-page__inner">
           <p className="eyebrow">Reservas</p>
           <h1>Pré-reserva de mesa e camarote</h1>
-          <p className="reservas-page__lead">
-            Escolha o evento no calendário e passe o mouse na planta: o mapa mostra na hora se a mesa
-            ou camarote está aberto. Clique para reservar e envie nome + WhatsApp — a equipe confirma,
-            sem pagamento neste site.
-          </p>
         </div>
 
         {CalendarSection ? (
