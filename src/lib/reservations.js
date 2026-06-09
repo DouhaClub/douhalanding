@@ -163,7 +163,7 @@ export function buildDefaultReservationLayout() {
     /* Coordenadas na planta douha-floor-map.png (1024×992) — rótulos C1–C5 + FF. */
     tables: [
       spot('C1', 'Camarote C1', 'camarote', 0.185, 0.335, { shape: 'rect', w: 0.076, h: 0.187 }),
-      spot('FF', 'FF', 'info', 0.185, 0.706, {
+      spot('FF', 'FAMILY & FRIENDS', 'info', 0.185, 0.706, {
         shape: 'rect',
         w: 0.076,
         h: 0.19,

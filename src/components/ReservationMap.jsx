@@ -38,7 +38,7 @@ function renderTableShape(table, layout, occupiedTableIds, selectedTableId, onSe
     tabIndex: (interactive && !occupied) || (infoOnly && !preview) ? 0 : -1,
     role: interactive ? 'button' : infoOnly ? 'note' : 'presentation',
     'aria-label': infoOnly
-      ? `${table.label}: ${table.hoverLabel || 'Informação'}`
+      ? `${table.label} — ${table.hoverLabel || 'Apenas convidados'}`
       : interactive ? `${table.label}, ${statusLabel}, até ${table.capacity} pessoas` : undefined,
     'aria-pressed': interactive ? selected : undefined,
     'aria-disabled': interactive ? occupied : undefined,
