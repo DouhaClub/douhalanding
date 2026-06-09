@@ -320,7 +320,7 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
   const checkedCount = checkedIds.size;
   const previewTitle = selectedEvent
     ? formatEventReservationLabel(selectedEvent)
-    : 'Mapa padrão Douha (mesas 1–14 + camarotes C2–C6)';
+    : 'Mapa padrão Douha (mesas 1–14 + camarotes C1–C5)';
 
   return (
     <>

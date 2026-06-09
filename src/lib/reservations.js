@@ -23,10 +23,13 @@ const MESA_PACKAGE = {
   capacity: 4,
 };
 
-/** Pacotes oficiais Douha (valores e entradas por spot). */
+/**
+ * Pacotes oficiais Douha — chaves = rótulo na planta nova (C1–C5).
+ * Após a troca do mapa: C1=antigo C2 (Sidestage), C2=antigo C3, … C5=antigo C6.
+ */
 export const DOUHA_SPOT_PACKAGES = {
-  C2: {
-    label: 'Camarote C2 — Sidestage ⭐️',
+  C1: {
+    label: 'Camarote C1 — Sidestage ⭐️',
     packageName: 'Sidestage',
     priceTotal: 4000,
     priceConsumption: 2000,
@@ -34,33 +37,33 @@ export const DOUHA_SPOT_PACKAGES = {
     capacity: 35,
     perks: ['Segurança exclusivo', 'Garçom exclusivo', 'Ao lado do palco'],
   },
-  C3: {
-    label: 'Camarote C3',
-    packageName: 'Camarote C3',
+  C2: {
+    label: 'Camarote C2',
+    packageName: 'Camarote C2',
     priceTotal: 2500,
     priceConsumption: 1500,
     entriesIncluded: 8,
     capacity: 20,
   },
-  C4: {
-    label: 'Camarote C4',
-    packageName: 'Camarote C4',
+  C3: {
+    label: 'Camarote C3',
+    packageName: 'Camarote C3',
     priceTotal: 2200,
     priceConsumption: 1200,
     entriesIncluded: 6,
     capacity: 20,
   },
-  C5: {
-    label: 'Camarote C5',
-    packageName: 'Camarote C5',
+  C4: {
+    label: 'Camarote C4',
+    packageName: 'Camarote C4',
     priceTotal: 2000,
     priceConsumption: 1000,
     entriesIncluded: 5,
     capacity: 20,
   },
-  C6: {
-    label: 'Camarote C6',
-    packageName: 'Camarote C6',
+  C5: {
+    label: 'Camarote C5',
+    packageName: 'Camarote C5',
     priceTotal: 1800,
     priceConsumption: 1000,
     entriesIncluded: 5,
@@ -88,6 +91,8 @@ function spot(id, label, zone, x, y, options = {}) {
     h: options.h,
     capacity: options.capacity ?? pkg?.capacity ?? (zone === 'camarote' ? 20 : 4),
     reservable: options.reservable !== false,
+    infoOnly: options.infoOnly === true,
+    hoverLabel: options.hoverLabel ? String(options.hoverLabel) : undefined,
     packageName: options.packageName ?? pkg?.packageName,
     priceTotal: options.priceTotal ?? pkg?.priceTotal,
     priceConsumption: options.priceConsumption ?? pkg?.priceConsumption,
@@ -138,11 +143,11 @@ export function formatSpotPackageNote(table) {
  * Versão do layout default. Aumentar quando as coordenadas forem recalibradas,
  * para layouts antigos salvos no Supabase serem substituídos pelo novo default.
  */
-export const DOUHA_LAYOUT_VERSION = 2;
+export const DOUHA_LAYOUT_VERSION = 4;
 
 const MESA_HIT_R = 0.033;
 
-/** Mapa oficial Douha (1024×992): mesas 1–14, camarotes C2–C6 reserváveis; C1 fixo. */
+/** Mapa oficial Douha (1024×992): mesas 1–14, camarotes C1–C5 reserváveis; FF só informativo. */
 export function buildDefaultReservationLayout() {
   return {
     layoutVersion: DOUHA_LAYOUT_VERSION,
@@ -153,15 +158,23 @@ export function buildDefaultReservationLayout() {
     zones: {
       mesa: { label: 'Mesas' },
       camarote: { label: 'Camarotes' },
+      info: { label: 'Informação' },
     },
-    /* Coordenadas medidas pixel a pixel na planta douha-floor-map.png (1024×992). */
+    /* Coordenadas na planta douha-floor-map.png (1024×992) — rótulos C1–C5 + FF. */
     tables: [
-      spot('C1', 'Camarote C1', 'camarote', 0.185, 0.596, { shape: 'rect', w: 0.076, h: 0.19, reservable: false }),
-      spot('C2', 'Camarote C2', 'camarote', 0.185, 0.335, { shape: 'rect', w: 0.076, h: 0.187 }),
-      spot('C3', 'Camarote C3', 'camarote', 0.305, 0.127, { shape: 'rect', w: 0.098, h: 0.073 }),
-      spot('C4', 'Camarote C4', 'camarote', 0.439, 0.127, { shape: 'rect', w: 0.12, h: 0.073 }),
-      spot('C5', 'Camarote C5', 'camarote', 0.584, 0.127, { shape: 'rect', w: 0.117, h: 0.073 }),
-      spot('C6', 'Camarote C6', 'camarote', 0.716, 0.127, { shape: 'rect', w: 0.098, h: 0.073 }),
+      spot('C1', 'Camarote C1', 'camarote', 0.185, 0.335, { shape: 'rect', w: 0.076, h: 0.187 }),
+      spot('FF', 'FF', 'info', 0.185, 0.706, {
+        shape: 'rect',
+        w: 0.076,
+        h: 0.19,
+        reservable: false,
+        infoOnly: true,
+        hoverLabel: 'Apenas convidados',
+      }),
+      spot('C2', 'Camarote C2', 'camarote', 0.298, 0.127, { shape: 'rect', w: 0.098, h: 0.073 }),
+      spot('C3', 'Camarote C3', 'camarote', 0.42, 0.127, { shape: 'rect', w: 0.12, h: 0.073 }),
+      spot('C4', 'Camarote C4', 'camarote', 0.542, 0.127, { shape: 'rect', w: 0.117, h: 0.073 }),
+      spot('C5', 'Camarote C5', 'camarote', 0.664, 0.127, { shape: 'rect', w: 0.098, h: 0.073 }),
       spot('1', 'Mesa 1', 'mesa', 0.41, 0.274, { r: MESA_HIT_R, capacity: 4 }),
       spot('2', 'Mesa 2', 'mesa', 0.41, 0.374, { r: MESA_HIT_R }),
       spot('3', 'Mesa 3', 'mesa', 0.41, 0.553, { r: MESA_HIT_R }),
@@ -229,6 +242,8 @@ function normalizeTableEntry(table, idx) {
   if (Number(table?.priceConsumption) > 0) entry.priceConsumption = Number(table.priceConsumption);
   if (Number(table?.entriesIncluded) > 0) entry.entriesIncluded = Number(table.entriesIncluded);
   if (Array.isArray(table?.perks)) entry.perks = table.perks;
+  if (table?.infoOnly) entry.infoOnly = true;
+  if (table?.hoverLabel) entry.hoverLabel = String(table.hoverLabel);
   return enrichSpotWithPackage(entry);
 }
 

@@ -46,6 +46,7 @@ import {
   buildEditorialBylinePreview,
 } from './lib/editorialReading';
 import { hasAcceptedOptionalStorage } from './lib/consentStorage';
+import { fetchPageTitleForUrl } from './lib/pageTitle';
 import { registerServiceWorkerIfAccepted } from './lib/registerServiceWorker';
 
 const CALENDAR_FOCUS_KEY = 'douha_calendar_focus_v1';
@@ -2778,7 +2779,13 @@ function AdminEditorialBylineFields({ draft, onChange }) {
 
 function AdminEditorialSourcesFields({ sources, onChange }) {
   const [bulkPaste, setBulkPaste] = useState('');
+  const [fetchingUrls, setFetchingUrls] = useState(() => new Set());
+  const [isImportingBulk, setIsImportingBulk] = useState(false);
   const list = normalizeEditorialSourcesList(sources);
+
+  /* Ref com a lista mais recente: o fetch do título termina depois e não pode sobrescrever edições. */
+  const listRef = useRef(list);
+  listRef.current = list;
 
   const updateSource = (index, field, value) => {
     onChange(list.map((item, idx) => (idx === index ? { ...item, [field]: value } : item)));
@@ -2792,18 +2799,60 @@ function AdminEditorialSourcesFields({ sources, onChange }) {
     onChange([...list, { label: '', url: '' }]);
   };
 
-  const importBulkSources = () => {
+  const setUrlFetching = (url, fetching) => {
+    setFetchingUrls((prev) => {
+      const next = new Set(prev);
+      if (fetching) next.add(url);
+      else next.delete(url);
+      return next;
+    });
+  };
+
+  /** Busca o título da matéria e preenche o campo, se ainda estiver vazio. */
+  const autoFillTitleForUrl = async (url) => {
+    const target = String(url || '').trim();
+    if (!/^https?:\/\//i.test(target)) return;
+    const current = listRef.current.find((item) => item.url.trim() === target);
+    if (!current || current.label.trim()) return;
+    setUrlFetching(target, true);
+    try {
+      const title = await fetchPageTitleForUrl(target);
+      if (!title) return;
+      const latest = listRef.current;
+      const stillEmpty = latest.some((item) => item.url.trim() === target && !item.label.trim());
+      if (!stillEmpty) return;
+      onChange(latest.map((item) => (
+        item.url.trim() === target && !item.label.trim() ? { ...item, label: title } : item
+      )));
+    } finally {
+      setUrlFetching(target, false);
+    }
+  };
+
+  const importBulkSources = async () => {
     const parsed = parseEditorialSourcesBulk(bulkPaste);
     if (!parsed.length) return;
-    onChange([...list, ...parsed]);
-    setBulkPaste('');
+    setIsImportingBulk(true);
+    try {
+      /* Linhas só com link entram sem label e ganham o título da matéria automaticamente. */
+      const resolved = await Promise.all(parsed.map(async (item) => {
+        const labelIsJustUrl = !item.label || item.label === item.url;
+        if (!labelIsJustUrl) return item;
+        const title = await fetchPageTitleForUrl(item.url);
+        return { ...item, label: title || item.label };
+      }));
+      onChange([...listRef.current, ...resolved]);
+      setBulkPaste('');
+    } finally {
+      setIsImportingBulk(false);
+    }
   };
 
   return (
     <div className="admin-editorial-sources">
       <p className="about-copy">
-        Adicione uma fonte por vez ou cole várias linhas (uma por linha). Formatos: <code>Nome — https://...</code>,{' '}
-        <code>Nome | url</code> ou só o link.
+        Cole só o link que o título da matéria é buscado automaticamente (pode editar depois).
+        No campo de várias linhas valem os formatos: <code>Nome — https://...</code>, <code>Nome | url</code> ou só o link.
       </p>
       {list.map((item, idx) => (
         <div key={`admin-editorial-source-${idx}`} className="admin-editorial-source-row">
@@ -2813,7 +2862,7 @@ function AdminEditorialSourcesFields({ sources, onChange }) {
               id={`admin-source-label-${idx}`}
               value={item.label}
               onChange={(event) => updateSource(idx, 'label', event.target.value)}
-              placeholder="Ex: Instagram Douha Club"
+              placeholder={fetchingUrls.has(item.url.trim()) ? 'Buscando título da matéria...' : 'Preenchido sozinho ao colar o link'}
             />
           </div>
           <div className="admin-form-field">
@@ -2824,6 +2873,11 @@ function AdminEditorialSourcesFields({ sources, onChange }) {
               inputMode="url"
               value={item.url}
               onChange={(event) => updateSource(idx, 'url', event.target.value)}
+              onBlur={(event) => autoFillTitleForUrl(event.target.value)}
+              onPaste={(event) => {
+                const pasted = event.clipboardData?.getData('text') || '';
+                setTimeout(() => autoFillTitleForUrl(pasted), 80);
+              }}
               placeholder="https://..."
             />
           </div>
@@ -2846,8 +2900,8 @@ function AdminEditorialSourcesFields({ sources, onChange }) {
           onChange={(event) => setBulkPaste(event.target.value)}
           placeholder={'Instagram — https://instagram.com/douha.club\nReportagem | https://...\nhttps://link-so-url.com'}
         />
-        <button type="button" className="pill" onClick={importBulkSources} disabled={!bulkPaste.trim()}>
-          Organizar e adicionar fontes coladas
+        <button type="button" className="pill" onClick={importBulkSources} disabled={!bulkPaste.trim() || isImportingBulk}>
+          {isImportingBulk ? 'Buscando títulos das matérias...' : 'Organizar e adicionar fontes coladas'}
         </button>
       </div>
     </div>

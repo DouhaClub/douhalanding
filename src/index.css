@@ -4671,6 +4671,14 @@ button:disabled,
   color: #e0a3a3;
 }
 
+.reservation-map-tooltip__status.is-info {
+  color: #d4b86a;
+}
+
+.reservation-map-wrap--floor-plan .reservation-table-hit.is-ghost-info {
+  cursor: default;
+}
+
 .reservation-map-tooltip__price {
   margin: 6px 0 0;
   font-size: 0.82rem;

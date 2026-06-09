@@ -17,7 +17,8 @@ function tableFill(occupied, selected, zone) {
 }
 
 function renderTableShape(table, layout, occupiedTableIds, selectedTableId, onSelectTable, preview, onHoverTable) {
-  if (table.reservable === false) return null;
+  const infoOnly = Boolean(table.infoOnly);
+  if (table.reservable === false && !infoOnly) return null;
 
   const width = layout.width || 1000;
   const height = layout.height || 700;
@@ -27,22 +28,25 @@ function renderTableShape(table, layout, occupiedTableIds, selectedTableId, onSe
   const statusLabel = occupied ? 'Reservado' : selected ? 'Selecionado' : 'Disponível';
   const hasBg = Boolean(layout.backgroundImage);
   const showLabel = !hasBg;
-  const interactive = !preview && typeof onSelectTable === 'function';
+  const interactive = !preview && !infoOnly && typeof onSelectTable === 'function';
   const ghostHit = hasBg;
   const isMesa = zone === 'mesa';
   const hitRadius = table.r || 0.038;
 
   const commonProps = {
-    className: `reservation-table-hit${ghostHit ? ' is-ghost' : ''}${isMesa && ghostHit ? ' is-ghost-mesa' : ''}${!isMesa && ghostHit ? ' is-ghost-camarote' : ''}${occupied ? ' is-busy' : ''}${selected ? ' is-selected' : ''}${preview ? ' is-preview' : ''}`,
-    tabIndex: interactive && !occupied ? 0 : -1,
-    role: interactive ? 'button' : 'presentation',
-    'aria-label': interactive ? `${table.label}, ${statusLabel}, até ${table.capacity} pessoas` : undefined,
+    className: `reservation-table-hit${ghostHit ? ' is-ghost' : ''}${infoOnly ? ' is-ghost-info' : ''}${isMesa && ghostHit ? ' is-ghost-mesa' : ''}${!isMesa && ghostHit && !infoOnly ? ' is-ghost-camarote' : ''}${occupied ? ' is-busy' : ''}${selected ? ' is-selected' : ''}${preview ? ' is-preview' : ''}`,
+    tabIndex: (interactive && !occupied) || (infoOnly && !preview) ? 0 : -1,
+    role: interactive ? 'button' : infoOnly ? 'note' : 'presentation',
+    'aria-label': infoOnly
+      ? `${table.label}: ${table.hoverLabel || 'Informação'}`
+      : interactive ? `${table.label}, ${statusLabel}, até ${table.capacity} pessoas` : undefined,
     'aria-pressed': interactive ? selected : undefined,
     'aria-disabled': interactive ? occupied : undefined,
     fill: ghostHit ? 'transparent' : tableFill(occupied, selected, zone),
     fillOpacity: ghostHit ? 0 : 1,
     stroke: ghostHit ? 'transparent' : 'rgba(255, 255, 255, 0.9)',
     strokeWidth: ghostHit ? 0 : 1.5,
+    style: infoOnly ? { cursor: 'default' } : undefined,
     onClick: interactive ? () => {
       if (!occupied) onSelectTable(table);
     } : undefined,
@@ -108,6 +112,7 @@ function renderTableShape(table, layout, occupiedTableIds, selectedTableId, onSe
 
 function ReservationMapTooltip({ table, occupied }) {
   const spot = enrichSpotWithPackage(table);
+  const infoOnly = Boolean(table.infoOnly);
   // Posiciona acima do ponto; perto da borda superior, abre para baixo.
   const topEdge = table.y < 0.18;
   const anchorY = table.shape === 'rect' ? table.y - (table.h || 0.1) / 2 : table.y;
@@ -115,6 +120,21 @@ function ReservationMapTooltip({ table, occupied }) {
     left: `${table.x * 100}%`,
     top: `${(topEdge ? table.y + (table.h || 0.08) / 2 : anchorY) * 100}%`,
   };
+
+  if (infoOnly) {
+    return (
+      <div
+        className={`reservation-map-tooltip reservation-map-tooltip--info${topEdge ? ' is-below' : ''}`}
+        style={style}
+        role="status"
+      >
+        <p className="reservation-map-tooltip__name">{table.label}</p>
+        <p className="reservation-map-tooltip__status is-info">
+          {table.hoverLabel || 'Apenas convidados'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -185,7 +205,7 @@ export function ReservationMap({
     <div className={`reservation-map-wrap${preview ? ' reservation-map-wrap--preview' : ''}${floorPlanMode ? ' reservation-map-wrap--floor-plan' : ''}`}>
       {floorPlanMode ? (
         <p className="reservation-map-legend reservation-map-legend--text" aria-hidden="true">
-          Passe o mouse (ou toque) na mesa ou camarote para ver se está aberto. C1 não é reservável.
+          Passe o mouse na mesa ou camarote para ver se está aberto. FF é apenas convidados.
         </p>
       ) : (
         <div className="reservation-map-legend" aria-hidden="true">
