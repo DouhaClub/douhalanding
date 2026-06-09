@@ -151,11 +151,6 @@ export function ReservasPage({ agendaEvents, CalendarSection, douhaWhatsAppUrl }
   return (
     <main className="reservas-page">
       <section className="section">
-        <div className="container reservas-page__inner">
-          <p className="eyebrow">Reservas</p>
-          <h1>Pré-reserva de mesa e camarote</h1>
-        </div>
-
         {CalendarSection ? (
           <CalendarSection
             agendaEvents={agendaEvents}
