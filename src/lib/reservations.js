@@ -257,6 +257,31 @@ export function getBlockedTableIdSet(layout) {
   return new Set(sanitizeBlockedTableIds(layout?.blockedTableIds));
 }
 
+function getDefaultTableById() {
+  const map = new Map();
+  for (const table of buildDefaultReservationLayout().tables) {
+    map.set(table.id, table);
+  }
+  return map;
+}
+
+/** Spots informativos (ex.: FF) usam sempre o rótulo do código, não o JSON salvo no evento. */
+function applyCanonicalSpotMetadata(tables) {
+  const defaults = getDefaultTableById();
+  return tables.map((table) => {
+    const canonical = defaults.get(table.id);
+    if (!canonical?.infoOnly) return table;
+    return enrichSpotWithPackage({
+      ...table,
+      label: canonical.label,
+      hoverLabel: canonical.hoverLabel,
+      infoOnly: true,
+      reservable: false,
+      zone: canonical.zone,
+    });
+  });
+}
+
 export function normalizeReservationLayout(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const blockedTableIds = sanitizeBlockedTableIds(raw.blockedTableIds);
@@ -269,9 +294,11 @@ export function normalizeReservationLayout(raw) {
       blockedTableIds,
     };
   }
-  const tables = Array.isArray(raw.tables)
-    ? raw.tables.map((table, idx) => normalizeTableEntry(table, idx)).filter(Boolean)
-    : [];
+  const tables = applyCanonicalSpotMetadata(
+    Array.isArray(raw.tables)
+      ? raw.tables.map((table, idx) => normalizeTableEntry(table, idx)).filter(Boolean)
+      : [],
+  );
   if (!tables.length) return null;
   return {
     layoutVersion: Number(raw.layoutVersion) || DOUHA_LAYOUT_VERSION,
