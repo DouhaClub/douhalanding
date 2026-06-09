@@ -2731,20 +2731,21 @@ button:disabled,
   border-bottom: 1px solid rgba(45, 41, 22, 0.14);
 }
 
-.admin-role-stage-preview {
+/* Preview compacto no admin — vence o width:100vw/min-height da faixa real do site. */
+.admin-role-stage-preview.people-role-photos-stage,
+.admin-role-stage-preview.people-role-photos-stage.role-stage--has-bg {
   width: 100%;
-  max-width: 100%;
-  margin-left: 0;
-  margin-right: 0;
+  max-width: 460px;
+  margin: 8px 0 0;
   aspect-ratio: 1920 / 760;
   min-height: 0;
   height: auto;
+  max-height: 184px;
   border: 1px dashed rgba(45, 41, 22, 0.28);
   border-radius: 8px;
   display: flex;
   align-items: flex-end;
   padding: 10px 12px;
-  margin-top: 8px;
 }
 
 .admin-role-stage-preview span {
@@ -4808,11 +4809,48 @@ button:disabled,
 }
 
 .reservas-success {
-  padding: 12px 14px;
+  padding: 14px 16px;
   border-radius: 10px;
   background: rgba(74, 124, 89, 0.15);
   font-weight: 600;
   margin-bottom: 16px;
+  text-align: center;
+}
+
+.reservas-success p {
+  margin: 0 0 12px;
+}
+
+/* Botão verde para confirmar a pré-reserva no WhatsApp do Douha */
+.reservas-whatsapp-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: #25d366;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.reservas-whatsapp-cta:hover,
+.reservas-whatsapp-cta:focus-visible {
+  background: #1ebe5b;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.35);
+}
+
+.reservas-whatsapp-cta img {
+  width: 22px;
+  height: 22px;
+  display: block;
 }
 
 .reservas-hint {

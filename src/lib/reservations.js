@@ -285,6 +285,42 @@ export function mapAgendaReservationFieldsToDb(item) {
   };
 }
 
+/**
+ * Monta o link wa.me para o WhatsApp do Douha com a mensagem de confirmação
+ * da pré-reserva já preenchida (evento + lugar + pacote + nome).
+ */
+/** Extrai só o telefone (com DDI) de um link wa.me ou número solto do admin. */
+export function extractWhatsAppPhone(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const linkMatch = raw.match(/(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)\+?(\d{8,15})/i);
+  let digits = linkMatch ? linkMatch[1] : raw.replace(/\D/g, '');
+  if (digits.length < 8 || digits.length > 15) return '';
+  /* Placeholder do conteúdo padrão = número ainda não configurado no admin. */
+  if (digits === '5500000000000' || /^0+$/.test(digits.replace(/^55/, ''))) return '';
+  /* Número brasileiro sem DDI (DDD + 8/9 dígitos) ganha o 55 na frente. */
+  if ((digits.length === 10 || digits.length === 11) && !digits.startsWith('55')) {
+    digits = `55${digits}`;
+  }
+  return digits;
+}
+
+export function buildReservationWhatsAppUrl({ whatsAppUrl, event, table, guestName }) {
+  const phone = extractWhatsAppPhone(whatsAppUrl);
+  if (!phone) return '';
+
+  const spot = enrichSpotWithPackage(table);
+  const lines = [
+    'Olá, Douha! Acabei de fazer uma pré-reserva pelo site e quero confirmar.',
+    `Evento: ${formatEventReservationLabel(event)}`,
+    `Lugar: ${spot?.label || table?.id || ''}`,
+  ];
+  const summary = formatSpotPackageSummary(spot);
+  if (summary) lines.push(`Pacote: ${summary}`);
+  if (guestName) lines.push(`Nome: ${String(guestName).trim()}`);
+  return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`;
+}
+
 export function formatEventReservationLabel(event) {
   const parts = [event?.date, event?.lineup, event?.time].map((v) => String(v || '').trim()).filter(Boolean);
   return parts.join(' · ') || String(event?.id || 'Evento');
@@ -352,6 +388,18 @@ export async function updateReservationStatus(reservationId, status) {
   const { error } = await supabase
     .from(SUPABASE_RESERVATIONS_TABLE)
     .update({ status })
+    .eq('id', reservationId);
+  if (error) throw error;
+}
+
+/** Cancelamento = exclusão definitiva (não acumula registro morto no banco). */
+export async function deleteReservation(reservationId) {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase não configurado.');
+  }
+  const { error } = await supabase
+    .from(SUPABASE_RESERVATIONS_TABLE)
+    .delete()
     .eq('id', reservationId);
   if (error) throw error;
 }

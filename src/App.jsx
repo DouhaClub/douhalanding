@@ -5537,8 +5537,8 @@ export default function App() {
           />
           <Route path="/editorial" element={<EditorialPage editorialPosts={editorialPosts} siteContent={siteContent} />} />
           <Route path="/contato" element={<ContactPage siteContent={siteContent} />} />
-          <Route path="/reservas" element={<ReservasPage agendaEvents={agendaEvents} CalendarSection={AgendaCalendarSection} />} />
-          <Route path="/reservas/:eventId" element={<ReservasPage agendaEvents={agendaEvents} CalendarSection={AgendaCalendarSection} />} />
+          <Route path="/reservas" element={<ReservasPage agendaEvents={agendaEvents} CalendarSection={AgendaCalendarSection} douhaWhatsAppUrl={normalizeWhatsAppUrl(siteContent.contactWhatsApp) || siteContent.contactWhatsApp} />} />
+          <Route path="/reservas/:eventId" element={<ReservasPage agendaEvents={agendaEvents} CalendarSection={AgendaCalendarSection} douhaWhatsAppUrl={normalizeWhatsAppUrl(siteContent.contactWhatsApp) || siteContent.contactWhatsApp} />} />
           <Route path="/privacidade" element={<PrivacyPolicyPage siteContent={siteContent} />} />
           <Route
             path="/admin"

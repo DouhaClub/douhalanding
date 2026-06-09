@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ReservationMap } from './ReservationMap';
 import {
   buildDefaultReservationLayout,
+  deleteReservation,
   fetchReservationsForEvent,
   formatEventReservationLabel,
   getBlockedTableIdSet,
@@ -303,6 +304,19 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
     }
   };
 
+  /** Cancelar = excluir de vez (libera a mesa e não deixa registro morto). */
+  const onCancelReservation = async (row) => {
+    if (!window.confirm(`Cancelar e excluir a pré-reserva de ${row.guest_name} (${row.table_id})? A mesa volta a ficar disponível.`)) return;
+    setError('');
+    try {
+      await deleteReservation(row.id);
+      await loadReservations(selectedEventId);
+      setHint('Pré-reserva cancelada e excluída — o lugar voltou a ficar disponível.');
+    } catch (err) {
+      setError(formatReservationError(err));
+    }
+  };
+
   const checkedCount = checkedIds.size;
   const previewTitle = selectedEvent
     ? formatEventReservationLabel(selectedEvent)
@@ -534,15 +548,13 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
                         Confirmar
                       </button>
                     ) : null}
-                    {row.status !== RESERVATION_STATUS.CANCELLED ? (
-                      <button
-                        type="button"
-                        className="pill"
-                        onClick={() => onSetStatus(row.id, RESERVATION_STATUS.CANCELLED)}
-                      >
-                        Cancelar
-                      </button>
-                    ) : null}
+                    <button
+                      type="button"
+                      className="pill"
+                      onClick={() => onCancelReservation(row)}
+                    >
+                      {row.status === RESERVATION_STATUS.CANCELLED ? 'Excluir' : 'Cancelar'}
+                    </button>
                   </div>
                 </li>
               ))}

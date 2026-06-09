@@ -5,6 +5,7 @@ import { ReservationPackageCard } from '../components/ReservationPackageCard';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import {
   buildDefaultReservationLayout,
+  buildReservationWhatsAppUrl,
   createTableReservation,
   enrichSpotWithPackage,
   fetchReservationsForEvent,
@@ -17,7 +18,7 @@ import {
 } from '../lib/reservations';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
 
-export function ReservasPage({ agendaEvents, CalendarSection }) {
+export function ReservasPage({ agendaEvents, CalendarSection, douhaWhatsAppUrl }) {
   const { eventId: routeEventId } = useParams();
   const mapBlockRef = useRef(null);
   const formBlockRef = useRef(null);
@@ -31,6 +32,7 @@ export function ReservasPage({ agendaEvents, CalendarSection }) {
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [confirmWhatsAppUrl, setConfirmWhatsAppUrl] = useState('');
 
   useDocumentMeta({
     title: 'Pré-reservas | Douha Club',
@@ -101,6 +103,7 @@ export function ReservasPage({ agendaEvents, CalendarSection }) {
       refreshReservations(selectedEventId);
       setSelectedTable(null);
       setSuccessMessage('');
+      setConfirmWhatsAppUrl('');
     }
   }, [selectedEventId, refreshReservations]);
 
@@ -120,8 +123,14 @@ export function ReservasPage({ agendaEvents, CalendarSection }) {
         notes: formatSpotPackageNote(pkg),
       });
       setSuccessMessage(
-        `Pré-reserva enviada para ${selectedTable.label}. Nossa equipe confirma pelo WhatsApp em breve — sem pagamento neste site.`,
+        `Pré-reserva enviada para ${selectedTable.label}. Para agilizar, confirme agora pelo WhatsApp — sem pagamento neste site.`,
       );
+      setConfirmWhatsAppUrl(buildReservationWhatsAppUrl({
+        whatsAppUrl: douhaWhatsAppUrl,
+        event: activeEvent,
+        table: pkg,
+        guestName,
+      }));
       setGuestName('');
       setGuestPhone('');
       setSelectedTable(null);
@@ -199,11 +208,25 @@ export function ReservasPage({ agendaEvents, CalendarSection }) {
                     setSelectedTable(enrichSpotWithPackage(table));
                     setSubmitError('');
                     setSuccessMessage('');
+                    setConfirmWhatsAppUrl('');
                   }}
                 />
 
                 {successMessage ? (
-                  <p className="reservas-success" role="status">{successMessage}</p>
+                  <div className="reservas-success" role="status">
+                    <p>{successMessage}</p>
+                    {confirmWhatsAppUrl ? (
+                      <a
+                        className="reservas-whatsapp-cta"
+                        href={confirmWhatsAppUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <img src="/brand/icons/whatsapp.png" alt="" />
+                        Confirmar reserva no WhatsApp
+                      </a>
+                    ) : null}
+                  </div>
                 ) : null}
 
                 {selectedTable ? (
