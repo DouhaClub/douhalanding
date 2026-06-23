@@ -1042,6 +1042,28 @@ body.site-mobile-nav-open {
   border-style: dashed;
 }
 
+.admin-publish-badge {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a5a00;
+}
+
+.admin-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.admin-checkbox-row input {
+  width: auto;
+  margin: 0;
+}
+
 h2 {
   margin: 0 0 18px;
   font-size: 1.22rem;

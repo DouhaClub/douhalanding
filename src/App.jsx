@@ -23,6 +23,14 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { ReservasPage } from './pages/ReservasPage';
 import { AdminReservasPanel } from './components/AdminReservasPanel';
 import {
+  datetimeLocalToIso,
+  filterPublicAgendaEvents,
+  formatAgendaPublishLabel,
+  getAgendaPublishStatus,
+  isMissingPublishAtColumnError,
+  toDatetimeLocalValue,
+} from './lib/agendaPublish';
+import {
   isMissingReservationColumnsError,
   mapAgendaReservationFieldsToDb,
   mapDbEventReservationFields,
@@ -440,6 +448,7 @@ function normalizeAgendaItem(item, idx = 0) {
     poster: String(item?.poster || ''),
     ticketUrl: String(item?.ticketUrl || ''),
     photosUrl: String(item?.photosUrl || ''),
+    publishAt: item?.publishAt ? String(item.publishAt) : null,
     reservationsEnabled: Boolean(item?.reservationsEnabled),
     reservationLayout: normalizeReservationLayout(item?.reservationLayout),
   };
@@ -455,6 +464,7 @@ function mapDbEventToAgendaItem(row, idx = 0) {
       poster: row?.poster,
       ticketUrl: row?.ticket_url,
       photosUrl: row?.photos_url,
+      publishAt: row?.publish_at || null,
       ...mapDbEventReservationFields(row),
     },
     idx,
@@ -470,6 +480,7 @@ function mapAgendaItemToDbEvent(item) {
     poster: String(item.poster || ''),
     ticket_url: String(item.ticketUrl || ''),
     photos_url: String(item.photosUrl || ''),
+    publish_at: item.publishAt || null,
     ...mapAgendaReservationFieldsToDb(item),
   };
 }
@@ -484,6 +495,9 @@ function formatSupabaseAgendaSaveError(error) {
   let msg = `Não foi possível salvar no Supabase: ${detail}`;
   if (/photos_url/i.test(detail)) {
     msg += ' Rode no SQL Editor o arquivo supabase/migrations/001_douha_events_photos_url.sql (adiciona a coluna no banco que já existia).';
+  }
+  if (/publish_at/i.test(detail)) {
+    msg += ' Rode no SQL Editor o arquivo supabase/migrations/009_douha_events_publish_at.sql (publicação agendada).';
   }
   return msg;
 }
@@ -1717,6 +1731,11 @@ function AgendaCalendarSection({
             adminMode ? (
               <article key={`calendar-${night.id}`} className="admin-calendar-slot">
                 <p><strong>{night.date}</strong> · {night.time || 'Sem horário'}</p>
+                {getAgendaPublishStatus(night) === 'scheduled' ? (
+                  <p className="admin-publish-badge" role="status">
+                    Agendado · {formatAgendaPublishLabel(night.publishAt)}
+                  </p>
+                ) : null}
                 <p>{night.lineup}</p>
                 <p className="admin-url">
                   Ingresso: {night.ticketUrl || 'Sem link'}
@@ -3400,7 +3419,16 @@ function AdminPage({
   const [authError, setAuthError] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [editingId, setEditingId] = useState('');
-  const [draft, setDraft] = useState({ date: '', time: '', lineup: '', ticketUrl: '', photosUrl: '', poster: '' });
+  const [draft, setDraft] = useState({
+    date: '',
+    time: '',
+    lineup: '',
+    ticketUrl: '',
+    photosUrl: '',
+    poster: '',
+    schedulePublish: false,
+    publishAtLocal: '',
+  });
   const [posterUrlInput, setPosterUrlInput] = useState('');
   const [draftSiteContent, setDraftSiteContent] = useState(() => mergeSiteContentWithDefaults(siteContent));
   const [draftPhotos, setDraftPhotos] = useState(() => [...sitePhotos]);
@@ -3537,6 +3565,7 @@ function AdminPage({
       setDraftYear(parsed.year);
     }
     setEditingId(item.id);
+    const publishAt = item.publishAt ? String(item.publishAt) : '';
     setDraft({
       date: item.date || '',
       time: item.time || '',
@@ -3544,6 +3573,8 @@ function AdminPage({
       ticketUrl: item.ticketUrl || '',
       photosUrl: item.photosUrl || '',
       poster: item.poster || '',
+      schedulePublish: Boolean(publishAt),
+      publishAtLocal: publishAt ? toDatetimeLocalValue(publishAt) : '',
     });
     setPosterUrlInput(item.poster || '');
     setShowEventForm(true);
@@ -3552,7 +3583,16 @@ function AdminPage({
 
   const onCreateFromCalendar = ({ year, monthIndex, slotIndex }) => {
     setEditingId('');
-    setDraft({ date: '', time: '', lineup: '', ticketUrl: '', photosUrl: '', poster: '' });
+    setDraft({
+      date: '',
+      time: '',
+      lineup: '',
+      ticketUrl: '',
+      photosUrl: '',
+      poster: '',
+      schedulePublish: false,
+      publishAtLocal: '',
+    });
     setPosterUrlInput('');
     setDraftDay(1);
     setDraftMonthIndex(monthIndex);
@@ -3572,7 +3612,16 @@ function AdminPage({
 
   const resetDraft = () => {
     setEditingId('');
-    setDraft({ date: '', time: '', lineup: '', ticketUrl: '', photosUrl: '', poster: '' });
+    setDraft({
+      date: '',
+      time: '',
+      lineup: '',
+      ticketUrl: '',
+      photosUrl: '',
+      poster: '',
+      schedulePublish: false,
+      publishAtLocal: '',
+    });
     setPosterUrlInput('');
     setDraftDay(1);
     setDraftMonthIndex(new Date().getMonth());
@@ -3845,9 +3894,24 @@ function AdminPage({
       ticketUrl: draft.ticketUrl.trim(),
       photosUrl: draft.photosUrl.trim(),
       poster: draft.poster.trim(),
+      publishAt: null,
       reservationsEnabled: Boolean(existingEvent?.reservationsEnabled),
       reservationLayout: existingEvent?.reservationLayout ?? null,
     };
+    if (draft.schedulePublish) {
+      if (!String(draft.publishAtLocal || '').trim()) {
+        setAgendaSaveError('Informe data e hora para agendar a publicação no site.');
+        setIsSavingEvent(false);
+        return;
+      }
+      const publishAtIso = datetimeLocalToIso(draft.publishAtLocal);
+      if (!publishAtIso) {
+        setAgendaSaveError('Data/hora de publicação inválida.');
+        setIsSavingEvent(false);
+        return;
+      }
+      nextItem.publishAt = publishAtIso;
+    }
     if (!nextItem.date || !nextItem.lineup) {
       setAgendaSaveError('Preencha data e lineup para salvar o evento.');
       setIsSavingEvent(false);
@@ -3880,41 +3944,40 @@ function AdminPage({
         throw new Error(supabaseConfigError || 'Supabase não configurado');
       }
       const payload = mapAgendaItemToDbEvent(nextItem);
-      const saveResult = await withTimeout(
+      const upsertAgenda = (body) => withTimeout(
         supabase
           .from(SUPABASE_EVENTS_TABLE)
-          .upsert(payload, { onConflict: 'id' }),
+          .upsert(body, { onConflict: 'id' }),
         12000,
         'Timeout ao salvar no Supabase (12s).',
       );
+      let saveResult = await upsertAgenda(payload);
+      let publishAtSkipped = false;
       if (saveResult.error && isMissingPhotosUrlColumnError(saveResult.error.message)) {
         const legacyPayload = { ...payload };
         delete legacyPayload.photos_url;
-        const retry = await withTimeout(
-          supabase
-            .from(SUPABASE_EVENTS_TABLE)
-            .upsert(legacyPayload, { onConflict: 'id' }),
-          12000,
-          'Timeout ao salvar no Supabase (12s).',
-        );
-        if (retry.error) throw retry.error;
-      } else if (saveResult.error && isMissingReservationColumnsError(saveResult.error.message)) {
+        saveResult = await upsertAgenda(legacyPayload);
+      }
+      if (saveResult.error && isMissingReservationColumnsError(saveResult.error.message)) {
         const legacyPayload = { ...payload };
         delete legacyPayload.reservations_enabled;
         delete legacyPayload.reservation_layout;
-        const retry = await withTimeout(
-          supabase
-            .from(SUPABASE_EVENTS_TABLE)
-            .upsert(legacyPayload, { onConflict: 'id' }),
-          12000,
-          'Timeout ao salvar no Supabase (12s).',
-        );
-        if (retry.error) throw retry.error;
-      } else if (saveResult.error) {
-        throw saveResult.error;
+        saveResult = await upsertAgenda(legacyPayload);
       }
+      if (saveResult.error && isMissingPublishAtColumnError(saveResult.error.message)) {
+        const legacyPayload = { ...payload };
+        delete legacyPayload.publish_at;
+        saveResult = await upsertAgenda(legacyPayload);
+        publishAtSkipped = !saveResult.error;
+      }
+      if (saveResult.error) throw saveResult.error;
 
       setAgendaEvents(nextAgenda);
+      if (publishAtSkipped) {
+        window.alert(
+          'Evento salvo, mas o agendamento não foi persistido. Rode supabase/migrations/009_douha_events_publish_at.sql no Supabase.',
+        );
+      }
     } catch (error) {
       const msg = formatSupabaseAgendaSaveError(error);
       console.error(msg, error);
@@ -5190,6 +5253,35 @@ function AdminPage({
               </small>
               <input value={draft.photosUrl} onChange={(event) => setDraft((prev) => ({ ...prev, photosUrl: event.target.value }))} placeholder="https://drive.google.com/..." />
 
+              <label className="admin-checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={Boolean(draft.schedulePublish)}
+                  onChange={(event) => setDraft((prev) => ({
+                    ...prev,
+                    schedulePublish: event.target.checked,
+                    publishAtLocal: event.target.checked && !prev.publishAtLocal
+                      ? toDatetimeLocalValue(new Date(Date.now() + 3600000))
+                      : prev.publishAtLocal,
+                  }))}
+                />
+                Agendar publicação no site
+              </label>
+              {draft.schedulePublish ? (
+                <>
+                  <label htmlFor="admin-event-publish-at">Publicar em</label>
+                  <input
+                    id="admin-event-publish-at"
+                    type="datetime-local"
+                    value={draft.publishAtLocal}
+                    onChange={(event) => setDraft((prev) => ({ ...prev, publishAtLocal: event.target.value }))}
+                  />
+                  <small className="about-copy image-spec-note">
+                    O evento fica visível só no admin até esse horário. Depois entra no calendário público automaticamente.
+                  </small>
+                </>
+              ) : null}
+
               <label>Poster (upload local)</label>
               <p className="about-copy image-spec-note">{IMAGE_SPEC.agendaPoster}</p>
               <input type="file" accept="image/*" onChange={onPosterUpload} />
@@ -5238,6 +5330,11 @@ export default function App() {
   const [agendaSyncError, setAgendaSyncError] = useState('');
   const [youtubeChannelBranding, setYoutubeChannelBranding] = useState(null);
 
+  const publicAgendaEvents = useMemo(
+    () => filterPublicAgendaEvents(agendaEvents),
+    [agendaEvents],
+  );
+
   const youtubeChannelHref = useMemo(() => {
     const fromEnv = resolveYoutubeChannelWebUrl(YOUTUBE_CHANNEL_ID);
     if (fromEnv) return fromEnv;
@@ -5275,13 +5372,35 @@ export default function App() {
       }
       try {
         const fullSelect =
-          'id, date, time, lineup, poster, ticket_url, photos_url, reservations_enabled, reservation_layout, created_at';
+          'id, date, time, lineup, poster, ticket_url, photos_url, publish_at, reservations_enabled, reservation_layout, created_at';
         const firstAttempt = await supabase
           .from(SUPABASE_EVENTS_TABLE)
           .select(fullSelect)
           .order('created_at', { ascending: true });
         let rowsData = firstAttempt.data;
-        if (firstAttempt.error && isMissingPhotosUrlColumnError(firstAttempt.error.message)) {
+        if (firstAttempt.error && isMissingPublishAtColumnError(firstAttempt.error.message)) {
+          const fallback = await supabase
+            .from(SUPABASE_EVENTS_TABLE)
+            .select('id, date, time, lineup, poster, ticket_url, photos_url, reservations_enabled, reservation_layout, created_at')
+            .order('created_at', { ascending: true });
+          if (fallback.error && isMissingReservationColumnsError(fallback.error.message)) {
+            const fallback2 = await supabase
+              .from(SUPABASE_EVENTS_TABLE)
+              .select('id, date, time, lineup, poster, ticket_url, photos_url, created_at')
+              .order('created_at', { ascending: true });
+            if (fallback2.error) throw fallback2.error;
+            rowsData = fallback2.data || [];
+          } else if (fallback.error) {
+            throw fallback.error;
+          } else {
+            rowsData = fallback.data || [];
+          }
+          if (active) {
+            setAgendaSyncError(
+              'Agendamento de publicação: rode supabase/migrations/009_douha_events_publish_at.sql no Supabase.',
+            );
+          }
+        } else if (firstAttempt.error && isMissingPhotosUrlColumnError(firstAttempt.error.message)) {
           const fallback = await supabase
             .from(SUPABASE_EVENTS_TABLE)
             .select('id, date, time, lineup, poster, ticket_url, created_at')
@@ -5320,7 +5439,11 @@ export default function App() {
     };
 
     loadAgendaFromSupabase();
-    return () => { active = false; };
+    const pollId = window.setInterval(loadAgendaFromSupabase, 60000);
+    return () => {
+      active = false;
+      window.clearInterval(pollId);
+    };
   }, []);
 
   useEffect(() => {
@@ -5550,7 +5673,7 @@ export default function App() {
             path="/"
             element={(
               <HomePage
-                agendaEvents={agendaEvents}
+                agendaEvents={publicAgendaEvents}
                 sitePhotos={sitePhotos}
                 rolePhotos={rolePhotos}
                 editorialPosts={editorialPosts}
@@ -5565,11 +5688,11 @@ export default function App() {
           <Route path="/quem-somos" element={<QuemSomosPage siteContent={siteContent} />} />
           <Route
             path="/agenda"
-            element={<AgendaPage agendaEvents={agendaEvents} calendarFocus={calendarFocus} onFocusConsumed={() => setCalendarFocus(null)} />}
+            element={<AgendaPage agendaEvents={publicAgendaEvents} calendarFocus={calendarFocus} onFocusConsumed={() => setCalendarFocus(null)} />}
           />
           <Route
             path="/calendario"
-            element={<AgendaPage agendaEvents={agendaEvents} calendarFocus={calendarFocus} onFocusConsumed={() => setCalendarFocus(null)} />}
+            element={<AgendaPage agendaEvents={publicAgendaEvents} calendarFocus={calendarFocus} onFocusConsumed={() => setCalendarFocus(null)} />}
           />
           <Route path="/tickets" element={<Navigate to="/calendario" replace />} />
           <Route path="/fotos" element={<Navigate to="/" replace />} />
@@ -5589,8 +5712,8 @@ export default function App() {
           />
           <Route path="/editorial" element={<EditorialPage editorialPosts={editorialPosts} siteContent={siteContent} />} />
           <Route path="/contato" element={<ContactPage siteContent={siteContent} />} />
-          <Route path="/reservas" element={<ReservasPage agendaEvents={agendaEvents} CalendarSection={AgendaCalendarSection} douhaWhatsAppUrl={normalizeWhatsAppUrl(siteContent.contactWhatsApp) || siteContent.contactWhatsApp} />} />
-          <Route path="/reservas/:eventId" element={<ReservasPage agendaEvents={agendaEvents} CalendarSection={AgendaCalendarSection} douhaWhatsAppUrl={normalizeWhatsAppUrl(siteContent.contactWhatsApp) || siteContent.contactWhatsApp} />} />
+          <Route path="/reservas" element={<ReservasPage agendaEvents={publicAgendaEvents} CalendarSection={AgendaCalendarSection} douhaWhatsAppUrl={normalizeWhatsAppUrl(siteContent.contactWhatsApp) || siteContent.contactWhatsApp} />} />
+          <Route path="/reservas/:eventId" element={<ReservasPage agendaEvents={publicAgendaEvents} CalendarSection={AgendaCalendarSection} douhaWhatsAppUrl={normalizeWhatsAppUrl(siteContent.contactWhatsApp) || siteContent.contactWhatsApp} />} />
           <Route path="/privacidade" element={<PrivacyPolicyPage siteContent={siteContent} />} />
           <Route
             path="/admin"
