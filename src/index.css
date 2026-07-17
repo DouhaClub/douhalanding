@@ -806,7 +806,7 @@ body.site-mobile-nav-open {
     width: clamp(130px, 38vw, 168px);
     max-width: none;
     transform: translate(calc(-50% + 0px), calc(-100% - 52vh));
-    animation-name: rolePhotosDiagonal;
+    animation-name: rolePhotosDiagonalMobile;
     animation-fill-mode: both;
   }
 }

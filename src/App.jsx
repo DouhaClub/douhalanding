@@ -1800,7 +1800,6 @@ function heroCarouselImageProps(index) {
 const ROLE_STRIP_LANES = 7;
 const ROLE_STRIP_LANES_MOBILE = 2;
 const ROLE_STRIP_MIN_CARDS = 21;
-const ROLE_STRIP_MAX_CARDS = 120;
 /** Mobile: 1 foto por trilho (2 no total) — evita empilhar na vertical. */
 const ROLE_LANE_X_MOBILE = [24, 76];
 /** Mobile: queda 12s; 1.375s entre esq/dir; espacamento por trilho divide 12s (sem sobrepor). */
@@ -1898,7 +1897,9 @@ function shuffleRolePhotoEntriesDeterministic(entries) {
 
 function getRoleStripCardCount(photoCount) {
   if (!photoCount) return ROLE_STRIP_MIN_CARDS;
-  return Math.min(ROLE_STRIP_MAX_CARDS, Math.max(ROLE_STRIP_MIN_CARDS, Math.round(photoCount * 2.2)));
+  /* Densidade fixa no DOM: mais fotos só enriquecem o sorteio (idx % length).
+     Escalar cards com a quantidade de uploads empilhava trilhos no desktop. */
+  return ROLE_STRIP_MIN_CARDS;
 }
 
 const HERO_STRIP_MIN_COPIES = 4;
@@ -1947,6 +1948,14 @@ function HomePage({
   const dragStartRef = useRef({ x: 0, scrollLeft: 0 });
   const heroDragCleanupRef = useRef(null);
   const heroMarqueeOffscreenRef = useRef(false);
+  const syncHeroMarqueeScroll = () => {
+    const el = heroShellRef.current;
+    if (!el) return;
+    const half = el.scrollWidth / 2;
+    if (half <= 0) return;
+    if (el.scrollLeft >= half - 1) el.scrollLeft -= half;
+    else if (el.scrollLeft < 1) el.scrollLeft = Math.min(el.scrollLeft, half - 1);
+  };
   const [heroDragging, setHeroDragging] = useState(false);
   const [videoCards, setVideoCards] = useState([]);
   const [roleStripMobile, setRoleStripMobile] = useState(
@@ -2023,6 +2032,18 @@ function HomePage({
       window.removeEventListener('resize', onLayout);
     };
   }, []);
+
+  useEffect(() => {
+    const el = heroShellRef.current;
+    if (!el) return undefined;
+    const inner = el.querySelector('.hero-photo-carousel');
+    const ro = new ResizeObserver(() => {
+      syncHeroMarqueeScroll();
+    });
+    ro.observe(el);
+    if (inner) ro.observe(inner);
+    return () => ro.disconnect();
+  }, [heroPhotoStrip]);
 
   useEffect(() => {
     const el = heroShellRef.current;
@@ -2175,6 +2196,7 @@ function HomePage({
                       alt=""
                       draggable={false}
                       onDragStart={(ev) => ev.preventDefault()}
+                      onLoad={syncHeroMarqueeScroll}
                       {...heroCarouselImageProps(idx)}
                     />
                   </figure>
@@ -2186,6 +2208,7 @@ function HomePage({
                         alt=""
                         draggable={false}
                         onDragStart={(ev) => ev.preventDefault()}
+                        onLoad={syncHeroMarqueeScroll}
                         {...heroCarouselImageProps(idx)}
                       />
                     </div>
@@ -2195,6 +2218,7 @@ function HomePage({
                         alt=""
                         draggable={false}
                         onDragStart={(ev) => ev.preventDefault()}
+                        onLoad={syncHeroMarqueeScroll}
                         {...heroCarouselImageProps(idx)}
                       />
                     </div>
@@ -2206,6 +2230,7 @@ function HomePage({
                       alt=""
                       draggable={false}
                       onDragStart={(ev) => ev.preventDefault()}
+                      onLoad={syncHeroMarqueeScroll}
                       {...heroCarouselImageProps(idx)}
                     />
                   </figure>
