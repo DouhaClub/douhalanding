@@ -8,7 +8,7 @@ import {
   buildReservationWhatsAppUrl,
   createTableReservation,
   enrichSpotWithPackage,
-  fetchReservationsForEvent,
+  fetchReservationSlotsForEvent,
   formatEventReservationLabel,
   formatSpotPackageNote,
   getBlockedTableIdSet,
@@ -69,14 +69,16 @@ export function ReservasPage({ agendaEvents, CalendarSection, douhaWhatsAppUrl }
     setIsLoading(true);
     setLoadError('');
     try {
-      const rows = await fetchReservationsForEvent(eventId);
+      const rows = await fetchReservationSlotsForEvent(eventId);
       setReservations(rows);
     } catch (error) {
       const msg = String(error?.message || error);
       setLoadError(
         isMissingReservationColumnsError(msg)
           ? 'Pré-reservas ainda não configuradas no Supabase. Rode supabase/migrations/007_douha_reservations.sql'
-          : `Não foi possível carregar reservas: ${msg}`,
+          : msg.includes('douha_table_reservation_slots')
+            ? 'Mapa de reservas: rode supabase/migrations/010_douha_reservations_privacy.sql no Supabase.'
+            : `Não foi possível carregar reservas: ${msg}`,
       );
       setReservations([]);
     } finally {

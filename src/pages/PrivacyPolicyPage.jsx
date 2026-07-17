@@ -78,6 +78,22 @@ export function PrivacyPolicyPage({ siteContent }) {
               limitado; o painel administrativo é restrito a operadores autorizados.
             </p>
 
+            <h2>Pré-reservas de mesa ou camarote</h2>
+            <p>
+              Quando a pré-reserva estiver aberta para um evento, você pode enviar nome, telefone, e-mail
+              (opcional), número de pessoas e observações pelo formulário do mapa. Esses dados são usados
+              apenas para confirmar sua solicitação com a equipe do Douha Club (por exemplo via WhatsApp).
+            </p>
+            <p>
+              No mapa público, outros visitantes veem somente quais mesas ou camarotes já estão ocupados —
+              não nome, telefone ou e-mail de quem reservou. Apenas administradores autorizados acessam
+              os dados completos das pré-reservas.
+            </p>
+            <p>
+              A pré-reserva no site não substitui pagamento ou confirmação final; a equipe pode entrar em
+              contato para validar disponibilidade e condições do pacote.
+            </p>
+
             <h2>YouTube</h2>
             <p>
               Na home e em Sets, podemos exibir miniaturas e links para vídeos do canal Douha no YouTube.

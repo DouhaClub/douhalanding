@@ -17,7 +17,6 @@ import {
 import { Analytics } from './components/Analytics';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { DocumentMeta } from './components/DocumentMeta';
-import { ResponsivePhoto } from './components/ResponsivePhoto';
 import { SiteFavicon } from './components/SiteFavicon';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
@@ -31,7 +30,6 @@ import {
   isMissingPublishAtColumnError,
   toDatetimeLocalValue,
 } from './lib/agendaPublish';
-import { responsiveBannerBackgroundUrl } from './lib/responsiveImage';
 import {
   isMissingReservationColumnsError,
   mapAgendaReservationFieldsToDb,
@@ -351,10 +349,9 @@ function YellowStripBg({ imageUrl }) {
   const url = String(imageUrl || '').trim();
   if (!url) return null;
   return (
-    <ResponsivePhoto
+    <img
       className="douha-yellow-strip__bg"
       src={url}
-      preset="banner"
       alt=""
       aria-hidden="true"
       decoding="async"
@@ -372,8 +369,7 @@ function yellowStripClassName(baseClassName, imageUrl) {
 function buildRoleStageBgProps(imageUrl) {
   const url = String(imageUrl || '').trim();
   if (!url) return { className: 'people-role-photos-stage' };
-  const optimized = responsiveBannerBackgroundUrl(url);
-  const safe = optimized.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  const safe = url.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
   return {
     className: 'people-role-photos-stage role-stage--has-bg',
     style: { '--role-stage-bg-url': `url("${safe}")` },
@@ -1467,13 +1463,10 @@ function AgendaEventPoster({ night, overlayLabel }) {
   return (
     <div className="agenda-poster">
       {hasPoster ? (
-        <ResponsivePhoto
+        <img
           src={night.poster}
-          preset="poster"
           alt={`Poster do evento — ${night.lineup}`}
           title={IMAGE_SPEC.agendaPoster}
-          loading="lazy"
-          decoding="async"
         />
       ) : (
         <div className="agenda-poster-placeholder">
@@ -1795,10 +1788,10 @@ const HERO_MARQUEE_HALF_LOOP_SEC = 130;
 
 /** Carrossel: prioriza primeiras imagens; demais lazy para aliviar rede e decode. */
 function heroCarouselImageProps(index) {
-  const eager = index < 6;
+  const eager = index < 2;
   return {
     loading: eager ? 'eager' : 'lazy',
-    fetchPriority: index < 2 ? 'high' : 'low',
+    fetchPriority: index < 1 ? 'high' : 'low',
     decoding: 'async',
   };
 }
@@ -1965,6 +1958,8 @@ function HomePage({
   };
   const [heroDragging, setHeroDragging] = useState(false);
   const [videoCards, setVideoCards] = useState([]);
+  const roleStripRef = useRef(null);
+  const [roleStripVisible, setRoleStripVisible] = useState(false);
   const [roleStripMobile, setRoleStripMobile] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
   );
@@ -2038,6 +2033,19 @@ function HomePage({
       mq.removeEventListener('change', onLayout);
       window.removeEventListener('resize', onLayout);
     };
+  }, []);
+
+  useEffect(() => {
+    const el = roleStripRef.current;
+    if (!el) return undefined;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) setRoleStripVisible(true);
+      },
+      { root: null, rootMargin: '320px 0px', threshold: 0.01 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
 
   useEffect(() => {
@@ -2198,9 +2206,8 @@ function HomePage({
               {heroPhotoStrip.map((photo, idx) => (
                 photo.mode === 'wide' ? (
                   <figure className="photo-frame hero-photo-frame hero-photo-frame-wide" key={`hero-photo-wide-${photo.primary}-${idx}`}>
-                    <ResponsivePhoto
+                    <img
                       src={photo.primary}
-                      preset="heroWide"
                       alt=""
                       draggable={false}
                       onDragStart={(ev) => ev.preventDefault()}
@@ -2211,9 +2218,8 @@ function HomePage({
                 ) : photo.mode === 'double' ? (
                   <figure className="photo-frame hero-photo-frame hero-photo-frame-double" key={`hero-photo-double-${photo.primary}-${photo.secondary}-${idx}`}>
                     <div className="hero-double-slot">
-                      <ResponsivePhoto
+                      <img
                         src={photo.primary}
-                        preset="hero"
                         alt=""
                         draggable={false}
                         onDragStart={(ev) => ev.preventDefault()}
@@ -2222,9 +2228,8 @@ function HomePage({
                       />
                     </div>
                     <div className="hero-double-slot">
-                      <ResponsivePhoto
+                      <img
                         src={photo.secondary}
-                        preset="hero"
                         alt=""
                         draggable={false}
                         onDragStart={(ev) => ev.preventDefault()}
@@ -2235,9 +2240,8 @@ function HomePage({
                   </figure>
                 ) : (
                   <figure className="photo-frame hero-photo-frame" key={`hero-photo-${photo.primary}-${idx}`}>
-                    <ResponsivePhoto
+                    <img
                       src={photo.primary}
-                      preset="hero"
                       alt=""
                       draggable={false}
                       onDragStart={(ev) => ev.preventDefault()}
@@ -2267,10 +2271,9 @@ function HomePage({
         >
           {String(siteContent?.experienceHeroImageUrl || '').trim() ? (
             <>
-              <ResponsivePhoto
+              <img
                 className="experience-highlight-img"
                 src={String(siteContent.experienceHeroImageUrl).trim()}
-                preset="banner"
                 alt=""
                 loading="lazy"
                 decoding="async"
@@ -2284,7 +2287,11 @@ function HomePage({
         </div>
       </section>
 
-      <section className="people-role-photos" aria-label="Espaco reservado para fotos do role">
+      <section
+        className="people-role-photos"
+        aria-label="Espaco reservado para fotos do role"
+        ref={roleStripRef}
+      >
         <div {...buildRoleStageBgProps(siteContent?.rolePhotosStageBgUrl)}>
           <div className="people-role-photos-diagonal" aria-hidden="true">
             {rolePhotoCards.map((item) => (
@@ -2293,10 +2300,9 @@ function HomePage({
                 className="role-photo-card"
                 style={item.style}
               >
-                {item.url ? (
-                  <ResponsivePhoto
+                {item.url && roleStripVisible ? (
+                  <img
                     src={item.url}
-                    preset="role"
                     alt=""
                     draggable={false}
                     loading="lazy"
@@ -2989,7 +2995,7 @@ function EditorialMosaicTile({ post, variant = 'side' }) {
     >
       <div className={`editorial-mosaic-tile__visual${coverUrl ? '' : ' editorial-mosaic-tile__visual--empty'}`}>
         {coverUrl ? (
-          <ResponsivePhoto src={coverUrl} preset="editorial" alt="" loading="lazy" decoding="async" />
+          <img src={coverUrl} alt="" loading="lazy" decoding="async" />
         ) : (
           <div className="editorial-mosaic-tile__visual-fallback" aria-hidden="true">
             <span>{String(post.issue || 'DOUHA').trim()}</span>
@@ -3073,7 +3079,7 @@ function EditorialArticlePage({ editorialPosts }) {
 
           {coverUrl ? (
             <figure className="editorial-article__hero">
-              <ResponsivePhoto src={coverUrl} preset="editorial" alt="" loading="eager" decoding="async" />
+              <img src={coverUrl} alt="" loading="eager" decoding="async" />
             </figure>
           ) : null}
 
@@ -3213,7 +3219,7 @@ function AdminMosaicDragThumb({ post }) {
   const coverUrl = String(post?.coverUrl || '').trim();
   return (
     <div className={`admin-mosaic-thumb${coverUrl ? '' : ' admin-mosaic-thumb--empty'}`}>
-      {coverUrl ? <ResponsivePhoto src={coverUrl} preset="editorial" alt="" /> : <span>{editorialMosaicCategoryLabel(post)}</span>}
+      {coverUrl ? <img src={coverUrl} alt="" /> : <span>{editorialMosaicCategoryLabel(post)}</span>}
     </div>
   );
 }

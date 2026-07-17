@@ -2,6 +2,8 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 export const SUPABASE_RESERVATIONS_TABLE = 'douha_table_reservations';
 
+export const SUPABASE_RESERVATION_SLOTS_VIEW = 'douha_table_reservation_slots';
+
 export const DOUHA_FLOOR_MAP_IMAGE = '/brand/reservation/douha-floor-map.png';
 
 export const RESERVATION_STATUS = {
@@ -213,7 +215,14 @@ export function isMissingReservationColumnsError(message) {
     text.includes('reservations_enabled')
     || text.includes('reservation_layout')
     || text.includes('douha_table_reservations')
+    || text.includes('douha_table_reservation_slots')
   );
+}
+
+export function isMissingReservationSlotsViewError(message) {
+  const text = String(message || '').toLowerCase();
+  return text.includes('douha_table_reservation_slots')
+    && (text.includes('does not exist') || text.includes('schema cache') || text.includes('could not find'));
 }
 
 function normalizeTableEntry(table, idx) {
@@ -375,6 +384,29 @@ export function getOccupiedTableIds(reservations) {
     set.add(String(row.table_id || row.tableId || ''));
   });
   return set;
+}
+
+export async function fetchReservationSlotsForEvent(eventId) {
+  if (!isSupabaseConfigured || !supabase || !eventId) return [];
+  const viewAttempt = await supabase
+    .from(SUPABASE_RESERVATION_SLOTS_VIEW)
+    .select('event_id, table_id, status')
+    .eq('event_id', eventId);
+  if (!viewAttempt.error) return viewAttempt.data || [];
+  if (isMissingReservationSlotsViewError(viewAttempt.error.message)) {
+    const fallback = await supabase
+      .from(SUPABASE_RESERVATIONS_TABLE)
+      .select('event_id, table_id, status')
+      .eq('event_id', eventId)
+      .in('status', ACTIVE_STATUSES);
+    if (fallback.error) {
+      if (isMissingReservationColumnsError(fallback.error.message)) return [];
+      throw fallback.error;
+    }
+    return fallback.data || [];
+  }
+  if (isMissingReservationColumnsError(viewAttempt.error.message)) return [];
+  throw viewAttempt.error;
 }
 
 export async function fetchReservationsForEvent(eventId) {
