@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "reoptimize-images": "node scripts/reoptimize-storage-images.mjs",
+    "migrate-storage-to-public": "node scripts/migrate-storage-to-public.mjs",
+    "migrate-db-from-manifest": "node scripts/generate-migrate-db-sql.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.101.1",
@@ -24,6 +27,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "sharp": "^0.34.2",
     "vite": "^8.0.1"
   }
 }

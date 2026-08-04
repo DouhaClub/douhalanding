@@ -1,0 +1,1200 @@
+{
+  "migratedAt": "2026-08-04T22:25:36.652Z",
+  "dryRun": false,
+  "optimize": true,
+  "skipDb": true,
+  "totalBytes": 29205756,
+  "urlMap": {
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1784319257672-jivxfy-gallery-1784319257668-wide.jpg": "/gallery/1784319257672-jivxfy-gallery-1784319257668-wide.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1784310916533-tzdom4-gallery-1784310916517-wide.jpg": "/gallery/1784310916533-tzdom4-gallery-1784310916517-wide.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1784310698644-6p34t5-gallery-1784310698644-wide.jpg": "/gallery/1784310698644-6p34t5-gallery-1784310698644-wide.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1784310700772-vogva0-gallery-1784310700772.jpg": "/gallery/1784310700772-vogva0-gallery-1784310700772.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1780430551491-bmmpfg-gallery-1780430551491-wide.jpg": "/gallery/1780430551491-bmmpfg-gallery-1780430551491-wide.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1780430301888-8rztib-gallery-1780430301888.jpg": "/gallery/1780430301888-8rztib-gallery-1780430301888.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1780430302310-re05ql-gallery-1780430302309-wide.jpg": "/gallery/1780430302310-re05ql-gallery-1780430302309-wide.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1780430303026-evevqb-gallery-1780430303026.jpg": "/gallery/1780430303026-evevqb-gallery-1780430303026.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1780430303250-psoa25-gallery-1780430303250-wide.jpg": "/gallery/1780430303250-psoa25-gallery-1780430303250-wide.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1780430303518-v9dr5y-gallery-1780430303518-wide.jpg": "/gallery/1780430303518-v9dr5y-gallery-1780430303518-wide.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1780430020078-kdlzyx-gallery-1780430020078-wide.jpg": "/gallery/1780430020078-kdlzyx-gallery-1780430020078-wide.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784324096556-bhs99x-role-photo-1784324096551.jpg": "/role-photos/1784324096556-bhs99x-role-photo-1784324096551.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784324098511-mhqe0v-role-photo-1784324098510.jpg": "/role-photos/1784324098511-mhqe0v-role-photo-1784324098510.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784324099940-4lzpms-role-photo-1784324099939.jpg": "/role-photos/1784324099940-4lzpms-role-photo-1784324099939.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784324101559-omtikc-role-photo-1784324101558.jpg": "/role-photos/1784324101559-omtikc-role-photo-1784324101558.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784324102995-g2ly1k-role-photo-1784324102994.jpg": "/role-photos/1784324102995-g2ly1k-role-photo-1784324102994.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784324104374-dx4r5z-role-photo-1784324104373.jpg": "/role-photos/1784324104374-dx4r5z-role-photo-1784324104373.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784324105508-jjxx39-role-photo-1784324105507.jpg": "/role-photos/1784324105508-jjxx39-role-photo-1784324105507.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322269814-o0n5os-role-photo-1784322269804.jpg": "/role-photos/1784322269814-o0n5os-role-photo-1784322269804.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322272526-xwujgq-role-photo-1784322272524.jpg": "/role-photos/1784322272526-xwujgq-role-photo-1784322272524.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322275148-cl4os8-role-photo-1784322275147.jpg": "/role-photos/1784322275148-cl4os8-role-photo-1784322275147.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322277443-zcvjed-role-photo-1784322277442.jpg": "/role-photos/1784322277443-zcvjed-role-photo-1784322277442.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322279798-scplq7-role-photo-1784322279797.jpg": "/role-photos/1784322279798-scplq7-role-photo-1784322279797.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322281698-ujwv09-role-photo-1784322281698.jpg": "/role-photos/1784322281698-ujwv09-role-photo-1784322281698.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322283877-olm0f4-role-photo-1784322283876.jpg": "/role-photos/1784322283877-olm0f4-role-photo-1784322283876.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322285944-2bdmpm-role-photo-1784322285943.jpg": "/role-photos/1784322285944-2bdmpm-role-photo-1784322285943.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322287654-wag4f1-role-photo-1784322287654.jpg": "/role-photos/1784322287654-wag4f1-role-photo-1784322287654.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322290379-w2hbbz-role-photo-1784322290378.jpg": "/role-photos/1784322290379-w2hbbz-role-photo-1784322290378.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322291959-3nyeq8-role-photo-1784322291959.jpg": "/role-photos/1784322291959-3nyeq8-role-photo-1784322291959.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322293667-6ndl6s-role-photo-1784322293667.jpg": "/role-photos/1784322293667-6ndl6s-role-photo-1784322293667.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322295398-csyucz-role-photo-1784322295398.jpg": "/role-photos/1784322295398-csyucz-role-photo-1784322295398.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322297206-11diwx-role-photo-1784322297205.jpg": "/role-photos/1784322297206-11diwx-role-photo-1784322297205.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322299217-x1ke9b-role-photo-1784322299217.jpg": "/role-photos/1784322299217-x1ke9b-role-photo-1784322299217.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322300982-aldm5i-role-photo-1784322300981.jpg": "/role-photos/1784322300982-aldm5i-role-photo-1784322300981.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322302834-pjd4ui-role-photo-1784322302833.jpg": "/role-photos/1784322302834-pjd4ui-role-photo-1784322302833.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322305144-4y5zkq-role-photo-1784322305143.jpg": "/role-photos/1784322305144-4y5zkq-role-photo-1784322305143.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322307447-anluk0-role-photo-1784322307446.jpg": "/role-photos/1784322307447-anluk0-role-photo-1784322307446.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322308981-vawckr-role-photo-1784322308980.jpg": "/role-photos/1784322308981-vawckr-role-photo-1784322308980.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322310474-ou4k1z-role-photo-1784322310474.jpg": "/role-photos/1784322310474-ou4k1z-role-photo-1784322310474.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322311730-lv2c0j-role-photo-1784322311730.jpg": "/role-photos/1784322311730-lv2c0j-role-photo-1784322311730.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322312902-gnwduq-role-photo-1784322312901.jpg": "/role-photos/1784322312902-gnwduq-role-photo-1784322312901.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784322313897-jooh2o-role-photo-1784322313897.jpg": "/role-photos/1784322313897-jooh2o-role-photo-1784322313897.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784312566401-ke5le6-role-photo-1784312566385.jpg": "/role-photos/1784312566401-ke5le6-role-photo-1784312566385.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784312568964-o871pb-role-photo-1784312568963.jpg": "/role-photos/1784312568964-o871pb-role-photo-1784312568963.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784312185128-7i48mp-role-photo-1784312185103.jpg": "/role-photos/1784312185128-7i48mp-role-photo-1784312185103.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784312186727-ksw9s5-role-photo-1784312186726.jpg": "/role-photos/1784312186727-ksw9s5-role-photo-1784312186726.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784311811342-0hhfxg-role-photo-1784311811319.jpg": "/role-photos/1784311811342-0hhfxg-role-photo-1784311811319.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784311813696-3z4uph-role-photo-1784311813695.jpg": "/role-photos/1784311813696-3z4uph-role-photo-1784311813695.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784311558619-g7aib7-role-photo-1784311558609.jpg": "/role-photos/1784311558619-g7aib7-role-photo-1784311558609.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784311485953-qil5fa-role-photo-1784311485948.jpg": "/role-photos/1784311485953-qil5fa-role-photo-1784311485948.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784311487757-jrvf66-role-photo-1784311487757.jpg": "/role-photos/1784311487757-jrvf66-role-photo-1784311487757.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784311219065-2z50o1-role-photo-1784311219048.jpg": "/role-photos/1784311219065-2z50o1-role-photo-1784311219048.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784311221110-w4hw30-role-photo-1784311221110.jpg": "/role-photos/1784311221110-w4hw30-role-photo-1784311221110.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1784311222621-mv4go8-role-photo-1784311222621.jpg": "/role-photos/1784311222621-mv4go8-role-photo-1784311222621.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1781040427046-fw49k2-role-photo-1781040427046.jpg": "/role-photos/1781040427046-fw49k2-role-photo-1781040427046.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1781040427842-iivjxc-role-photo-1781040427842.jpg": "/role-photos/1781040427842-iivjxc-role-photo-1781040427842.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1781040428019-212een-role-photo-1781040428019.jpg": "/role-photos/1781040428019-212een-role-photo-1781040428019.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1781040428294-4b7rzx-role-photo-1781040428294.jpg": "/role-photos/1781040428294-4b7rzx-role-photo-1781040428294.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1775066553445-xp2gcr-role-photo-1775066553445.jpg": "/role-photos/1775066553445-xp2gcr-role-photo-1775066553445.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1775066553859-5wncp3-role-photo-1775066553858.jpg": "/role-photos/1775066553859-5wncp3-role-photo-1775066553858.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-role-photos/role-photos/1775056817065-rn9eaa-role-photo-1775056817064.jpg": "/role-photos/1775056817065-rn9eaa-role-photo-1775056817064.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779386200959-lis22r-saveclip.app_470984956_17893298346127364_5805702101262804596_n.jpg": "/events/1779386200959-lis22r-saveclip.app_470984956_17893298346127364_5805702101262804596_n.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1785186540548-cqvr0b-nativa-08-post.png": "/events/1785186540548-cqvr0b-nativa-08-post.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1774991048043-6uffzh-01.jpg": "/events/1774991048043-6uffzh-01.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779386351954-k62x15-saveclip.app_473804092_17896613295127364_8254907480574968877_n.jpg": "/events/1779386351954-k62x15-saveclip.app_473804092_17896613295127364_8254907480574968877_n.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779386387914-4sbv7l-saveclip.app_474750271_17897544051127364_7951177457130642010_n.jpg": "/events/1779386387914-4sbv7l-saveclip.app_474750271_17897544051127364_7951177457130642010_n.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779386305539-zqy7o6-saveclip.app_472728265_17895751107127364_8720303945284621763_n.jpg": "/events/1779386305539-zqy7o6-saveclip.app_472728265_17895751107127364_8720303945284621763_n.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779386433283-1nh7n9-saveclip.app_475445163_17898564810127364_4816978168021150850_n.jpg": "/events/1779386433283-1nh7n9-saveclip.app_475445163_17898564810127364_4816978168021150850_n.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779386685035-vjhxze-saveclip.app_477024873_17899867191127364_123509112497890305_n.jpg": "/events/1779386685035-vjhxze-saveclip.app_477024873_17899867191127364_123509112497890305_n.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779386711635-9y9t4q-saveclip.app_482993170_17903266215127364_7227658618972326710_n.jpg": "/events/1779386711635-9y9t4q-saveclip.app_482993170_17903266215127364_7227658618972326710_n.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779386746165-os4kyc-saveclip.app_490041772_17907261657127364_75296158094683657_n.jpg": "/events/1779386746165-os4kyc-saveclip.app_490041772_17907261657127364_75296158094683657_n.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779386947489-59oesu-saveclip.app_491517161_17852826255429175_8730516271630970036_n-1-.jpg": "/events/1779386947489-59oesu-saveclip.app_491517161_17852826255429175_8730516271630970036_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779395168950-4wnfde-saveclip.app_497544436_17910456975127364_4421027198408333271_n-1-.jpg": "/events/1779395168950-4wnfde-saveclip.app_497544436_17910456975127364_4421027198408333271_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779395238534-tug6cc-saveclip.app_518786727_17918074857127364_8188733899746772533_n-1-.jpg": "/events/1779395238534-tug6cc-saveclip.app_518786727_17918074857127364_8188733899746772533_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779395499295-x24nj7-saveclip.app_517349292_17917170402127364_7279756819060087440_n-1-.jpg": "/events/1779395499295-x24nj7-saveclip.app_517349292_17917170402127364_7279756819060087440_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779395891600-6xs0qq-saveclip.app_540087893_17923303443127364_7793195728436323640_n-1-.jpg": "/events/1779395891600-6xs0qq-saveclip.app_540087893_17923303443127364_7793195728436323640_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779396219105-hbnggr-saveclip.app_550767367_17925270921127364_2681198722504724962_n-1-.jpg": "/events/1779396219105-hbnggr-saveclip.app_550767367_17925270921127364_2681198722504724962_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779395833351-pxflqa-saveclip.app_527431854_17920104843127364_7526923154781909265_n-1-.jpg": "/events/1779395833351-pxflqa-saveclip.app_527431854_17920104843127364_7526923154781909265_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779396743420-lsj66x-saveclip.app_553325611_17925986007127364_2715193267769627950_n-1-1-.jpg": "/events/1779396743420-lsj66x-saveclip.app_553325611_17925986007127364_2715193267769627950_n-1-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779396882840-2ahqhn-saveclip.app_589938929_17932497069127364_4153544907447718305_n-1-.jpg": "/events/1779396882840-2ahqhn-saveclip.app_589938929_17932497069127364_4153544907447718305_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780335962717-6o0tef-saveclip.app_619588160_17938575513127364_1734132458606942187_n-1-.jpg": "/events/1780335962717-6o0tef-saveclip.app_619588160_17938575513127364_1734132458606942187_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336183932-fk1ptl-saveclip.app_659090959_17948787522127364_3494547819440579724_n-1-1-1-.jpg": "/events/1780336183932-fk1ptl-saveclip.app_659090959_17948787522127364_3494547819440579724_n-1-1-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1774988994361-955htn-hmo_lineup_feed-3-.jpg": "/events/1774988994361-955htn-hmo_lineup_feed-3-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336620697-ufwznj-saveclip.app_662279252_17949472167127364_503636239821594463_n-1-1-.jpg": "/events/1780336620697-ufwznj-saveclip.app_662279252_17949472167127364_503636239821594463_n-1-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779386720307-5ph54z-saveclip.app_486514226_17905153260127364_3415371052858438758_n.jpg": "/events/1779386720307-5ph54z-saveclip.app_486514226_17905153260127364_3415371052858438758_n.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779386737846-r873no-saveclip.app_487874756_17905735848127364_792615624859041217_n.jpg": "/events/1779386737846-r873no-saveclip.app_487874756_17905735848127364_792615624859041217_n.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779395657058-x1smlk-saveclip.app_479423028_17900634801127364_4128158205068444527_n-1-.jpg": "/events/1779395657058-x1smlk-saveclip.app_479423028_17900634801127364_4128158205068444527_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779396752034-j367wf-saveclip.app_575297062_17931106812127364_8125799341349265310_n-1-.jpg": "/events/1779396752034-j367wf-saveclip.app_575297062_17931106812127364_8125799341349265310_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336135820-omzgsi-saveclip.app_627566196_17941055970127364_3452269093214915801_n-1-.jpg": "/events/1780336135820-omzgsi-saveclip.app_627566196_17941055970127364_3452269093214915801_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336107631-2uy8no-saveclip.app_647530034_17944013121127364_1077557948286231355_n-1-.jpg": "/events/1780336107631-2uy8no-saveclip.app_647530034_17944013121127364_1077557948286231355_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779396892850-y3u3kf-saveclip.app_590403170_17932812240127364_2765540545238024832_n-1-.jpg": "/events/1779396892850-y3u3kf-saveclip.app_590403170_17932812240127364_2765540545238024832_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336088440-omw9gf-saveclip.app_636962198_17942277099127364_1275762303846183778_n-1-.jpg": "/events/1780336088440-omw9gf-saveclip.app_636962198_17942277099127364_1275762303846183778_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336305016-atkii8-saveclip.app_658993418_17948361609127364_4546865907717810132_n-1-1-.jpg": "/events/1780336305016-atkii8-saveclip.app_658993418_17948361609127364_4546865907717810132_n-1-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779395292612-4qxcja-saveclip.app_511523555_17916173760127364_8741459390516162653_n-1-.jpg": "/events/1779395292612-4qxcja-saveclip.app_511523555_17916173760127364_8741459390516162653_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780335936180-cnerlq-saveclip.app_615787329_17937804495127364_8629160256084360936_n-1-.jpg": "/events/1780335936180-cnerlq-saveclip.app_615787329_17937804495127364_8629160256084360936_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780335983581-bznhuw-saveclip.app_607258739_17936239323127364_6334199767452558834_n-1-.jpg": "/events/1780335983581-bznhuw-saveclip.app_607258739_17936239323127364_6334199767452558834_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336205421-lq8ie6-saveclip.app_670006689_17950139313127364_3828495788603650864_n-1-1-.jpg": "/events/1780336205421-lq8ie6-saveclip.app_670006689_17950139313127364_3828495788603650864_n-1-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779395540708-o8dhf8-saveclip.app_522662581_17918652426127364_7750036056779297418_n-1-.jpg": "/events/1779395540708-o8dhf8-saveclip.app_522662581_17918652426127364_7750036056779297418_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336019733-wl0x7m-saveclip.app_622458393_17939528952127364_39834790964545541_n-1-.jpg": "/events/1780336019733-wl0x7m-saveclip.app_622458393_17939528952127364_39834790964545541_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779395937458-p20h5n-saveclip.app_535274949_17921891787127364_5159057291098993352_n-1-.jpg": "/events/1779395937458-p20h5n-saveclip.app_535274949_17921891787127364_5159057291098993352_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779395945796-04rf26-saveclip.app_548895530_17924939559127364_1577420155987717611_n-1-.jpg": "/events/1779395945796-04rf26-saveclip.app_548895530_17924939559127364_1577420155987717611_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779396271170-qn9jdb-saveclip.app_559180777_17927027997127364_8541316577538806810_n-1-.jpg": "/events/1779396271170-qn9jdb-saveclip.app_559180777_17927027997127364_8541316577538806810_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779396759712-513qgv-saveclip.app_570953033_17929652229127364_8980612744705158538_n-1-.jpg": "/events/1779396759712-513qgv-saveclip.app_570953033_17929652229127364_8980612744705158538_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779396900636-1hzngs-saveclip.app_590415039_17933983695127364_1531922032411378076_n-1-.jpg": "/events/1779396900636-1hzngs-saveclip.app_590415039_17933983695127364_1531922032411378076_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336590565-jbzsq9-saveclip.app_683941725_17952046389127364_7850038555916641525_n-1-1-.jpg": "/events/1780336590565-jbzsq9-saveclip.app_683941725_17952046389127364_7850038555916641525_n-1-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780337228787-775vld-captura-de-tela_1-6-2026_15652_www.instagram.com.jpg": "/events/1780337228787-775vld-captura-de-tela_1-6-2026_15652_www.instagram.com.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1782430722470-6ig43t-img_6134.png": "/events/1782430722470-6ig43t-img_6134.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780337027414-z0zgem-captura-de-tela_1-6-2026_15332_www.instagram.com.jpg": "/events/1780337027414-z0zgem-captura-de-tela_1-6-2026_15332_www.instagram.com.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336693292-bv6ge9-saveclip.app_652797067_17945714364127364_8632476237197684894_n-1-.jpg": "/events/1780336693292-bv6ge9-saveclip.app_652797067_17945714364127364_8632476237197684894_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336716591-bydlpi-saveclip.app_671828896_17951127345127364_7921432926325364494_n-1-1-1-.jpg": "/events/1780336716591-bydlpi-saveclip.app_671828896_17951127345127364_7921432926325364494_n-1-1-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336937301-5w2jf8-captura-de-tela_1-6-2026_15144_www.instagram.com.jpg": "/events/1780336937301-5w2jf8-captura-de-tela_1-6-2026_15144_www.instagram.com.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1783365892692-dukcqa-beltran-site.png": "/events/1783365892692-dukcqa-beltran-site.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336744309-lp6pln-saveclip.app_702410335_17954940573127364_5650458474092364141_n-1-1-.jpg": "/events/1780336744309-lp6pln-saveclip.app_702410335_17954940573127364_5650458474092364141_n-1-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1785351735086-5dt3fi-clementaum-post.png": "/events/1785351735086-5dt3fi-clementaum-post.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1783638849871-p9w2uw-post-arraia.png": "/events/1783638849871-p9w2uw-post-arraia.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336982722-xznnxe-captura-de-tela_1-6-2026_15246_www.instagram.com.jpg": "/events/1780336982722-xznnxe-captura-de-tela_1-6-2026_15246_www.instagram.com.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1781041783632-hq79b8-captura-de-tela_9-6-2026_184846_www.instagram.com.jpeg": "/events/1781041783632-hq79b8-captura-de-tela_9-6-2026_184846_www.instagram.com.jpeg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1782256174464-le3qtp-img_6106.png": "/events/1782256174464-le3qtp-img_6106.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780335913849-fn3ats-saveclip.app_598856971_17934829659127364_5923009435526875505_n-1-.jpg": "/events/1780335913849-fn3ats-saveclip.app_598856971_17934829659127364_5923009435526875505_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336278693-mrszvh-saveclip.app_620979117_17938914117127364_719754018009959563_n-1-.jpg": "/events/1780336278693-mrszvh-saveclip.app_620979117_17938914117127364_719754018009959563_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1780336655992-1z4db4-saveclip.app_657748664_17948072001127364_185109136389571911_n-1-.jpg": "/events/1780336655992-1z4db4-saveclip.app_657748664_17948072001127364_185109136389571911_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779395461069-hlubim-saveclip.app_516389899_17916957354127364_619640110298747621_n-1-.jpg": "/events/1779395461069-hlubim-saveclip.app_516389899_17916957354127364_619640110298747621_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779396342547-yltlou-saveclip.app_540628071_17923421343127364_2122185646816477466_n-1-.jpg": "/events/1779396342547-yltlou-saveclip.app_540628071_17923421343127364_2122185646816477466_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1779396306540-yjtth9-saveclip.app_556288475_17926704306127364_3189391209709197709_n-1-.jpg": "/events/1779396306540-yjtth9-saveclip.app_556288475_17926704306127364_3189391209709197709_n-1-.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1781560000426-bg67fk-img_5971.png": "/events/1781560000426-bg67fk-img_5971.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/events/1781042145732-m0w8a1-captura-de-tela_9-6-2026_183057_www.instagram.com.jpg": "/events/1781042145732-m0w8a1-captura-de-tela_9-6-2026_183057_www.instagram.com.jpg",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1779397724178-b6yvn3-banner-douha.png": "/gallery/1779397724178-b6yvn3-banner-douha.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1779397038331-mynyt9-1-faixa-1-.png": "/gallery/1779397038331-mynyt9-1-faixa-1-.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1779397041722-zz46wr-2-faixa-1-.png": "/gallery/1779397041722-zz46wr-2-faixa-1-.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1780332135896-mip7n9-fundo-espac-ado.png": "/gallery/1780332135896-mip7n9-fundo-espac-ado.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/gallery/1780350855492-12lzx2-logo_douha_transparente_corrigido.png": "/gallery/1780350855492-12lzx2-logo_douha_transparente_corrigido.png",
+    "https://uimsmtqdmtklvgpaktru.supabase.co/storage/v1/object/public/douha-posters/editorial/1780341568393-dshlmx-chatgpt-image-1-de-jun.-de-2026-16_19_05.png": "/editorial/1780341568393-dshlmx-chatgpt-image-1-de-jun.-de-2026-16_19_05.png"
+  },
+  "files": [
+    {
+      "label": "douha-posters/gallery/1784319257672-jivxfy-gallery-1784319257668-wide.jpg",
+      "publicUrl": "/gallery/1784319257672-jivxfy-gallery-1784319257668-wide.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1784319257672-jivxfy-gallery-1784319257668-wide.jpg",
+      "bytes": 421126,
+      "before": 15683699,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1784310916533-tzdom4-gallery-1784310916517-wide.jpg",
+      "publicUrl": "/gallery/1784310916533-tzdom4-gallery-1784310916517-wide.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1784310916533-tzdom4-gallery-1784310916517-wide.jpg",
+      "bytes": 828991,
+      "before": 1794293,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1784310698644-6p34t5-gallery-1784310698644-wide.jpg",
+      "publicUrl": "/gallery/1784310698644-6p34t5-gallery-1784310698644-wide.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1784310698644-6p34t5-gallery-1784310698644-wide.jpg",
+      "bytes": 881225,
+      "before": 19921055,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1784310700772-vogva0-gallery-1784310700772.jpg",
+      "publicUrl": "/gallery/1784310700772-vogva0-gallery-1784310700772.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1784310700772-vogva0-gallery-1784310700772.jpg",
+      "bytes": 569293,
+      "before": 10473235,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1780430551491-bmmpfg-gallery-1780430551491-wide.jpg",
+      "publicUrl": "/gallery/1780430551491-bmmpfg-gallery-1780430551491-wide.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1780430551491-bmmpfg-gallery-1780430551491-wide.jpg",
+      "bytes": 543992,
+      "before": 560256,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1780430301888-8rztib-gallery-1780430301888.jpg",
+      "publicUrl": "/gallery/1780430301888-8rztib-gallery-1780430301888.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1780430301888-8rztib-gallery-1780430301888.jpg",
+      "bytes": 549561,
+      "before": 549561,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1780430302310-re05ql-gallery-1780430302309-wide.jpg",
+      "publicUrl": "/gallery/1780430302310-re05ql-gallery-1780430302309-wide.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1780430302310-re05ql-gallery-1780430302309-wide.jpg",
+      "bytes": 706554,
+      "before": 706554,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1780430303026-evevqb-gallery-1780430303026.jpg",
+      "publicUrl": "/gallery/1780430303026-evevqb-gallery-1780430303026.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1780430303026-evevqb-gallery-1780430303026.jpg",
+      "bytes": 506507,
+      "before": 506507,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1780430303250-psoa25-gallery-1780430303250-wide.jpg",
+      "publicUrl": "/gallery/1780430303250-psoa25-gallery-1780430303250-wide.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1780430303250-psoa25-gallery-1780430303250-wide.jpg",
+      "bytes": 266070,
+      "before": 266070,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1780430303518-v9dr5y-gallery-1780430303518-wide.jpg",
+      "publicUrl": "/gallery/1780430303518-v9dr5y-gallery-1780430303518-wide.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1780430303518-v9dr5y-gallery-1780430303518-wide.jpg",
+      "bytes": 725598,
+      "before": 725598,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1780430020078-kdlzyx-gallery-1780430020078-wide.jpg",
+      "publicUrl": "/gallery/1780430020078-kdlzyx-gallery-1780430020078-wide.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1780430020078-kdlzyx-gallery-1780430020078-wide.jpg",
+      "bytes": 175380,
+      "before": 175380,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784324096556-bhs99x-role-photo-1784324096551.jpg",
+      "publicUrl": "/role-photos/1784324096556-bhs99x-role-photo-1784324096551.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784324096556-bhs99x-role-photo-1784324096551.jpg",
+      "bytes": 405343,
+      "before": 14424366,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784324098511-mhqe0v-role-photo-1784324098510.jpg",
+      "publicUrl": "/role-photos/1784324098511-mhqe0v-role-photo-1784324098510.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784324098511-mhqe0v-role-photo-1784324098510.jpg",
+      "bytes": 262998,
+      "before": 12710371,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784324099940-4lzpms-role-photo-1784324099939.jpg",
+      "publicUrl": "/role-photos/1784324099940-4lzpms-role-photo-1784324099939.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784324099940-4lzpms-role-photo-1784324099939.jpg",
+      "bytes": 280929,
+      "before": 12386118,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784324101559-omtikc-role-photo-1784324101558.jpg",
+      "publicUrl": "/role-photos/1784324101559-omtikc-role-photo-1784324101558.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784324101559-omtikc-role-photo-1784324101558.jpg",
+      "bytes": 333457,
+      "before": 11632420,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784324102995-g2ly1k-role-photo-1784324102994.jpg",
+      "publicUrl": "/role-photos/1784324102995-g2ly1k-role-photo-1784324102994.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784324102995-g2ly1k-role-photo-1784324102994.jpg",
+      "bytes": 211510,
+      "before": 11113487,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784324104374-dx4r5z-role-photo-1784324104373.jpg",
+      "publicUrl": "/role-photos/1784324104374-dx4r5z-role-photo-1784324104373.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784324104374-dx4r5z-role-photo-1784324104373.jpg",
+      "bytes": 97090,
+      "before": 7351849,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784324105508-jjxx39-role-photo-1784324105507.jpg",
+      "publicUrl": "/role-photos/1784324105508-jjxx39-role-photo-1784324105507.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784324105508-jjxx39-role-photo-1784324105507.jpg",
+      "bytes": 265877,
+      "before": 9969930,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322269814-o0n5os-role-photo-1784322269804.jpg",
+      "publicUrl": "/role-photos/1784322269814-o0n5os-role-photo-1784322269804.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322269814-o0n5os-role-photo-1784322269804.jpg",
+      "bytes": 332636,
+      "before": 17502575,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322272526-xwujgq-role-photo-1784322272524.jpg",
+      "publicUrl": "/role-photos/1784322272526-xwujgq-role-photo-1784322272524.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322272526-xwujgq-role-photo-1784322272524.jpg",
+      "bytes": 271572,
+      "before": 15620642,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322275148-cl4os8-role-photo-1784322275147.jpg",
+      "publicUrl": "/role-photos/1784322275148-cl4os8-role-photo-1784322275147.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322275148-cl4os8-role-photo-1784322275147.jpg",
+      "bytes": 330905,
+      "before": 16671377,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322277443-zcvjed-role-photo-1784322277442.jpg",
+      "publicUrl": "/role-photos/1784322277443-zcvjed-role-photo-1784322277442.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322277443-zcvjed-role-photo-1784322277442.jpg",
+      "bytes": 122374,
+      "before": 15780943,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322279798-scplq7-role-photo-1784322279797.jpg",
+      "publicUrl": "/role-photos/1784322279798-scplq7-role-photo-1784322279797.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322279798-scplq7-role-photo-1784322279797.jpg",
+      "bytes": 182326,
+      "before": 13763565,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322281698-ujwv09-role-photo-1784322281698.jpg",
+      "publicUrl": "/role-photos/1784322281698-ujwv09-role-photo-1784322281698.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322281698-ujwv09-role-photo-1784322281698.jpg",
+      "bytes": 315599,
+      "before": 13694245,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322283877-olm0f4-role-photo-1784322283876.jpg",
+      "publicUrl": "/role-photos/1784322283877-olm0f4-role-photo-1784322283876.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322283877-olm0f4-role-photo-1784322283876.jpg",
+      "bytes": 244369,
+      "before": 14191184,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322285944-2bdmpm-role-photo-1784322285943.jpg",
+      "publicUrl": "/role-photos/1784322285944-2bdmpm-role-photo-1784322285943.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322285944-2bdmpm-role-photo-1784322285943.jpg",
+      "bytes": 413753,
+      "before": 13581387,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322287654-wag4f1-role-photo-1784322287654.jpg",
+      "publicUrl": "/role-photos/1784322287654-wag4f1-role-photo-1784322287654.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322287654-wag4f1-role-photo-1784322287654.jpg",
+      "bytes": 167102,
+      "before": 14791100,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322290379-w2hbbz-role-photo-1784322290378.jpg",
+      "publicUrl": "/role-photos/1784322290379-w2hbbz-role-photo-1784322290378.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322290379-w2hbbz-role-photo-1784322290378.jpg",
+      "bytes": 155665,
+      "before": 11066487,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322291959-3nyeq8-role-photo-1784322291959.jpg",
+      "publicUrl": "/role-photos/1784322291959-3nyeq8-role-photo-1784322291959.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322291959-3nyeq8-role-photo-1784322291959.jpg",
+      "bytes": 197883,
+      "before": 11066479,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322293667-6ndl6s-role-photo-1784322293667.jpg",
+      "publicUrl": "/role-photos/1784322293667-6ndl6s-role-photo-1784322293667.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322293667-6ndl6s-role-photo-1784322293667.jpg",
+      "bytes": 264088,
+      "before": 13608146,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322295398-csyucz-role-photo-1784322295398.jpg",
+      "publicUrl": "/role-photos/1784322295398-csyucz-role-photo-1784322295398.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322295398-csyucz-role-photo-1784322295398.jpg",
+      "bytes": 191425,
+      "before": 11756095,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322297206-11diwx-role-photo-1784322297205.jpg",
+      "publicUrl": "/role-photos/1784322297206-11diwx-role-photo-1784322297205.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322297206-11diwx-role-photo-1784322297205.jpg",
+      "bytes": 216505,
+      "before": 12527312,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322299217-x1ke9b-role-photo-1784322299217.jpg",
+      "publicUrl": "/role-photos/1784322299217-x1ke9b-role-photo-1784322299217.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322299217-x1ke9b-role-photo-1784322299217.jpg",
+      "bytes": 448707,
+      "before": 12861753,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322300982-aldm5i-role-photo-1784322300981.jpg",
+      "publicUrl": "/role-photos/1784322300982-aldm5i-role-photo-1784322300981.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322300982-aldm5i-role-photo-1784322300981.jpg",
+      "bytes": 307490,
+      "before": 13358715,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322302834-pjd4ui-role-photo-1784322302833.jpg",
+      "publicUrl": "/role-photos/1784322302834-pjd4ui-role-photo-1784322302833.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322302834-pjd4ui-role-photo-1784322302833.jpg",
+      "bytes": 247974,
+      "before": 18034589,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322305144-4y5zkq-role-photo-1784322305143.jpg",
+      "publicUrl": "/role-photos/1784322305144-4y5zkq-role-photo-1784322305143.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322305144-4y5zkq-role-photo-1784322305143.jpg",
+      "bytes": 185862,
+      "before": 12874854,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322307447-anluk0-role-photo-1784322307446.jpg",
+      "publicUrl": "/role-photos/1784322307447-anluk0-role-photo-1784322307446.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322307447-anluk0-role-photo-1784322307446.jpg",
+      "bytes": 352565,
+      "before": 12331247,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322308981-vawckr-role-photo-1784322308980.jpg",
+      "publicUrl": "/role-photos/1784322308981-vawckr-role-photo-1784322308980.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322308981-vawckr-role-photo-1784322308980.jpg",
+      "bytes": 192479,
+      "before": 9594075,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322310474-ou4k1z-role-photo-1784322310474.jpg",
+      "publicUrl": "/role-photos/1784322310474-ou4k1z-role-photo-1784322310474.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322310474-ou4k1z-role-photo-1784322310474.jpg",
+      "bytes": 136556,
+      "before": 7978445,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322311730-lv2c0j-role-photo-1784322311730.jpg",
+      "publicUrl": "/role-photos/1784322311730-lv2c0j-role-photo-1784322311730.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322311730-lv2c0j-role-photo-1784322311730.jpg",
+      "bytes": 188898,
+      "before": 8325881,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322312902-gnwduq-role-photo-1784322312901.jpg",
+      "publicUrl": "/role-photos/1784322312902-gnwduq-role-photo-1784322312901.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322312902-gnwduq-role-photo-1784322312901.jpg",
+      "bytes": 371238,
+      "before": 5502670,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784322313897-jooh2o-role-photo-1784322313897.jpg",
+      "publicUrl": "/role-photos/1784322313897-jooh2o-role-photo-1784322313897.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784322313897-jooh2o-role-photo-1784322313897.jpg",
+      "bytes": 313781,
+      "before": 4230043,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784312566401-ke5le6-role-photo-1784312566385.jpg",
+      "publicUrl": "/role-photos/1784312566401-ke5le6-role-photo-1784312566385.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784312566401-ke5le6-role-photo-1784312566385.jpg",
+      "bytes": 265718,
+      "before": 20002130,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784312568964-o871pb-role-photo-1784312568963.jpg",
+      "publicUrl": "/role-photos/1784312568964-o871pb-role-photo-1784312568963.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784312568964-o871pb-role-photo-1784312568963.jpg",
+      "bytes": 188124,
+      "before": 15074269,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784312185128-7i48mp-role-photo-1784312185103.jpg",
+      "publicUrl": "/role-photos/1784312185128-7i48mp-role-photo-1784312185103.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784312185128-7i48mp-role-photo-1784312185103.jpg",
+      "bytes": 263993,
+      "before": 11645942,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784312186727-ksw9s5-role-photo-1784312186726.jpg",
+      "publicUrl": "/role-photos/1784312186727-ksw9s5-role-photo-1784312186726.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784312186727-ksw9s5-role-photo-1784312186726.jpg",
+      "bytes": 187969,
+      "before": 7695728,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784311811342-0hhfxg-role-photo-1784311811319.jpg",
+      "publicUrl": "/role-photos/1784311811342-0hhfxg-role-photo-1784311811319.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784311811342-0hhfxg-role-photo-1784311811319.jpg",
+      "bytes": 175942,
+      "before": 13612197,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784311813696-3z4uph-role-photo-1784311813695.jpg",
+      "publicUrl": "/role-photos/1784311813696-3z4uph-role-photo-1784311813695.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784311813696-3z4uph-role-photo-1784311813695.jpg",
+      "bytes": 454858,
+      "before": 14476129,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784311558619-g7aib7-role-photo-1784311558609.jpg",
+      "publicUrl": "/role-photos/1784311558619-g7aib7-role-photo-1784311558609.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784311558619-g7aib7-role-photo-1784311558609.jpg",
+      "bytes": 396855,
+      "before": 14148530,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784311485953-qil5fa-role-photo-1784311485948.jpg",
+      "publicUrl": "/role-photos/1784311485953-qil5fa-role-photo-1784311485948.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784311485953-qil5fa-role-photo-1784311485948.jpg",
+      "bytes": 318459,
+      "before": 12011256,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784311487757-jrvf66-role-photo-1784311487757.jpg",
+      "publicUrl": "/role-photos/1784311487757-jrvf66-role-photo-1784311487757.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784311487757-jrvf66-role-photo-1784311487757.jpg",
+      "bytes": 191703,
+      "before": 6700678,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784311219065-2z50o1-role-photo-1784311219048.jpg",
+      "publicUrl": "/role-photos/1784311219065-2z50o1-role-photo-1784311219048.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784311219065-2z50o1-role-photo-1784311219048.jpg",
+      "bytes": 273612,
+      "before": 12869690,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784311221110-w4hw30-role-photo-1784311221110.jpg",
+      "publicUrl": "/role-photos/1784311221110-w4hw30-role-photo-1784311221110.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784311221110-w4hw30-role-photo-1784311221110.jpg",
+      "bytes": 233617,
+      "before": 10591210,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1784311222621-mv4go8-role-photo-1784311222621.jpg",
+      "publicUrl": "/role-photos/1784311222621-mv4go8-role-photo-1784311222621.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1784311222621-mv4go8-role-photo-1784311222621.jpg",
+      "bytes": 578564,
+      "before": 20624194,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1781040427046-fw49k2-role-photo-1781040427046.jpg",
+      "publicUrl": "/role-photos/1781040427046-fw49k2-role-photo-1781040427046.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1781040427046-fw49k2-role-photo-1781040427046.jpg",
+      "bytes": 505612,
+      "before": 505612,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1781040427842-iivjxc-role-photo-1781040427842.jpg",
+      "publicUrl": "/role-photos/1781040427842-iivjxc-role-photo-1781040427842.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1781040427842-iivjxc-role-photo-1781040427842.jpg",
+      "bytes": 178741,
+      "before": 311815,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1781040428019-212een-role-photo-1781040428019.jpg",
+      "publicUrl": "/role-photos/1781040428019-212een-role-photo-1781040428019.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1781040428019-212een-role-photo-1781040428019.jpg",
+      "bytes": 262097,
+      "before": 392130,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1781040428294-4b7rzx-role-photo-1781040428294.jpg",
+      "publicUrl": "/role-photos/1781040428294-4b7rzx-role-photo-1781040428294.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1781040428294-4b7rzx-role-photo-1781040428294.jpg",
+      "bytes": 162616,
+      "before": 502356,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1775066553445-xp2gcr-role-photo-1775066553445.jpg",
+      "publicUrl": "/role-photos/1775066553445-xp2gcr-role-photo-1775066553445.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1775066553445-xp2gcr-role-photo-1775066553445.jpg",
+      "bytes": 309459,
+      "before": 440930,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1775066553859-5wncp3-role-photo-1775066553858.jpg",
+      "publicUrl": "/role-photos/1775066553859-5wncp3-role-photo-1775066553858.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1775066553859-5wncp3-role-photo-1775066553858.jpg",
+      "bytes": 210788,
+      "before": 336879,
+      "status": "ok"
+    },
+    {
+      "label": "douha-role-photos/role-photos/1775056817065-rn9eaa-role-photo-1775056817064.jpg",
+      "publicUrl": "/role-photos/1775056817065-rn9eaa-role-photo-1775056817064.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\role-photos\\1775056817065-rn9eaa-role-photo-1775056817064.jpg",
+      "bytes": 155000,
+      "before": 504257,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779386200959-lis22r-saveclip.app_470984956_17893298346127364_5805702101262804596_n.jpg",
+      "publicUrl": "/events/1779386200959-lis22r-saveclip.app_470984956_17893298346127364_5805702101262804596_n.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779386200959-lis22r-saveclip.app_470984956_17893298346127364_5805702101262804596_n.jpg",
+      "bytes": 169086,
+      "before": 169086,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1785186540548-cqvr0b-nativa-08-post.png",
+      "publicUrl": "/events/1785186540548-cqvr0b-nativa-08-post.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1785186540548-cqvr0b-nativa-08-post.png",
+      "bytes": 192232,
+      "before": 192232,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1774991048043-6uffzh-01.jpg",
+      "publicUrl": "/events/1774991048043-6uffzh-01.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1774991048043-6uffzh-01.jpg",
+      "bytes": 102736,
+      "before": 102736,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779386351954-k62x15-saveclip.app_473804092_17896613295127364_8254907480574968877_n.jpg",
+      "publicUrl": "/events/1779386351954-k62x15-saveclip.app_473804092_17896613295127364_8254907480574968877_n.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779386351954-k62x15-saveclip.app_473804092_17896613295127364_8254907480574968877_n.jpg",
+      "bytes": 199141,
+      "before": 199141,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779386387914-4sbv7l-saveclip.app_474750271_17897544051127364_7951177457130642010_n.jpg",
+      "publicUrl": "/events/1779386387914-4sbv7l-saveclip.app_474750271_17897544051127364_7951177457130642010_n.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779386387914-4sbv7l-saveclip.app_474750271_17897544051127364_7951177457130642010_n.jpg",
+      "bytes": 97704,
+      "before": 103064,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779386305539-zqy7o6-saveclip.app_472728265_17895751107127364_8720303945284621763_n.jpg",
+      "publicUrl": "/events/1779386305539-zqy7o6-saveclip.app_472728265_17895751107127364_8720303945284621763_n.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779386305539-zqy7o6-saveclip.app_472728265_17895751107127364_8720303945284621763_n.jpg",
+      "bytes": 93642,
+      "before": 93642,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779386433283-1nh7n9-saveclip.app_475445163_17898564810127364_4816978168021150850_n.jpg",
+      "publicUrl": "/events/1779386433283-1nh7n9-saveclip.app_475445163_17898564810127364_4816978168021150850_n.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779386433283-1nh7n9-saveclip.app_475445163_17898564810127364_4816978168021150850_n.jpg",
+      "bytes": 83141,
+      "before": 83141,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779386685035-vjhxze-saveclip.app_477024873_17899867191127364_123509112497890305_n.jpg",
+      "publicUrl": "/events/1779386685035-vjhxze-saveclip.app_477024873_17899867191127364_123509112497890305_n.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779386685035-vjhxze-saveclip.app_477024873_17899867191127364_123509112497890305_n.jpg",
+      "bytes": 66312,
+      "before": 66312,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779386711635-9y9t4q-saveclip.app_482993170_17903266215127364_7227658618972326710_n.jpg",
+      "publicUrl": "/events/1779386711635-9y9t4q-saveclip.app_482993170_17903266215127364_7227658618972326710_n.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779386711635-9y9t4q-saveclip.app_482993170_17903266215127364_7227658618972326710_n.jpg",
+      "bytes": 86821,
+      "before": 86821,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779386746165-os4kyc-saveclip.app_490041772_17907261657127364_75296158094683657_n.jpg",
+      "publicUrl": "/events/1779386746165-os4kyc-saveclip.app_490041772_17907261657127364_75296158094683657_n.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779386746165-os4kyc-saveclip.app_490041772_17907261657127364_75296158094683657_n.jpg",
+      "bytes": 289030,
+      "before": 289030,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779386947489-59oesu-saveclip.app_491517161_17852826255429175_8730516271630970036_n-1-.jpg",
+      "publicUrl": "/events/1779386947489-59oesu-saveclip.app_491517161_17852826255429175_8730516271630970036_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779386947489-59oesu-saveclip.app_491517161_17852826255429175_8730516271630970036_n-1-.jpg",
+      "bytes": 135930,
+      "before": 135930,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779395168950-4wnfde-saveclip.app_497544436_17910456975127364_4421027198408333271_n-1-.jpg",
+      "publicUrl": "/events/1779395168950-4wnfde-saveclip.app_497544436_17910456975127364_4421027198408333271_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779395168950-4wnfde-saveclip.app_497544436_17910456975127364_4421027198408333271_n-1-.jpg",
+      "bytes": 97911,
+      "before": 97911,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779395238534-tug6cc-saveclip.app_518786727_17918074857127364_8188733899746772533_n-1-.jpg",
+      "publicUrl": "/events/1779395238534-tug6cc-saveclip.app_518786727_17918074857127364_8188733899746772533_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779395238534-tug6cc-saveclip.app_518786727_17918074857127364_8188733899746772533_n-1-.jpg",
+      "bytes": 109799,
+      "before": 112905,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779395499295-x24nj7-saveclip.app_517349292_17917170402127364_7279756819060087440_n-1-.jpg",
+      "publicUrl": "/events/1779395499295-x24nj7-saveclip.app_517349292_17917170402127364_7279756819060087440_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779395499295-x24nj7-saveclip.app_517349292_17917170402127364_7279756819060087440_n-1-.jpg",
+      "bytes": 145051,
+      "before": 145051,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779395891600-6xs0qq-saveclip.app_540087893_17923303443127364_7793195728436323640_n-1-.jpg",
+      "publicUrl": "/events/1779395891600-6xs0qq-saveclip.app_540087893_17923303443127364_7793195728436323640_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779395891600-6xs0qq-saveclip.app_540087893_17923303443127364_7793195728436323640_n-1-.jpg",
+      "bytes": 87340,
+      "before": 87340,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779396219105-hbnggr-saveclip.app_550767367_17925270921127364_2681198722504724962_n-1-.jpg",
+      "publicUrl": "/events/1779396219105-hbnggr-saveclip.app_550767367_17925270921127364_2681198722504724962_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779396219105-hbnggr-saveclip.app_550767367_17925270921127364_2681198722504724962_n-1-.jpg",
+      "bytes": 136808,
+      "before": 140768,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779395833351-pxflqa-saveclip.app_527431854_17920104843127364_7526923154781909265_n-1-.jpg",
+      "publicUrl": "/events/1779395833351-pxflqa-saveclip.app_527431854_17920104843127364_7526923154781909265_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779395833351-pxflqa-saveclip.app_527431854_17920104843127364_7526923154781909265_n-1-.jpg",
+      "bytes": 56984,
+      "before": 58402,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779396743420-lsj66x-saveclip.app_553325611_17925986007127364_2715193267769627950_n-1-1-.jpg",
+      "publicUrl": "/events/1779396743420-lsj66x-saveclip.app_553325611_17925986007127364_2715193267769627950_n-1-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779396743420-lsj66x-saveclip.app_553325611_17925986007127364_2715193267769627950_n-1-1-.jpg",
+      "bytes": 104593,
+      "before": 104593,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779396882840-2ahqhn-saveclip.app_589938929_17932497069127364_4153544907447718305_n-1-.jpg",
+      "publicUrl": "/events/1779396882840-2ahqhn-saveclip.app_589938929_17932497069127364_4153544907447718305_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779396882840-2ahqhn-saveclip.app_589938929_17932497069127364_4153544907447718305_n-1-.jpg",
+      "bytes": 78763,
+      "before": 78763,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780335962717-6o0tef-saveclip.app_619588160_17938575513127364_1734132458606942187_n-1-.jpg",
+      "publicUrl": "/events/1780335962717-6o0tef-saveclip.app_619588160_17938575513127364_1734132458606942187_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780335962717-6o0tef-saveclip.app_619588160_17938575513127364_1734132458606942187_n-1-.jpg",
+      "bytes": 92831,
+      "before": 92831,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336183932-fk1ptl-saveclip.app_659090959_17948787522127364_3494547819440579724_n-1-1-1-.jpg",
+      "publicUrl": "/events/1780336183932-fk1ptl-saveclip.app_659090959_17948787522127364_3494547819440579724_n-1-1-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336183932-fk1ptl-saveclip.app_659090959_17948787522127364_3494547819440579724_n-1-1-1-.jpg",
+      "bytes": 85984,
+      "before": 85984,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1774988994361-955htn-hmo_lineup_feed-3-.jpg",
+      "publicUrl": "/events/1774988994361-955htn-hmo_lineup_feed-3-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1774988994361-955htn-hmo_lineup_feed-3-.jpg",
+      "bytes": 712782,
+      "before": 712782,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336620697-ufwznj-saveclip.app_662279252_17949472167127364_503636239821594463_n-1-1-.jpg",
+      "publicUrl": "/events/1780336620697-ufwznj-saveclip.app_662279252_17949472167127364_503636239821594463_n-1-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336620697-ufwznj-saveclip.app_662279252_17949472167127364_503636239821594463_n-1-1-.jpg",
+      "bytes": 63155,
+      "before": 63155,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779386720307-5ph54z-saveclip.app_486514226_17905153260127364_3415371052858438758_n.jpg",
+      "publicUrl": "/events/1779386720307-5ph54z-saveclip.app_486514226_17905153260127364_3415371052858438758_n.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779386720307-5ph54z-saveclip.app_486514226_17905153260127364_3415371052858438758_n.jpg",
+      "bytes": 116970,
+      "before": 117434,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779386737846-r873no-saveclip.app_487874756_17905735848127364_792615624859041217_n.jpg",
+      "publicUrl": "/events/1779386737846-r873no-saveclip.app_487874756_17905735848127364_792615624859041217_n.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779386737846-r873no-saveclip.app_487874756_17905735848127364_792615624859041217_n.jpg",
+      "bytes": 125260,
+      "before": 125297,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779395657058-x1smlk-saveclip.app_479423028_17900634801127364_4128158205068444527_n-1-.jpg",
+      "publicUrl": "/events/1779395657058-x1smlk-saveclip.app_479423028_17900634801127364_4128158205068444527_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779395657058-x1smlk-saveclip.app_479423028_17900634801127364_4128158205068444527_n-1-.jpg",
+      "bytes": 104343,
+      "before": 104343,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779396752034-j367wf-saveclip.app_575297062_17931106812127364_8125799341349265310_n-1-.jpg",
+      "publicUrl": "/events/1779396752034-j367wf-saveclip.app_575297062_17931106812127364_8125799341349265310_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779396752034-j367wf-saveclip.app_575297062_17931106812127364_8125799341349265310_n-1-.jpg",
+      "bytes": 83068,
+      "before": 83068,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336135820-omzgsi-saveclip.app_627566196_17941055970127364_3452269093214915801_n-1-.jpg",
+      "publicUrl": "/events/1780336135820-omzgsi-saveclip.app_627566196_17941055970127364_3452269093214915801_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336135820-omzgsi-saveclip.app_627566196_17941055970127364_3452269093214915801_n-1-.jpg",
+      "bytes": 81571,
+      "before": 84946,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336107631-2uy8no-saveclip.app_647530034_17944013121127364_1077557948286231355_n-1-.jpg",
+      "publicUrl": "/events/1780336107631-2uy8no-saveclip.app_647530034_17944013121127364_1077557948286231355_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336107631-2uy8no-saveclip.app_647530034_17944013121127364_1077557948286231355_n-1-.jpg",
+      "bytes": 105856,
+      "before": 105856,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779396892850-y3u3kf-saveclip.app_590403170_17932812240127364_2765540545238024832_n-1-.jpg",
+      "publicUrl": "/events/1779396892850-y3u3kf-saveclip.app_590403170_17932812240127364_2765540545238024832_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779396892850-y3u3kf-saveclip.app_590403170_17932812240127364_2765540545238024832_n-1-.jpg",
+      "bytes": 92371,
+      "before": 92371,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336088440-omw9gf-saveclip.app_636962198_17942277099127364_1275762303846183778_n-1-.jpg",
+      "publicUrl": "/events/1780336088440-omw9gf-saveclip.app_636962198_17942277099127364_1275762303846183778_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336088440-omw9gf-saveclip.app_636962198_17942277099127364_1275762303846183778_n-1-.jpg",
+      "bytes": 133645,
+      "before": 133645,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336305016-atkii8-saveclip.app_658993418_17948361609127364_4546865907717810132_n-1-1-.jpg",
+      "publicUrl": "/events/1780336305016-atkii8-saveclip.app_658993418_17948361609127364_4546865907717810132_n-1-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336305016-atkii8-saveclip.app_658993418_17948361609127364_4546865907717810132_n-1-1-.jpg",
+      "bytes": 100925,
+      "before": 100925,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779395292612-4qxcja-saveclip.app_511523555_17916173760127364_8741459390516162653_n-1-.jpg",
+      "publicUrl": "/events/1779395292612-4qxcja-saveclip.app_511523555_17916173760127364_8741459390516162653_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779395292612-4qxcja-saveclip.app_511523555_17916173760127364_8741459390516162653_n-1-.jpg",
+      "bytes": 110422,
+      "before": 110422,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780335936180-cnerlq-saveclip.app_615787329_17937804495127364_8629160256084360936_n-1-.jpg",
+      "publicUrl": "/events/1780335936180-cnerlq-saveclip.app_615787329_17937804495127364_8629160256084360936_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780335936180-cnerlq-saveclip.app_615787329_17937804495127364_8629160256084360936_n-1-.jpg",
+      "bytes": 104902,
+      "before": 104902,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780335983581-bznhuw-saveclip.app_607258739_17936239323127364_6334199767452558834_n-1-.jpg",
+      "publicUrl": "/events/1780335983581-bznhuw-saveclip.app_607258739_17936239323127364_6334199767452558834_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780335983581-bznhuw-saveclip.app_607258739_17936239323127364_6334199767452558834_n-1-.jpg",
+      "bytes": 88756,
+      "before": 88756,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336205421-lq8ie6-saveclip.app_670006689_17950139313127364_3828495788603650864_n-1-1-.jpg",
+      "publicUrl": "/events/1780336205421-lq8ie6-saveclip.app_670006689_17950139313127364_3828495788603650864_n-1-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336205421-lq8ie6-saveclip.app_670006689_17950139313127364_3828495788603650864_n-1-1-.jpg",
+      "bytes": 120169,
+      "before": 120169,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779395540708-o8dhf8-saveclip.app_522662581_17918652426127364_7750036056779297418_n-1-.jpg",
+      "publicUrl": "/events/1779395540708-o8dhf8-saveclip.app_522662581_17918652426127364_7750036056779297418_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779395540708-o8dhf8-saveclip.app_522662581_17918652426127364_7750036056779297418_n-1-.jpg",
+      "bytes": 86745,
+      "before": 86745,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336019733-wl0x7m-saveclip.app_622458393_17939528952127364_39834790964545541_n-1-.jpg",
+      "publicUrl": "/events/1780336019733-wl0x7m-saveclip.app_622458393_17939528952127364_39834790964545541_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336019733-wl0x7m-saveclip.app_622458393_17939528952127364_39834790964545541_n-1-.jpg",
+      "bytes": 64567,
+      "before": 64567,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779395937458-p20h5n-saveclip.app_535274949_17921891787127364_5159057291098993352_n-1-.jpg",
+      "publicUrl": "/events/1779395937458-p20h5n-saveclip.app_535274949_17921891787127364_5159057291098993352_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779395937458-p20h5n-saveclip.app_535274949_17921891787127364_5159057291098993352_n-1-.jpg",
+      "bytes": 58220,
+      "before": 58220,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779395945796-04rf26-saveclip.app_548895530_17924939559127364_1577420155987717611_n-1-.jpg",
+      "publicUrl": "/events/1779395945796-04rf26-saveclip.app_548895530_17924939559127364_1577420155987717611_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779395945796-04rf26-saveclip.app_548895530_17924939559127364_1577420155987717611_n-1-.jpg",
+      "bytes": 85010,
+      "before": 85010,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779396271170-qn9jdb-saveclip.app_559180777_17927027997127364_8541316577538806810_n-1-.jpg",
+      "publicUrl": "/events/1779396271170-qn9jdb-saveclip.app_559180777_17927027997127364_8541316577538806810_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779396271170-qn9jdb-saveclip.app_559180777_17927027997127364_8541316577538806810_n-1-.jpg",
+      "bytes": 95892,
+      "before": 95892,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779396759712-513qgv-saveclip.app_570953033_17929652229127364_8980612744705158538_n-1-.jpg",
+      "publicUrl": "/events/1779396759712-513qgv-saveclip.app_570953033_17929652229127364_8980612744705158538_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779396759712-513qgv-saveclip.app_570953033_17929652229127364_8980612744705158538_n-1-.jpg",
+      "bytes": 104283,
+      "before": 104283,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779396900636-1hzngs-saveclip.app_590415039_17933983695127364_1531922032411378076_n-1-.jpg",
+      "publicUrl": "/events/1779396900636-1hzngs-saveclip.app_590415039_17933983695127364_1531922032411378076_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779396900636-1hzngs-saveclip.app_590415039_17933983695127364_1531922032411378076_n-1-.jpg",
+      "bytes": 77355,
+      "before": 77355,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336590565-jbzsq9-saveclip.app_683941725_17952046389127364_7850038555916641525_n-1-1-.jpg",
+      "publicUrl": "/events/1780336590565-jbzsq9-saveclip.app_683941725_17952046389127364_7850038555916641525_n-1-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336590565-jbzsq9-saveclip.app_683941725_17952046389127364_7850038555916641525_n-1-1-.jpg",
+      "bytes": 90037,
+      "before": 90037,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780337228787-775vld-captura-de-tela_1-6-2026_15652_www.instagram.com.jpg",
+      "publicUrl": "/events/1780337228787-775vld-captura-de-tela_1-6-2026_15652_www.instagram.com.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780337228787-775vld-captura-de-tela_1-6-2026_15652_www.instagram.com.jpg",
+      "bytes": 44236,
+      "before": 44236,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1782430722470-6ig43t-img_6134.png",
+      "publicUrl": "/events/1782430722470-6ig43t-img_6134.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1782430722470-6ig43t-img_6134.png",
+      "bytes": 300219,
+      "before": 300219,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780337027414-z0zgem-captura-de-tela_1-6-2026_15332_www.instagram.com.jpg",
+      "publicUrl": "/events/1780337027414-z0zgem-captura-de-tela_1-6-2026_15332_www.instagram.com.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780337027414-z0zgem-captura-de-tela_1-6-2026_15332_www.instagram.com.jpg",
+      "bytes": 61601,
+      "before": 61601,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336693292-bv6ge9-saveclip.app_652797067_17945714364127364_8632476237197684894_n-1-.jpg",
+      "publicUrl": "/events/1780336693292-bv6ge9-saveclip.app_652797067_17945714364127364_8632476237197684894_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336693292-bv6ge9-saveclip.app_652797067_17945714364127364_8632476237197684894_n-1-.jpg",
+      "bytes": 93978,
+      "before": 93978,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336716591-bydlpi-saveclip.app_671828896_17951127345127364_7921432926325364494_n-1-1-1-.jpg",
+      "publicUrl": "/events/1780336716591-bydlpi-saveclip.app_671828896_17951127345127364_7921432926325364494_n-1-1-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336716591-bydlpi-saveclip.app_671828896_17951127345127364_7921432926325364494_n-1-1-1-.jpg",
+      "bytes": 60374,
+      "before": 60374,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336937301-5w2jf8-captura-de-tela_1-6-2026_15144_www.instagram.com.jpg",
+      "publicUrl": "/events/1780336937301-5w2jf8-captura-de-tela_1-6-2026_15144_www.instagram.com.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336937301-5w2jf8-captura-de-tela_1-6-2026_15144_www.instagram.com.jpg",
+      "bytes": 60579,
+      "before": 60579,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1783365892692-dukcqa-beltran-site.png",
+      "publicUrl": "/events/1783365892692-dukcqa-beltran-site.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1783365892692-dukcqa-beltran-site.png",
+      "bytes": 336704,
+      "before": 336704,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336744309-lp6pln-saveclip.app_702410335_17954940573127364_5650458474092364141_n-1-1-.jpg",
+      "publicUrl": "/events/1780336744309-lp6pln-saveclip.app_702410335_17954940573127364_5650458474092364141_n-1-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336744309-lp6pln-saveclip.app_702410335_17954940573127364_5650458474092364141_n-1-1-.jpg",
+      "bytes": 107463,
+      "before": 107463,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1785351735086-5dt3fi-clementaum-post.png",
+      "publicUrl": "/events/1785351735086-5dt3fi-clementaum-post.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1785351735086-5dt3fi-clementaum-post.png",
+      "bytes": 500336,
+      "before": 500336,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1783638849871-p9w2uw-post-arraia.png",
+      "publicUrl": "/events/1783638849871-p9w2uw-post-arraia.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1783638849871-p9w2uw-post-arraia.png",
+      "bytes": 527667,
+      "before": 527667,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336982722-xznnxe-captura-de-tela_1-6-2026_15246_www.instagram.com.jpg",
+      "publicUrl": "/events/1780336982722-xznnxe-captura-de-tela_1-6-2026_15246_www.instagram.com.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336982722-xznnxe-captura-de-tela_1-6-2026_15246_www.instagram.com.jpg",
+      "bytes": 73832,
+      "before": 73832,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1781041783632-hq79b8-captura-de-tela_9-6-2026_184846_www.instagram.com.jpeg",
+      "publicUrl": "/events/1781041783632-hq79b8-captura-de-tela_9-6-2026_184846_www.instagram.com.jpeg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1781041783632-hq79b8-captura-de-tela_9-6-2026_184846_www.instagram.com.jpeg",
+      "bytes": 59515,
+      "before": 59515,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1782256174464-le3qtp-img_6106.png",
+      "publicUrl": "/events/1782256174464-le3qtp-img_6106.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1782256174464-le3qtp-img_6106.png",
+      "bytes": 333737,
+      "before": 333737,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780335913849-fn3ats-saveclip.app_598856971_17934829659127364_5923009435526875505_n-1-.jpg",
+      "publicUrl": "/events/1780335913849-fn3ats-saveclip.app_598856971_17934829659127364_5923009435526875505_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780335913849-fn3ats-saveclip.app_598856971_17934829659127364_5923009435526875505_n-1-.jpg",
+      "bytes": 58418,
+      "before": 58921,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336278693-mrszvh-saveclip.app_620979117_17938914117127364_719754018009959563_n-1-.jpg",
+      "publicUrl": "/events/1780336278693-mrszvh-saveclip.app_620979117_17938914117127364_719754018009959563_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336278693-mrszvh-saveclip.app_620979117_17938914117127364_719754018009959563_n-1-.jpg",
+      "bytes": 111013,
+      "before": 111013,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1780336655992-1z4db4-saveclip.app_657748664_17948072001127364_185109136389571911_n-1-.jpg",
+      "publicUrl": "/events/1780336655992-1z4db4-saveclip.app_657748664_17948072001127364_185109136389571911_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1780336655992-1z4db4-saveclip.app_657748664_17948072001127364_185109136389571911_n-1-.jpg",
+      "bytes": 87761,
+      "before": 87761,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779395461069-hlubim-saveclip.app_516389899_17916957354127364_619640110298747621_n-1-.jpg",
+      "publicUrl": "/events/1779395461069-hlubim-saveclip.app_516389899_17916957354127364_619640110298747621_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779395461069-hlubim-saveclip.app_516389899_17916957354127364_619640110298747621_n-1-.jpg",
+      "bytes": 80585,
+      "before": 80585,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779396342547-yltlou-saveclip.app_540628071_17923421343127364_2122185646816477466_n-1-.jpg",
+      "publicUrl": "/events/1779396342547-yltlou-saveclip.app_540628071_17923421343127364_2122185646816477466_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779396342547-yltlou-saveclip.app_540628071_17923421343127364_2122185646816477466_n-1-.jpg",
+      "bytes": 69046,
+      "before": 69046,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1779396306540-yjtth9-saveclip.app_556288475_17926704306127364_3189391209709197709_n-1-.jpg",
+      "publicUrl": "/events/1779396306540-yjtth9-saveclip.app_556288475_17926704306127364_3189391209709197709_n-1-.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1779396306540-yjtth9-saveclip.app_556288475_17926704306127364_3189391209709197709_n-1-.jpg",
+      "bytes": 96350,
+      "before": 96350,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1781560000426-bg67fk-img_5971.png",
+      "publicUrl": "/events/1781560000426-bg67fk-img_5971.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1781560000426-bg67fk-img_5971.png",
+      "bytes": 290184,
+      "before": 290184,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/events/1781042145732-m0w8a1-captura-de-tela_9-6-2026_183057_www.instagram.com.jpg",
+      "publicUrl": "/events/1781042145732-m0w8a1-captura-de-tela_9-6-2026_183057_www.instagram.com.jpg",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\events\\1781042145732-m0w8a1-captura-de-tela_9-6-2026_183057_www.instagram.com.jpg",
+      "bytes": 96267,
+      "before": 96267,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1779397724178-b6yvn3-banner-douha.png",
+      "publicUrl": "/gallery/1779397724178-b6yvn3-banner-douha.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1779397724178-b6yvn3-banner-douha.png",
+      "bytes": 203837,
+      "before": 203837,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1779397038331-mynyt9-1-faixa-1-.png",
+      "publicUrl": "/gallery/1779397038331-mynyt9-1-faixa-1-.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1779397038331-mynyt9-1-faixa-1-.png",
+      "bytes": 104163,
+      "before": 104163,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1779397041722-zz46wr-2-faixa-1-.png",
+      "publicUrl": "/gallery/1779397041722-zz46wr-2-faixa-1-.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1779397041722-zz46wr-2-faixa-1-.png",
+      "bytes": 60047,
+      "before": 60047,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1780332135896-mip7n9-fundo-espac-ado.png",
+      "publicUrl": "/gallery/1780332135896-mip7n9-fundo-espac-ado.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1780332135896-mip7n9-fundo-espac-ado.png",
+      "bytes": 309478,
+      "before": 309478,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/gallery/1780350855492-12lzx2-logo_douha_transparente_corrigido.png",
+      "publicUrl": "/gallery/1780350855492-12lzx2-logo_douha_transparente_corrigido.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\gallery\\1780350855492-12lzx2-logo_douha_transparente_corrigido.png",
+      "bytes": 66606,
+      "before": 110809,
+      "status": "ok"
+    },
+    {
+      "label": "douha-posters/editorial/1780341568393-dshlmx-chatgpt-image-1-de-jun.-de-2026-16_19_05.png",
+      "publicUrl": "/editorial/1780341568393-dshlmx-chatgpt-image-1-de-jun.-de-2026-16_19_05.png",
+      "filePath": "C:\\Users\\Vini_\\douha-club-landing\\public\\editorial\\1780341568393-dshlmx-chatgpt-image-1-de-jun.-de-2026-16_19_05.png",
+      "bytes": 196637,
+      "before": 196637,
+      "status": "ok"
+    }
+  ],
+  "dbStats": null
+}
