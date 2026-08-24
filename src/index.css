@@ -5063,6 +5063,91 @@ button:disabled,
   font-size: 0.82rem;
 }
 
+.admin-res-prices-card h3 {
+  margin-bottom: 0.35rem;
+}
+
+.admin-res-prices-intro {
+  margin: 0 0 1rem;
+}
+
+.admin-res-prices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.admin-res-price-card {
+  border: 1px solid rgba(45, 41, 22, 0.12);
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(255, 252, 245, 0.72);
+}
+
+.admin-res-price-card__head h4 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+}
+
+.admin-res-price-card__preview {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(45, 41, 22, 0.68);
+}
+
+.admin-res-price-card__fields {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.admin-res-price-field {
+  display: grid;
+  gap: 4px;
+  font-size: 0.82rem;
+}
+
+.admin-res-price-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(45, 41, 22, 0.16);
+  border-radius: 10px;
+  padding: 0 10px;
+  background: #fff;
+}
+
+.admin-res-price-prefix {
+  font-size: 0.82rem;
+  color: rgba(45, 41, 22, 0.55);
+}
+
+.admin-res-price-input-wrap input {
+  border: 0;
+  background: transparent;
+  width: 100%;
+  padding: 10px 0;
+  font: inherit;
+}
+
+.admin-res-prices-map-preview {
+  margin-top: 1rem;
+}
+
+.admin-res-prices-spot-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+}
+
+.admin-res-prices-actions {
+  margin-top: 1rem;
+}
+
+.admin-res-prices-note {
+  margin-top: 0.75rem;
+}
+
 .admin-res-toggle {
   display: inline-flex;
   align-items: center;

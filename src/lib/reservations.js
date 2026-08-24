@@ -17,7 +17,7 @@ const ACTIVE_STATUSES = [RESERVATION_STATUS.PENDING, RESERVATION_STATUS.CONFIRME
 const DOUHA_LAYOUT_WIDTH = 1024;
 const DOUHA_LAYOUT_HEIGHT = 992;
 
-const MESA_PACKAGE = {
+export const MESA_PACKAGE = {
   packageName: 'Mesa / bistrô',
   priceTotal: 500,
   priceConsumption: 290,

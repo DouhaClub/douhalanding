@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ReservationMap } from './ReservationMap';
+import { ReservationPriceEditor } from './ReservationPriceEditor';
 import {
   buildDefaultReservationLayout,
   deleteReservation,
@@ -75,6 +76,7 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [layoutJson, setLayoutJson] = useState('');
   const [spotBusyId, setSpotBusyId] = useState('');
+  const [isSavingPrices, setIsSavingPrices] = useState(false);
 
   const upcomingEvents = useMemo(
     () => [...(agendaEvents || [])].filter(isUpcomingEvent).sort(compareEventsByDate),
@@ -190,7 +192,6 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
     }
   };
 
-  /** Abre/fecha uma mesa ou camarote deste evento (fechado aparece como "Reservado" no site). */
   const onToggleSpotBlocked = async (table) => {
     if (!selectedEvent) return;
     setError('');
@@ -215,6 +216,26 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
       setError(formatReservationError(err));
     } finally {
       setSpotBusyId('');
+    }
+  };
+
+  const onSaveEventPrices = async (nextLayout) => {
+    if (!selectedEvent) return;
+    setError('');
+    setHint('');
+    setIsSavingPrices(true);
+    try {
+      await saveEventReservationConfig(selectedEvent.id, {
+        enabled: Boolean(selectedEvent.reservationsEnabled),
+        layout: nextLayout,
+      });
+      patchLocalEvent(selectedEvent.id, { reservationLayout: nextLayout });
+      setHint(`Preços salvos para ${formatEventReservationLabel(selectedEvent)}.`);
+    } catch (err) {
+      setError(formatReservationError(err));
+      throw err;
+    } finally {
+      setIsSavingPrices(false);
     }
   };
 
@@ -516,6 +537,25 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
           <p className="about-copy admin-muted admin-res-spots-note">
             Spots com pré-reserva de cliente já contam como reservados — confirme ou cancele na lista abaixo.
           </p>
+        </article>
+      ) : null}
+
+      {selectedEvent ? (
+        <article className="admin-panel-card admin-res-prices-card">
+          <h3>Preços das mesas e camarotes</h3>
+          <p className="about-copy admin-muted">
+            {formatEventReservationLabel(selectedEvent)} — valores só deste evento (o visitante vê no mapa e no formulário de pré-reserva).
+          </p>
+          <ReservationPriceEditor
+            layout={previewLayout}
+            saving={isSavingPrices}
+            onSave={onSaveEventPrices}
+          />
+          {!selectedEvent.reservationsEnabled ? (
+            <p className="about-copy admin-muted admin-res-prices-note">
+              Pré-reserva ainda fechada neste evento — salve os preços aqui e ative o toggle acima quando for abrir.
+            </p>
+          ) : null}
         </article>
       ) : null}
 
