@@ -518,6 +518,41 @@ function formatSupabaseAgendaSaveError(error) {
   return msg;
 }
 
+async function upsertAgendaEventToSupabase(item) {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error(supabaseConfigError || 'Supabase não configurado');
+  }
+  const payload = mapAgendaItemToDbEvent(item);
+  const upsertAgenda = (body) => withTimeout(
+    supabase
+      .from(SUPABASE_EVENTS_TABLE)
+      .upsert(body, { onConflict: 'id' }),
+    12000,
+    'Timeout ao salvar no Supabase (12s).',
+  );
+  let saveResult = await upsertAgenda(payload);
+  let publishAtSkipped = false;
+  if (saveResult.error && isMissingPhotosUrlColumnError(saveResult.error.message)) {
+    const legacyPayload = { ...payload };
+    delete legacyPayload.photos_url;
+    saveResult = await upsertAgenda(legacyPayload);
+  }
+  if (saveResult.error && isMissingReservationColumnsError(saveResult.error.message)) {
+    const legacyPayload = { ...payload };
+    delete legacyPayload.reservations_enabled;
+    delete legacyPayload.reservation_layout;
+    saveResult = await upsertAgenda(legacyPayload);
+  }
+  if (saveResult.error && isMissingPublishAtColumnError(saveResult.error.message)) {
+    const legacyPayload = { ...payload };
+    delete legacyPayload.publish_at;
+    saveResult = await upsertAgenda(legacyPayload);
+    publishAtSkipped = !saveResult.error;
+  }
+  if (saveResult.error) throw saveResult.error;
+  return { publishAtSkipped };
+}
+
 function loadStoredPhotos() {
   try {
     const raw = localStorage.getItem(PHOTOS_STORAGE_KEY);
@@ -1563,6 +1598,8 @@ function AgendaCalendarSection({
   onEditEvent,
   onDeleteEvent,
   onCreateEvent,
+  onToggleEventSoldOut,
+  soldOutToggleBusyId = '',
   embedded = false,
   applySavedFocus = false,
   focusTarget,
@@ -1731,10 +1768,18 @@ function AgendaCalendarSection({
                 <p>{night.lineup}</p>
                 <p className="admin-url">
                   Ingresso: {night.ticketUrl || 'Sem link'}
-                  {night.soldOut ? ' · Esgotado' : ''}
                   <br />
                   Fotos (Drive): {night.photosUrl || 'Sem link'}
                 </p>
+                <label className="admin-checkbox-row admin-calendar-slot-sold-out">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(night.soldOut)}
+                    disabled={soldOutToggleBusyId === night.id}
+                    onChange={(event) => onToggleEventSoldOut?.(night.id, event.target.checked)}
+                  />
+                  <span>Esgotado</span>
+                </label>
                 <div className="admin-actions">
                   <button type="button" className="pill" onClick={() => onEditEvent?.(night)}>Editar</button>
                   <button type="button" className="pill" onClick={() => onDeleteEvent?.(night.id)}>Excluir</button>
@@ -3510,6 +3555,7 @@ function AdminPage({
     adminYearOptions.includes(currentYear) ? currentYear : adminYearOptions[0],
   );
   const [showEventForm, setShowEventForm] = useState(false);
+  const [soldOutToggleBusyId, setSoldOutToggleBusyId] = useState('');
   const [isSavingEvent, setIsSavingEvent] = useState(false);
   const [isUploadingPoster, setIsUploadingPoster] = useState(false);
   const [isUploadingExperienceHero, setIsUploadingExperienceHero] = useState(false);
@@ -3696,6 +3742,27 @@ function AdminPage({
       setAgendaSaveError('');
     } catch (error) {
       setAgendaSaveError(`Não foi possível excluir no Supabase: ${error.message || 'erro desconhecido'}`);
+    }
+  };
+
+  const onToggleEventSoldOut = async (eventId, soldOut) => {
+    const existing = agendaEvents.find((item) => item.id === eventId);
+    if (!existing) return;
+    const nextItem = { ...normalizeAgendaItem(existing), soldOut: Boolean(soldOut) };
+    setSoldOutToggleBusyId(eventId);
+    setAgendaSaveError('');
+    try {
+      await upsertAgendaEventToSupabase(nextItem);
+      setAgendaEvents(agendaEvents.map((item) => (item.id === eventId ? nextItem : item)));
+      if (editingId === eventId) {
+        setDraft((prev) => ({ ...prev, soldOut: nextItem.soldOut }));
+      }
+    } catch (error) {
+      const msg = formatSupabaseAgendaSaveError(error);
+      setAgendaSaveError(msg);
+      window.alert(msg);
+    } finally {
+      setSoldOutToggleBusyId('');
     }
   };
 
@@ -3959,37 +4026,7 @@ function AdminPage({
         ? agendaEvents.map((item) => (item.id === editingId ? nextItem : item))
         : [nextItem, ...agendaEvents];
 
-      if (!isSupabaseConfigured || !supabase) {
-        throw new Error(supabaseConfigError || 'Supabase não configurado');
-      }
-      const payload = mapAgendaItemToDbEvent(nextItem);
-      const upsertAgenda = (body) => withTimeout(
-        supabase
-          .from(SUPABASE_EVENTS_TABLE)
-          .upsert(body, { onConflict: 'id' }),
-        12000,
-        'Timeout ao salvar no Supabase (12s).',
-      );
-      let saveResult = await upsertAgenda(payload);
-      let publishAtSkipped = false;
-      if (saveResult.error && isMissingPhotosUrlColumnError(saveResult.error.message)) {
-        const legacyPayload = { ...payload };
-        delete legacyPayload.photos_url;
-        saveResult = await upsertAgenda(legacyPayload);
-      }
-      if (saveResult.error && isMissingReservationColumnsError(saveResult.error.message)) {
-        const legacyPayload = { ...payload };
-        delete legacyPayload.reservations_enabled;
-        delete legacyPayload.reservation_layout;
-        saveResult = await upsertAgenda(legacyPayload);
-      }
-      if (saveResult.error && isMissingPublishAtColumnError(saveResult.error.message)) {
-        const legacyPayload = { ...payload };
-        delete legacyPayload.publish_at;
-        saveResult = await upsertAgenda(legacyPayload);
-        publishAtSkipped = !saveResult.error;
-      }
-      if (saveResult.error) throw saveResult.error;
+      const { publishAtSkipped } = await upsertAgendaEventToSupabase(nextItem);
 
       setAgendaEvents(nextAgenda);
       if (publishAtSkipped) {
@@ -5209,6 +5246,8 @@ function AdminPage({
               onEditEvent={onEdit}
               onDeleteEvent={onDelete}
               onCreateEvent={onCreateFromCalendar}
+              onToggleEventSoldOut={onToggleEventSoldOut}
+              soldOutToggleBusyId={soldOutToggleBusyId}
               embedded
             />
           </article> : null}
@@ -5265,7 +5304,7 @@ function AdminPage({
                   checked={Boolean(draft.soldOut)}
                   onChange={(event) => setDraft((prev) => ({ ...prev, soldOut: event.target.checked }))}
                 />
-                Ingressos esgotados (no site, o hover mostra &quot;Esgotado&quot; em vez de comprar ingresso ou ver fotos)
+                <span>Esgotado</span>
               </label>
               <label>Link das fotos (Drive)</label>
               <small className="about-copy image-spec-note">

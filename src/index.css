@@ -1054,6 +1054,14 @@ body.site-mobile-nav-open {
   color: #8a5a00;
 }
 
+.admin-calendar-slot-sold-out {
+  margin-top: 0;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+}
+
 .admin-checkbox-row {
   display: flex;
   align-items: center;
