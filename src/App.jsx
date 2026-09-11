@@ -23,6 +23,16 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { ReservasPage } from './pages/ReservasPage';
 import { AdminReservasPanel } from './components/AdminReservasPanel';
 import {
+  exportDataUrlToFile,
+  exportImageFile,
+  formatImageSizeDelta,
+} from './lib/imageExport';
+import {
+  getBannerPreset,
+  getFooterLogoPreset,
+  IMAGE_EXPORT_PRESETS,
+} from './lib/imagePresets';
+import {
   datetimeLocalToIso,
   filterPublicAgendaEvents,
   formatAgendaPublishLabel,
@@ -448,6 +458,7 @@ function normalizeAgendaItem(item, idx = 0) {
     poster: String(item?.poster || ''),
     ticketUrl: String(item?.ticketUrl || ''),
     photosUrl: String(item?.photosUrl || ''),
+    soldOut: Boolean(item?.soldOut),
     publishAt: item?.publishAt ? String(item.publishAt) : null,
     reservationsEnabled: Boolean(item?.reservationsEnabled),
     reservationLayout: normalizeReservationLayout(item?.reservationLayout),
@@ -464,6 +475,7 @@ function mapDbEventToAgendaItem(row, idx = 0) {
       poster: row?.poster,
       ticketUrl: row?.ticket_url,
       photosUrl: row?.photos_url,
+      soldOut: Boolean(row?.sold_out),
       publishAt: row?.publish_at || null,
       ...mapDbEventReservationFields(row),
     },
@@ -480,6 +492,7 @@ function mapAgendaItemToDbEvent(item) {
     poster: String(item.poster || ''),
     ticket_url: String(item.ticketUrl || ''),
     photos_url: String(item.photosUrl || ''),
+    sold_out: Boolean(item.soldOut),
     publish_at: item.publishAt || null,
     ...mapAgendaReservationFieldsToDb(item),
   };
@@ -498,6 +511,9 @@ function formatSupabaseAgendaSaveError(error) {
   }
   if (/publish_at/i.test(detail)) {
     msg += ' Rode no SQL Editor o arquivo supabase/migrations/009_douha_events_publish_at.sql (publicação agendada).';
+  }
+  if (/sold_out/i.test(detail)) {
+    msg += ' Rode no SQL Editor o arquivo supabase/migrations/011_douha_events_sold_out.sql (ingressos esgotados).';
   }
   return msg;
 }
@@ -943,58 +959,21 @@ function safeRemoveLocalStorage(key) {
   }
 }
 
-function readFileAsDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error('Falha ao ler arquivo de imagem.'));
-    reader.readAsDataURL(file);
-  });
-}
-
-function compressDataUrlImage(dataUrl, { maxWidth = 1280, quality = 0.82, format = 'jpeg' } = {}) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(1, maxWidth / img.width);
-      const width = Math.max(1, Math.round(img.width * scale));
-      const height = Math.max(1, Math.round(img.height * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('Falha ao preparar compressao da imagem.'));
-        return;
-      }
-      if (format === 'png') {
-        ctx.clearRect(0, 0, width, height);
-      }
-      ctx.drawImage(img, 0, 0, width, height);
-      const compressed = format === 'png'
-        ? canvas.toDataURL('image/png')
-        : canvas.toDataURL('image/jpeg', quality);
-      resolve(compressed);
-    };
-    img.onerror = () => reject(new Error('Falha ao processar a imagem.'));
-    img.src = String(dataUrl);
-  });
-}
-
-function estimateDataUrlBytes(dataUrl) {
-  const value = String(dataUrl || '');
-  const marker = 'base64,';
-  const idx = value.indexOf(marker);
-  if (idx < 0) return value.length;
-  const base64 = value.slice(idx + marker.length);
-  return Math.floor((base64.length * 3) / 4);
-}
-
 function sanitizeFileName(name) {
   return String(name || 'poster')
     .toLowerCase()
     .replace(/[^a-z0-9._-]/g, '-')
     .replace(/-+/g, '-');
+}
+
+async function exportAndUploadGallery(dataUrl, fileName) {
+  const { file } = await exportDataUrlToFile(dataUrl, fileName, IMAGE_EXPORT_PRESETS.gallery);
+  return uploadGalleryImageToSupabaseStorage(file);
+}
+
+async function exportAndUploadRole(dataUrl, fileName) {
+  const { file } = await exportDataUrlToFile(dataUrl, fileName, IMAGE_EXPORT_PRESETS.role);
+  return uploadRolePhotoToSupabaseStorage(file);
 }
 
 async function uploadPosterToSupabaseStorage(file) {
@@ -1521,20 +1500,33 @@ function ReservationEventBlock({ night }) {
 
 /** Card do calendário NORMAL — só ingresso/fotos, nada de reserva. */
 function AgendaEventBlock({ night }) {
+  const isSoldOut = Boolean(night.soldOut);
   const isPhotosPhase = shouldUseEventPhotosLink(night.date);
   const ticketUrl = String(night.ticketUrl || '').trim();
   const photosUrl = String(night.photosUrl || '').trim();
   const hasTicketUrl = Boolean(ticketUrl);
   const hasPhotosUrl = Boolean(photosUrl);
-  /** Antes do evento: so ingresso. Depois: so fotos (se tiver link). */
-  const isClickable = isPhotosPhase ? hasPhotosUrl : hasTicketUrl;
+  /** Antes do evento: so ingresso. Depois: so fotos (se tiver link). Esgotado bloqueia link. */
+  const isClickable = !isSoldOut && (isPhotosPhase ? hasPhotosUrl : hasTicketUrl);
   const actionUrl = isPhotosPhase ? photosUrl : ticketUrl;
   const ctaLabel = isPhotosPhase ? 'Ver fotos do role' : 'Comprar ingressos';
-  const ariaLabel = isClickable ? `${ctaLabel} — ${night.lineup}` : `${night.lineup} — ${night.date}`;
+  const ariaLabel = isSoldOut
+    ? `Esgotado — ${night.lineup}`
+    : isClickable
+      ? `${ctaLabel} — ${night.lineup}`
+      : `${night.lineup} — ${night.date}`;
 
   return (
-    <article className="agenda-event">
-      {isClickable ? (
+    <article className={`agenda-event${isSoldOut ? ' agenda-event--sold-out' : ''}`}>
+      {isSoldOut ? (
+        <div
+          className="agenda-poster-link agenda-poster-link--sold-out"
+          tabIndex={0}
+          aria-label={ariaLabel}
+        >
+          <AgendaEventPoster night={night} overlayLabel="Esgotado" />
+        </div>
+      ) : isClickable ? (
         <a
           href={actionUrl}
           target="_blank"
@@ -1739,6 +1731,7 @@ function AgendaCalendarSection({
                 <p>{night.lineup}</p>
                 <p className="admin-url">
                   Ingresso: {night.ticketUrl || 'Sem link'}
+                  {night.soldOut ? ' · Esgotado' : ''}
                   <br />
                   Fotos (Drive): {night.photosUrl || 'Sem link'}
                 </p>
@@ -3480,6 +3473,7 @@ function AdminPage({
     lineup: '',
     ticketUrl: '',
     photosUrl: '',
+    soldOut: false,
     poster: '',
     schedulePublish: false,
     publishAtLocal: '',
@@ -3627,6 +3621,7 @@ function AdminPage({
       lineup: item.lineup || '',
       ticketUrl: item.ticketUrl || '',
       photosUrl: item.photosUrl || '',
+      soldOut: Boolean(item.soldOut),
       poster: item.poster || '',
       schedulePublish: Boolean(publishAt),
       publishAtLocal: publishAt ? toDatetimeLocalValue(publishAt) : '',
@@ -3644,6 +3639,7 @@ function AdminPage({
       lineup: '',
       ticketUrl: '',
       photosUrl: '',
+      soldOut: false,
       poster: '',
       schedulePublish: false,
       publishAtLocal: '',
@@ -3673,6 +3669,7 @@ function AdminPage({
       lineup: '',
       ticketUrl: '',
       photosUrl: '',
+      soldOut: false,
       poster: '',
       schedulePublish: false,
       publishAtLocal: '',
@@ -3712,15 +3709,11 @@ function AdminPage({
       setIsUploadingPoster(true);
       setPosterUploadError('');
       setPosterUploadInfo('Processando poster...');
-      const rawDataUrl = await readFileAsDataUrl(file);
-      if (typeof rawDataUrl !== 'string') throw new Error('Arquivo invalido.');
-      const compressed = await compressDataUrlImage(rawDataUrl, { maxWidth: 1280, quality: 0.82 });
-      const bytes = estimateDataUrlBytes(compressed);
-      const tooLargeForRecommendation = bytes > POSTER_MAX_BYTES;
-      const compressedBlob = await (await fetch(String(compressed))).blob();
-      const fileForUpload = new File([compressedBlob], file.name || `poster.jpg`, {
-        type: 'image/jpeg',
-      });
+      const { file: fileForUpload, beforeBytes, afterBytes } = await exportImageFile(
+        file,
+        IMAGE_EXPORT_PRESETS.poster,
+      );
+      const tooLargeForRecommendation = afterBytes > POSTER_MAX_BYTES;
       const publicUrl = await withTimeout(
         uploadPosterToSupabaseStorage(fileForUpload),
         15000,
@@ -3731,8 +3724,8 @@ function AdminPage({
       setAgendaSaveError('');
       setPosterUploadInfo(
         tooLargeForRecommendation
-          ? `Poster enviado, mas ficou acima do recomendado (${POSTER_MAX_LABEL}).`
-          : 'Poster enviado com sucesso.',
+          ? `Poster enviado (${formatImageSizeDelta(beforeBytes, afterBytes)}), acima do recomendado (${POSTER_MAX_LABEL}).`
+          : `Poster enviado (${formatImageSizeDelta(beforeBytes, afterBytes)}).`,
       );
     } catch (error) {
       const msg = error.message || 'Não foi possível preparar o poster.';
@@ -3752,18 +3745,12 @@ function AdminPage({
       }
       setBusy(true);
       setError('');
-      const rawDataUrl = await readFileAsDataUrl(file);
-      if (typeof rawDataUrl !== 'string') throw new Error('Arquivo invalido.');
       const maxWidth = fieldKey === 'setsBannerBgUrl'
         ? YELLOW_BANNER_PX.sets.width
         : fieldKey === 'rolePhotosStageBgUrl'
           ? ROLE_PHOTOS_STAGE_PX.width
           : YELLOW_BANNER_PX.experienceCopy.width;
-      const compressed = await compressDataUrlImage(rawDataUrl, { maxWidth, quality: 0.86 });
-      const compressedBlob = await (await fetch(String(compressed))).blob();
-      const fileForUpload = new File([compressedBlob], file.name || 'faixa-amarela.jpg', {
-        type: 'image/jpeg',
-      });
+      const { file: fileForUpload } = await exportImageFile(file, getBannerPreset(maxWidth));
       const publicUrl = await withTimeout(
         uploadGalleryImageToSupabaseStorage(fileForUpload),
         20000,
@@ -3789,13 +3776,7 @@ function AdminPage({
       }
       setIsUploadingExperienceHero(true);
       setExperienceHeroUploadError('');
-      const rawDataUrl = await readFileAsDataUrl(file);
-      if (typeof rawDataUrl !== 'string') throw new Error('Arquivo invalido.');
-      const compressed = await compressDataUrlImage(rawDataUrl, { maxWidth: 1920, quality: 0.84 });
-      const compressedBlob = await (await fetch(String(compressed))).blob();
-      const fileForUpload = new File([compressedBlob], file.name || 'experiencia-douha.jpg', {
-        type: 'image/jpeg',
-      });
+      const { file: fileForUpload } = await exportImageFile(file, IMAGE_EXPORT_PRESETS.gallery);
       const publicUrl = await withTimeout(
         uploadGalleryImageToSupabaseStorage(fileForUpload),
         20000,
@@ -3858,13 +3839,7 @@ function AdminPage({
       }
       setIsUploadingEditorialCover(true);
       setEditorialCoverUploadError('');
-      const rawDataUrl = await readFileAsDataUrl(file);
-      if (typeof rawDataUrl !== 'string') throw new Error('Arquivo invalido.');
-      const compressed = await compressDataUrlImage(rawDataUrl, { maxWidth: 1600, quality: 0.86 });
-      const compressedBlob = await (await fetch(String(compressed))).blob();
-      const fileForUpload = new File([compressedBlob], file.name || 'editorial-cover.jpg', {
-        type: 'image/jpeg',
-      });
+      const { file: fileForUpload } = await exportImageFile(file, IMAGE_EXPORT_PRESETS.editorial);
       const publicUrl = await withTimeout(
         uploadEditorialCoverToSupabaseStorage(fileForUpload),
         20000,
@@ -3888,20 +3863,8 @@ function AdminPage({
       }
       setIsUploadingFooterLogo(true);
       setFooterLogoUploadError('');
-      const rawDataUrl = await readFileAsDataUrl(file);
-      if (typeof rawDataUrl !== 'string') throw new Error('Arquivo invalido.');
       const usePng = file.type === 'image/png' || /\.png$/i.test(file.name || '');
-      const compressed = await compressDataUrlImage(rawDataUrl, {
-        maxWidth: FOOTER_LOGO_PX.size,
-        quality: 0.92,
-        format: usePng ? 'png' : 'jpeg',
-      });
-      const compressedBlob = await (await fetch(String(compressed))).blob();
-      const fileForUpload = new File(
-        [compressedBlob],
-        file.name || (usePng ? 'douha-footer-logo.png' : 'douha-footer-logo.jpg'),
-        { type: usePng ? 'image/png' : 'image/jpeg' },
-      );
+      const { file: fileForUpload } = await exportImageFile(file, getFooterLogoPreset(usePng));
       const publicUrl = await withTimeout(
         uploadGalleryImageToSupabaseStorage(fileForUpload),
         20000,
@@ -3948,6 +3911,7 @@ function AdminPage({
       lineup: draft.lineup.trim(),
       ticketUrl: draft.ticketUrl.trim(),
       photosUrl: draft.photosUrl.trim(),
+      soldOut: Boolean(draft.soldOut),
       poster: draft.poster.trim(),
       publishAt: null,
       reservationsEnabled: Boolean(existingEvent?.reservationsEnabled),
@@ -4102,9 +4066,10 @@ function AdminPage({
           const urlBody = parsed.primary;
           if (!urlBody) continue;
           if (urlBody.startsWith('data:')) {
-            const blob = await (await fetch(urlBody)).blob();
-            const file = new File([blob], `gallery-${Date.now()}-wide.jpg`, { type: 'image/jpeg' });
-            const uploadedUrl = await uploadGalleryImageToSupabaseStorage(file);
+            const uploadedUrl = await exportAndUploadGallery(
+              urlBody,
+              `gallery-${Date.now()}-wide.jpg`,
+            );
             normalized.push(buildWidePhotoEntry(uploadedUrl));
           } else {
             normalized.push(buildWidePhotoEntry(urlBody));
@@ -4114,22 +4079,16 @@ function AdminPage({
         if (value.startsWith(DOUBLE_PHOTO_PREFIX)) {
           const parsed = parsePhotoEntry(value);
           const nextPrimary = parsed.primary.startsWith('data:')
-            ? await uploadGalleryImageToSupabaseStorage(
-              new File([await (await fetch(parsed.primary)).blob()], `gallery-${Date.now()}-a.jpg`, { type: 'image/jpeg' }),
-            )
+            ? await exportAndUploadGallery(parsed.primary, `gallery-${Date.now()}-a.jpg`)
             : parsed.primary;
           const nextSecondary = parsed.secondary.startsWith('data:')
-            ? await uploadGalleryImageToSupabaseStorage(
-              new File([await (await fetch(parsed.secondary)).blob()], `gallery-${Date.now()}-b.jpg`, { type: 'image/jpeg' }),
-            )
+            ? await exportAndUploadGallery(parsed.secondary, `gallery-${Date.now()}-b.jpg`)
             : parsed.secondary;
           normalized.push(buildDoublePhotoEntry(nextPrimary, nextSecondary));
           continue;
         }
         if (value.startsWith('data:')) {
-          const blob = await (await fetch(value)).blob();
-          const file = new File([blob], `gallery-${Date.now()}.jpg`, { type: 'image/jpeg' });
-          const uploadedUrl = await uploadGalleryImageToSupabaseStorage(file);
+          const uploadedUrl = await exportAndUploadGallery(value, `gallery-${Date.now()}.jpg`);
           normalized.push(uploadedUrl);
         } else {
           normalized.push(value);
@@ -4348,9 +4307,7 @@ function AdminPage({
         if (!entry) continue;
         let { url } = entry;
         if (url.startsWith('data:')) {
-          const blob = await (await fetch(url)).blob();
-          const file = new File([blob], `role-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
-          url = await uploadRolePhotoToSupabaseStorage(file);
+          url = await exportAndUploadRole(url, `role-photo-${Date.now()}.jpg`);
         }
         normalized.push({ url });
       }
@@ -5302,6 +5259,14 @@ function AdminPage({
               <textarea value={draft.lineup} onChange={(event) => setDraft((prev) => ({ ...prev, lineup: event.target.value }))} placeholder="Ex: SYON TRIO, CONVIDADO X" />
               <label>Link do ingresso</label>
               <input value={draft.ticketUrl} onChange={(event) => setDraft((prev) => ({ ...prev, ticketUrl: event.target.value }))} placeholder="https://..." />
+              <label className="admin-checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={Boolean(draft.soldOut)}
+                  onChange={(event) => setDraft((prev) => ({ ...prev, soldOut: event.target.checked }))}
+                />
+                Ingressos esgotados (no site, o hover mostra &quot;Esgotado&quot; em vez de comprar ingresso ou ver fotos)
+              </label>
               <label>Link das fotos (Drive)</label>
               <small className="about-copy image-spec-note">
                 No site público, esse link só aparece 48 horas depois do fim do dia do evento (até lá continua o link de ingresso).

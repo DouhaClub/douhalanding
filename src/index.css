@@ -927,7 +927,8 @@ body.site-mobile-nav-open {
 }
 
 .calendar-event-grid .agenda-poster-link,
-.calendar-event-grid .agenda-poster-link-disabled {
+.calendar-event-grid .agenda-poster-link-disabled,
+.calendar-event-grid .agenda-poster-link--sold-out {
   display: block;
   flex: 0 0 auto;
   width: 100%;
@@ -940,7 +941,9 @@ body.site-mobile-nav-open {
 }
 
 .calendar-event-grid .agenda-poster-link:hover,
-.calendar-event-grid .agenda-poster-link:focus-visible {
+.calendar-event-grid .agenda-poster-link:focus-visible,
+.calendar-event-grid .agenda-poster-link--sold-out:hover,
+.calendar-event-grid .agenda-poster-link--sold-out:focus-visible {
   box-shadow: none;
   border: none;
 }
@@ -1220,6 +1223,21 @@ button:disabled,
 .agenda-poster-link-disabled:focus-visible {
   border-color: rgba(45, 41, 22, 0.28);
   box-shadow: none;
+}
+
+.agenda-poster-link--sold-out {
+  cursor: default;
+}
+
+.agenda-poster-link--sold-out:hover,
+.agenda-poster-link--sold-out:focus-visible {
+  border-color: rgba(45, 41, 22, 0.55);
+  box-shadow: 0 10px 28px rgba(45, 41, 22, 0.12);
+  outline: none;
+}
+
+.agenda-poster-link--sold-out .agenda-poster-cta {
+  letter-spacing: 0.12em;
 }
 
 .agenda-poster {
