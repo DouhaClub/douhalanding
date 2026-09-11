@@ -1598,8 +1598,6 @@ function AgendaCalendarSection({
   onEditEvent,
   onDeleteEvent,
   onCreateEvent,
-  onToggleEventSoldOut,
-  soldOutToggleBusyId = '',
   embedded = false,
   applySavedFocus = false,
   focusTarget,
@@ -1768,18 +1766,10 @@ function AgendaCalendarSection({
                 <p>{night.lineup}</p>
                 <p className="admin-url">
                   Ingresso: {night.ticketUrl || 'Sem link'}
+                  {night.soldOut ? ' · Esgotado' : ''}
                   <br />
                   Fotos (Drive): {night.photosUrl || 'Sem link'}
                 </p>
-                <label className="admin-checkbox-row admin-calendar-slot-sold-out">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(night.soldOut)}
-                    disabled={soldOutToggleBusyId === night.id}
-                    onChange={(event) => onToggleEventSoldOut?.(night.id, event.target.checked)}
-                  />
-                  <span>Esgotado</span>
-                </label>
                 <div className="admin-actions">
                   <button type="button" className="pill" onClick={() => onEditEvent?.(night)}>Editar</button>
                   <button type="button" className="pill" onClick={() => onDeleteEvent?.(night.id)}>Excluir</button>
@@ -3555,7 +3545,6 @@ function AdminPage({
     adminYearOptions.includes(currentYear) ? currentYear : adminYearOptions[0],
   );
   const [showEventForm, setShowEventForm] = useState(false);
-  const [soldOutToggleBusyId, setSoldOutToggleBusyId] = useState('');
   const [isSavingEvent, setIsSavingEvent] = useState(false);
   const [isUploadingPoster, setIsUploadingPoster] = useState(false);
   const [isUploadingExperienceHero, setIsUploadingExperienceHero] = useState(false);
@@ -3742,27 +3731,6 @@ function AdminPage({
       setAgendaSaveError('');
     } catch (error) {
       setAgendaSaveError(`Não foi possível excluir no Supabase: ${error.message || 'erro desconhecido'}`);
-    }
-  };
-
-  const onToggleEventSoldOut = async (eventId, soldOut) => {
-    const existing = agendaEvents.find((item) => item.id === eventId);
-    if (!existing) return;
-    const nextItem = { ...normalizeAgendaItem(existing), soldOut: Boolean(soldOut) };
-    setSoldOutToggleBusyId(eventId);
-    setAgendaSaveError('');
-    try {
-      await upsertAgendaEventToSupabase(nextItem);
-      setAgendaEvents(agendaEvents.map((item) => (item.id === eventId ? nextItem : item)));
-      if (editingId === eventId) {
-        setDraft((prev) => ({ ...prev, soldOut: nextItem.soldOut }));
-      }
-    } catch (error) {
-      const msg = formatSupabaseAgendaSaveError(error);
-      setAgendaSaveError(msg);
-      window.alert(msg);
-    } finally {
-      setSoldOutToggleBusyId('');
     }
   };
 
@@ -5232,27 +5200,7 @@ function AdminPage({
             <AdminReservasPanel agendaEvents={agendaEvents} setAgendaEvents={setAgendaEvents} />
           ) : null}
 
-          {isCalendarSection ? <article id="admin-calendar" className="admin-panel-card">
-            <h3>Calendário do Admin</h3>
-            <p className="about-copy">
-              Até <strong>{MAX_EVENTS_PER_MONTH} eventos por mês</strong>, ordenados pela <strong>data do evento</strong> (não pela ordem de cadastro).
-              {CALENDAR_CARDS_PER_ROW} na 1ª linha; do 5º em diante na 2ª, preenchendo da esquerda para a direita.
-            </p>
-            <AgendaCalendarSection
-              agendaEvents={sortedAgenda}
-              title="CALENDÁRIO INTERNO"
-              adminMode
-              showEmptySlots
-              onEditEvent={onEdit}
-              onDeleteEvent={onDelete}
-              onCreateEvent={onCreateFromCalendar}
-              onToggleEventSoldOut={onToggleEventSoldOut}
-              soldOutToggleBusyId={soldOutToggleBusyId}
-              embedded
-            />
-          </article> : null}
-
-          {isCalendarSection ? <div className="admin-actions">
+          {isCalendarSection ? <div className="admin-actions admin-calendar-toolbar">
             <button type="button" className="pill pill-light" onClick={() => onCreateFromCalendar({ year: draftYear, monthIndex: draftMonthIndex })}>
               Novo evento manual
             </button>
@@ -5262,8 +5210,8 @@ function AdminPage({
           </div> : null}
 
           {isCalendarSection && showEventForm ? (
-            <form id="admin-event-form" ref={formRef} className="admin-form" onSubmit={onSave}>
-              <h3>Formulário de evento</h3>
+            <form id="admin-event-form" ref={formRef} className="admin-form admin-event-form" onSubmit={onSave}>
+              <h3>{editingId ? 'Editar evento' : 'Agendar evento'}</h3>
               {createSlotLabel ? (
                 <p className="admin-save-hint" role="status">{createSlotLabel}</p>
               ) : null}
@@ -5296,21 +5244,49 @@ function AdminPage({
               </select>
               <label>Lineup / Artistas</label>
               <textarea value={draft.lineup} onChange={(event) => setDraft((prev) => ({ ...prev, lineup: event.target.value }))} placeholder="Ex: SYON TRIO, CONVIDADO X" />
-              <label>Link do ingresso</label>
-              <input value={draft.ticketUrl} onChange={(event) => setDraft((prev) => ({ ...prev, ticketUrl: event.target.value }))} placeholder="https://..." />
-              <label className="admin-checkbox-row">
-                <input
-                  type="checkbox"
-                  checked={Boolean(draft.soldOut)}
-                  onChange={(event) => setDraft((prev) => ({ ...prev, soldOut: event.target.checked }))}
-                />
-                <span>Esgotado</span>
-              </label>
-              <label>Link das fotos (Drive)</label>
-              <small className="about-copy image-spec-note">
-                No site público, esse link só aparece 48 horas depois do fim do dia do evento (até lá continua o link de ingresso).
-              </small>
-              <input value={draft.photosUrl} onChange={(event) => setDraft((prev) => ({ ...prev, photosUrl: event.target.value }))} placeholder="https://drive.google.com/..." />
+
+              <fieldset className="admin-event-fieldset">
+                <legend>Capa do evento (poster)</legend>
+                <p className="about-copy image-spec-note">{IMAGE_SPEC.agendaPoster}</p>
+                <label>Upload da capa</label>
+                <input type="file" accept="image/*" onChange={onPosterUpload} />
+                <label>Ou URL da imagem</label>
+                <div className="admin-inline">
+                  <input value={posterUrlInput} onChange={(event) => setPosterUrlInput(event.target.value)} placeholder="/events/meu-poster.png ou https://..." />
+                  <button type="button" className="pill" onClick={onUsePosterUrl}>Usar URL</button>
+                  <button type="button" className="pill" onClick={onClearPoster}>Remover poster</button>
+                </div>
+                {isUploadingPoster ? <small>Enviando poster para o Supabase Storage...</small> : null}
+                {posterUploadInfo ? <small>{posterUploadInfo}</small> : null}
+                {posterUploadError ? <p className="admin-error">{posterUploadError}</p> : null}
+                {draft.poster ? (
+                  <figure className="admin-poster-preview">
+                    <img src={draft.poster} alt="Preview do poster no admin" title={IMAGE_SPEC.agendaPoster} />
+                  </figure>
+                ) : null}
+                <label className="admin-checkbox-row admin-event-sold-out">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(draft.soldOut)}
+                    onChange={(event) => setDraft((prev) => ({ ...prev, soldOut: event.target.checked }))}
+                  />
+                  <span>Ingressos esgotados</span>
+                </label>
+                <small className="about-copy image-spec-note">
+                  No calendário público, ao passar o mouse na capa aparece &quot;Esgotado&quot; em vez de comprar ingresso ou ver fotos.
+                </small>
+              </fieldset>
+
+              <fieldset className="admin-event-fieldset">
+                <legend>Links no calendário</legend>
+                <label>Link do ingresso</label>
+                <input value={draft.ticketUrl} onChange={(event) => setDraft((prev) => ({ ...prev, ticketUrl: event.target.value }))} placeholder="https://..." />
+                <label>Link das fotos (Drive)</label>
+                <small className="about-copy image-spec-note">
+                  No site público, esse link só aparece 48 horas depois do fim do dia do evento (até lá continua o link de ingresso).
+                </small>
+                <input value={draft.photosUrl} onChange={(event) => setDraft((prev) => ({ ...prev, photosUrl: event.target.value }))} placeholder="https://drive.google.com/..." />
+              </fieldset>
 
               <label className="admin-checkbox-row">
                 <input
@@ -5341,25 +5317,6 @@ function AdminPage({
                 </>
               ) : null}
 
-              <label>Poster (upload local)</label>
-              <p className="about-copy image-spec-note">{IMAGE_SPEC.agendaPoster}</p>
-              <input type="file" accept="image/*" onChange={onPosterUpload} />
-              <label>Ou URL da imagem</label>
-              <div className="admin-inline">
-                <input value={posterUrlInput} onChange={(event) => setPosterUrlInput(event.target.value)} placeholder="/events/meu-poster.png ou https://..." />
-                <button type="button" className="pill" onClick={onUsePosterUrl}>Usar URL</button>
-                <button type="button" className="pill" onClick={onClearPoster}>Remover poster</button>
-              </div>
-              {isUploadingPoster ? <small>Enviando poster para o Supabase Storage...</small> : null}
-              {posterUploadInfo ? <small>{posterUploadInfo}</small> : null}
-              {posterUploadError ? <p className="admin-error">{posterUploadError}</p> : null}
-
-              {draft.poster && (
-                <figure className="admin-poster-preview">
-                  <img src={draft.poster} alt="Preview do poster no admin" title={IMAGE_SPEC.agendaPoster} />
-                </figure>
-              )}
-
               <div className="admin-actions">
                 <button type="submit" className="pill pill-light" disabled={isSavingEvent || isUploadingPoster}>
                   {isUploadingPoster
@@ -5372,6 +5329,25 @@ function AdminPage({
               </div>
             </form>
           ) : null}
+
+          {isCalendarSection ? <article id="admin-calendar" className="admin-panel-card">
+            <h3>Calendário do Admin</h3>
+            <p className="about-copy">
+              Até <strong>{MAX_EVENTS_PER_MONTH} eventos por mês</strong>, ordenados pela <strong>data do evento</strong> (não pela ordem de cadastro).
+              {CALENDAR_CARDS_PER_ROW} na 1ª linha; do 5º em diante na 2ª, preenchendo da esquerda para a direita.
+              Clique em <strong>Editar</strong> no evento para abrir o formulário acima (data, capa, esgotado, links).
+            </p>
+            <AgendaCalendarSection
+              agendaEvents={sortedAgenda}
+              title="CALENDÁRIO INTERNO"
+              adminMode
+              showEmptySlots
+              onEditEvent={onEdit}
+              onDeleteEvent={onDelete}
+              onCreateEvent={onCreateFromCalendar}
+              embedded
+            />
+          </article> : null}
         </div>
       </section>
     </main>
