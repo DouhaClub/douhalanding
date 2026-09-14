@@ -5221,106 +5221,157 @@ function AdminPage({
                 <p className="admin-save-hint" role="status">{createSlotLabel}</p>
               ) : null}
               {agendaSaveError && <p className="admin-error">{agendaSaveError}</p>}
-              <label>Data</label>
-              <div className="admin-inline admin-date-row">
-                <select value={draftDay} onChange={(event) => setDraftDay(Number(event.target.value))}>
-                  {Array.from({ length: 31 }).map((_, idx) => {
-                    const day = idx + 1;
-                    return <option key={`day-${day}`} value={day}>{String(day).padStart(2, '0')}</option>;
-                  })}
-                </select>
-                <select value={draftMonthIndex} onChange={(event) => setDraftMonthIndex(Number(event.target.value))}>
-                  {MONTH_LABELS.map((month, idx) => (
-                    <option key={`month-${month}`} value={idx}>{month}</option>
-                  ))}
-                </select>
-                <select value={draftYear} onChange={(event) => setDraftYear(Number(event.target.value))}>
-                  {adminYearOptions.map((year) => (
-                    <option key={`year-${year}`} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-              <small>Data final que será salva: {formatAgendaDate(draftDay, draftMonthIndex, draftYear)}</small>
-              <label>Horário</label>
-              <select value={draft.time || 'A CONFIRMAR'} onChange={(event) => setDraft((prev) => ({ ...prev, time: event.target.value }))}>
-                {timeOptions.map((timeOption) => (
-                  <option key={`time-option-${timeOption}`} value={timeOption}>{timeOption}</option>
-                ))}
-              </select>
-              <label>Lineup / Artistas</label>
-              <textarea value={draft.lineup} onChange={(event) => setDraft((prev) => ({ ...prev, lineup: event.target.value }))} placeholder="Ex: SYON TRIO, CONVIDADO X" />
+
+              <fieldset className="admin-event-fieldset">
+                <legend>Data e lineup</legend>
+                <div className="admin-form-field">
+                  <span className="admin-event-field-label">Data do evento</span>
+                  <div className="admin-inline admin-date-row">
+                    <select value={draftDay} onChange={(event) => setDraftDay(Number(event.target.value))}>
+                      {Array.from({ length: 31 }).map((_, idx) => {
+                        const day = idx + 1;
+                        return <option key={`day-${day}`} value={day}>{String(day).padStart(2, '0')}</option>;
+                      })}
+                    </select>
+                    <select value={draftMonthIndex} onChange={(event) => setDraftMonthIndex(Number(event.target.value))}>
+                      {MONTH_LABELS.map((month, idx) => (
+                        <option key={`month-${month}`} value={idx}>{month}</option>
+                      ))}
+                    </select>
+                    <select value={draftYear} onChange={(event) => setDraftYear(Number(event.target.value))}>
+                      {adminYearOptions.map((year) => (
+                        <option key={`year-${year}`} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="admin-field-hint">
+                    Será salvo como {formatAgendaDate(draftDay, draftMonthIndex, draftYear)}.
+                  </p>
+                </div>
+                <div className="admin-form-field">
+                  <label htmlFor="admin-event-time">Horário</label>
+                  <select
+                    id="admin-event-time"
+                    value={draft.time || 'A CONFIRMAR'}
+                    onChange={(event) => setDraft((prev) => ({ ...prev, time: event.target.value }))}
+                  >
+                    {timeOptions.map((timeOption) => (
+                      <option key={`time-option-${timeOption}`} value={timeOption}>{timeOption}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="admin-form-field">
+                  <label htmlFor="admin-event-lineup">Lineup / artistas</label>
+                  <textarea
+                    id="admin-event-lineup"
+                    value={draft.lineup}
+                    onChange={(event) => setDraft((prev) => ({ ...prev, lineup: event.target.value }))}
+                    placeholder="Ex: SYON TRIO, CONVIDADO X"
+                  />
+                </div>
+              </fieldset>
 
               <fieldset className="admin-event-fieldset">
                 <legend>Capa do evento (poster)</legend>
-                <p className="about-copy image-spec-note">{IMAGE_SPEC.agendaPoster}</p>
-                <label>Upload da capa</label>
-                <input type="file" accept="image/*" onChange={onPosterUpload} />
-                <label>Ou URL da imagem</label>
-                <div className="admin-inline">
-                  <input value={posterUrlInput} onChange={(event) => setPosterUrlInput(event.target.value)} placeholder="/events/meu-poster.png ou https://..." />
-                  <button type="button" className="pill" onClick={onUsePosterUrl}>Usar URL</button>
-                  <button type="button" className="pill" onClick={onClearPoster}>Remover poster</button>
+                <p className="admin-field-hint">{IMAGE_SPEC.agendaPoster}</p>
+                <div className="admin-form-field">
+                  <label htmlFor="admin-event-poster-file">Upload da capa</label>
+                  <input id="admin-event-poster-file" type="file" accept="image/*" onChange={onPosterUpload} />
                 </div>
-                {isUploadingPoster ? <small>Enviando poster para o Supabase Storage...</small> : null}
-                {posterUploadInfo ? <small>{posterUploadInfo}</small> : null}
+                <div className="admin-form-field">
+                  <label htmlFor="admin-event-poster-url">Ou URL da imagem</label>
+                  <div className="admin-inline admin-event-poster-url-row">
+                    <input
+                      id="admin-event-poster-url"
+                      value={posterUrlInput}
+                      onChange={(event) => setPosterUrlInput(event.target.value)}
+                      placeholder="/events/meu-poster.png ou https://..."
+                    />
+                    <button type="button" className="pill" onClick={onUsePosterUrl}>Usar URL</button>
+                    <button type="button" className="pill" onClick={onClearPoster}>Remover</button>
+                  </div>
+                </div>
+                {isUploadingPoster ? <p className="admin-field-hint">Enviando poster para o Supabase Storage…</p> : null}
+                {posterUploadInfo ? <p className="admin-field-hint">{posterUploadInfo}</p> : null}
                 {posterUploadError ? <p className="admin-error">{posterUploadError}</p> : null}
                 {draft.poster ? (
                   <figure className="admin-poster-preview">
                     <img src={draft.poster} alt="Preview do poster no admin" title={IMAGE_SPEC.agendaPoster} />
                   </figure>
                 ) : null}
-                <label className="admin-checkbox-row admin-event-sold-out">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(draft.soldOut)}
-                    onChange={(event) => setDraft((prev) => ({ ...prev, soldOut: event.target.checked }))}
-                  />
-                  <span>Ingressos esgotados</span>
-                </label>
-                <small className="about-copy image-spec-note">
-                  No calendário público, ao passar o mouse na capa aparece &quot;Esgotado&quot; em vez de comprar ingresso ou ver fotos.
-                </small>
+                <div className="admin-event-option-block">
+                  <label className="admin-checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(draft.soldOut)}
+                      onChange={(event) => setDraft((prev) => ({ ...prev, soldOut: event.target.checked }))}
+                    />
+                    <span>Ingressos esgotados</span>
+                  </label>
+                  <p className="admin-field-hint">
+                    No calendário público, ao passar o mouse na capa aparece &quot;Esgotado&quot; em vez de comprar ingresso ou ver fotos.
+                  </p>
+                </div>
               </fieldset>
 
               <fieldset className="admin-event-fieldset">
                 <legend>Links no calendário</legend>
-                <label>Link do ingresso</label>
-                <input value={draft.ticketUrl} onChange={(event) => setDraft((prev) => ({ ...prev, ticketUrl: event.target.value }))} placeholder="https://..." />
-                <label>Link das fotos (Drive)</label>
-                <small className="about-copy image-spec-note">
-                  No site público, esse link só aparece 48 horas depois do fim do dia do evento (até lá continua o link de ingresso).
-                </small>
-                <input value={draft.photosUrl} onChange={(event) => setDraft((prev) => ({ ...prev, photosUrl: event.target.value }))} placeholder="https://drive.google.com/..." />
+                <div className="admin-form-field">
+                  <label htmlFor="admin-event-ticket-url">Link do ingresso</label>
+                  <input
+                    id="admin-event-ticket-url"
+                    value={draft.ticketUrl}
+                    onChange={(event) => setDraft((prev) => ({ ...prev, ticketUrl: event.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="admin-form-field">
+                  <label htmlFor="admin-event-photos-url">Link das fotos (Drive)</label>
+                  <input
+                    id="admin-event-photos-url"
+                    value={draft.photosUrl}
+                    onChange={(event) => setDraft((prev) => ({ ...prev, photosUrl: event.target.value }))}
+                    placeholder="https://drive.google.com/..."
+                  />
+                  <p className="admin-field-hint">
+                    No site, esse link só aparece 48 horas depois do fim do dia do evento (até lá continua o link de ingresso).
+                  </p>
+                </div>
               </fieldset>
 
-              <label className="admin-checkbox-row">
-                <input
-                  type="checkbox"
-                  checked={Boolean(draft.schedulePublish)}
-                  onChange={(event) => setDraft((prev) => ({
-                    ...prev,
-                    schedulePublish: event.target.checked,
-                    publishAtLocal: event.target.checked && !prev.publishAtLocal
-                      ? toDatetimeLocalValue(new Date(Date.now() + 3600000))
-                      : prev.publishAtLocal,
-                  }))}
-                />
-                Agendar publicação no site
-              </label>
-              {draft.schedulePublish ? (
-                <>
-                  <label htmlFor="admin-event-publish-at">Publicar em</label>
-                  <input
-                    id="admin-event-publish-at"
-                    type="datetime-local"
-                    value={draft.publishAtLocal}
-                    onChange={(event) => setDraft((prev) => ({ ...prev, publishAtLocal: event.target.value }))}
-                  />
-                  <small className="about-copy image-spec-note">
-                    O evento fica visível só no admin até esse horário. Depois entra no calendário público automaticamente.
-                  </small>
-                </>
-              ) : null}
+              <fieldset className="admin-event-fieldset">
+                <legend>Publicação no site</legend>
+                <div className="admin-event-option-block">
+                  <label className="admin-checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(draft.schedulePublish)}
+                      onChange={(event) => setDraft((prev) => ({
+                        ...prev,
+                        schedulePublish: event.target.checked,
+                        publishAtLocal: event.target.checked && !prev.publishAtLocal
+                          ? toDatetimeLocalValue(new Date(Date.now() + 3600000))
+                          : prev.publishAtLocal,
+                      }))}
+                    />
+                    <span>Agendar publicação no site</span>
+                  </label>
+                </div>
+                {draft.schedulePublish ? (
+                  <div className="admin-form-field">
+                    <label htmlFor="admin-event-publish-at">Publicar em</label>
+                    <input
+                      id="admin-event-publish-at"
+                      type="datetime-local"
+                      value={draft.publishAtLocal}
+                      onChange={(event) => setDraft((prev) => ({ ...prev, publishAtLocal: event.target.value }))}
+                    />
+                    <p className="admin-field-hint">
+                      O evento fica visível só no admin até esse horário; depois entra no calendário público automaticamente.
+                    </p>
+                  </div>
+                ) : null}
+              </fieldset>
 
               <div className="admin-actions">
                 <button type="submit" className="pill pill-light" disabled={isSavingEvent || isUploadingPoster}>
