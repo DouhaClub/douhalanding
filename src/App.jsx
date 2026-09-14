@@ -503,6 +503,11 @@ function isMissingPhotosUrlColumnError(message) {
   return text.includes('photos_url') && text.includes('does not exist');
 }
 
+function isMissingSoldOutColumnError(message) {
+  const text = String(message || '').toLowerCase();
+  return text.includes('sold_out') && text.includes('does not exist');
+}
+
 function formatSupabaseAgendaSaveError(error) {
   const detail = String(error?.message || 'erro desconhecido');
   let msg = `Não foi possível salvar no Supabase: ${detail}`;
@@ -5407,11 +5412,22 @@ export default function App() {
       }
       try {
         const fullSelect =
+          'id, date, time, lineup, poster, ticket_url, photos_url, sold_out, publish_at, reservations_enabled, reservation_layout, created_at';
+        const selectWithoutSoldOut =
           'id, date, time, lineup, poster, ticket_url, photos_url, publish_at, reservations_enabled, reservation_layout, created_at';
-        const firstAttempt = await supabase
+        let soldOutSchemaWarning = '';
+        let firstAttempt = await supabase
           .from(SUPABASE_EVENTS_TABLE)
           .select(fullSelect)
           .order('created_at', { ascending: true });
+        if (firstAttempt.error && isMissingSoldOutColumnError(firstAttempt.error.message)) {
+          soldOutSchemaWarning =
+            'Ingressos esgotados: rode supabase/migrations/011_douha_events_sold_out.sql no Supabase.';
+          firstAttempt = await supabase
+            .from(SUPABASE_EVENTS_TABLE)
+            .select(selectWithoutSoldOut)
+            .order('created_at', { ascending: true });
+        }
         let rowsData = firstAttempt.data;
         if (firstAttempt.error && isMissingPublishAtColumnError(firstAttempt.error.message)) {
           const fallback = await supabase
@@ -5465,7 +5481,7 @@ export default function App() {
         if (!active) return;
         const mapped = Array.isArray(rowsData) ? rowsData.map((row, idx) => mapDbEventToAgendaItem(row, idx)) : [];
         setAgendaEvents(mapped);
-        if (!firstAttempt.error) setAgendaSyncError('');
+        if (!firstAttempt.error) setAgendaSyncError(soldOutSchemaWarning);
       } catch (error) {
         if (!active) return;
         setAgendaEvents([]);
