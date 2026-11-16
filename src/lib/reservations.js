@@ -489,3 +489,210 @@ export async function saveEventReservationConfig(eventId, { enabled, layout }) {
   const { error } = await supabase.from('douha_events').update(payload).eq('id', eventId);
   if (error) throw error;
 }
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatReservationStatusLabel(status) {
+  const key = String(status || '').toLowerCase();
+  if (key === RESERVATION_STATUS.CONFIRMED || key === 'confirmed') return 'Confirmada';
+  if (key === RESERVATION_STATUS.CANCELLED || key === 'cancelled') return 'Cancelada';
+  if (key === RESERVATION_STATUS.PENDING || key === 'pending') return 'Pendente';
+  return status || '—';
+}
+
+function resolveReservationSpotLabel(layout, tableId) {
+  const id = String(tableId || '').trim();
+  const tables = layout?.tables || [];
+  const match = tables.find((table) => String(table.id) === id);
+  return match?.label || id || '—';
+}
+
+/**
+ * Abre uma janela com lista formatada (pronta pra imprimir / salvar PDF).
+ * Inclui nome, contato, lugar, pessoas, status e observações.
+ */
+export function openReservationGuestDocument({ event, reservations, layout }) {
+  const rows = Array.isArray(reservations) ? reservations : [];
+  const title = formatEventReservationLabel(event);
+  const generatedAt = new Date().toLocaleString('pt-BR');
+  const activeRows = rows.filter((row) => {
+    const status = String(row?.status || '').toLowerCase();
+    return status !== RESERVATION_STATUS.CANCELLED && status !== 'cancelled';
+  });
+  const list = activeRows.length ? activeRows : rows;
+
+  const bodyRows = list.length
+    ? list.map((row, idx) => {
+      const spot = resolveReservationSpotLabel(layout, row.table_id || row.tableId);
+      return `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${escapeHtml(spot)}</td>
+          <td>${escapeHtml(row.guest_name || row.guestName || '—')}</td>
+          <td>${escapeHtml(row.guest_phone || row.guestPhone || '—')}</td>
+          <td>${escapeHtml(row.guest_email || row.guestEmail || '—')}</td>
+          <td>${escapeHtml(row.party_size || row.partySize || '—')}</td>
+          <td>${escapeHtml(formatReservationStatusLabel(row.status))}</td>
+          <td>${escapeHtml(row.notes || '—')}</td>
+        </tr>`;
+    }).join('')
+    : `<tr><td colspan="8" class="empty">Nenhuma pré-reserva neste evento.</td></tr>`;
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Pré-reservas — ${escapeHtml(title)}</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 28px;
+      font-family: Avenir, "Segoe UI", system-ui, sans-serif;
+      color: #1f1c12;
+      background: #f7f0e6;
+    }
+    .sheet {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 30px 36px;
+      background: #fffaf2;
+      border: 1px solid rgba(31,28,18,0.12);
+      border-radius: 16px;
+    }
+    .brand {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(31,28,18,0.12);
+    }
+    .brand strong {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      opacity: 0.55;
+      margin-bottom: 6px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.45rem;
+      letter-spacing: 0.02em;
+    }
+    .meta {
+      margin: 0;
+      font-size: 0.9rem;
+      opacity: 0.7;
+      text-align: right;
+      line-height: 1.45;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 18px;
+    }
+    .actions button {
+      appearance: none;
+      border: 1px solid rgba(31,28,18,0.18);
+      background: #1f1c12;
+      color: #f7f0e6;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font: inherit;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .actions button.secondary {
+      background: transparent;
+      color: #1f1c12;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border-bottom: 1px solid rgba(31,28,18,0.1);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.62;
+    }
+    td.empty {
+      text-align: center;
+      padding: 28px 8px;
+      opacity: 0.6;
+    }
+    .foot {
+      margin-top: 18px;
+      font-size: 0.82rem;
+      opacity: 0.62;
+    }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .sheet { border: 0; border-radius: 0; max-width: none; padding: 0; }
+      .actions { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="brand">
+      <div>
+        <strong>Douha Club</strong>
+        <h1>${escapeHtml(title)}</h1>
+      </div>
+      <p class="meta">Lista de pré-reservas<br />Gerado em ${escapeHtml(generatedAt)}</p>
+    </div>
+    <div class="actions">
+      <button type="button" onclick="window.print()">Imprimir / PDF</button>
+      <button type="button" class="secondary" onclick="window.close()">Fechar</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Lugar</th>
+          <th>Nome</th>
+          <th>Telefone</th>
+          <th>Email</th>
+          <th>Pessoas</th>
+          <th>Status</th>
+          <th>Obs.</th>
+        </tr>
+      </thead>
+      <tbody>${bodyRows}</tbody>
+    </table>
+    <p class="foot">${list.length} registro(s)${activeRows.length && activeRows.length !== rows.length ? ` · canceladas ocultas (${rows.length - activeRows.length})` : ''}.</p>
+  </div>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'noopener,noreferrer,width=1040,height=780');
+  if (!win) {
+    throw new Error('Pop-up bloqueado. Permita janelas deste site para gerar o documento.');
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  return win;
+}

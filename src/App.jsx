@@ -22,6 +22,8 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { ReservasPage } from './pages/ReservasPage';
 import { AdminReservasPanel } from './components/AdminReservasPanel';
+import { AdminLoginScreen, AdminShell } from './components/AdminShell';
+import { useAdminUiMode } from './lib/adminUiMode';
 import {
   exportDataUrlToFile,
   exportImageFile,
@@ -66,6 +68,7 @@ import {
 import { hasAcceptedOptionalStorage } from './lib/consentStorage';
 import { fetchPageTitleForUrl } from './lib/pageTitle';
 import { registerServiceWorkerIfAccepted } from './lib/registerServiceWorker';
+import { MEDIA_WIDTH, optimizeMediaSrcSet, optimizeMediaUrl } from './lib/mediaUrl';
 
 const CALENDAR_FOCUS_KEY = 'douha_calendar_focus_v1';
 const PHOTOS_STORAGE_KEY = 'douha_site_photos_v1';
@@ -358,10 +361,11 @@ function footerLogoImageClassName(url) {
 function YellowStripBg({ imageUrl }) {
   const url = String(imageUrl || '').trim();
   if (!url) return null;
+  const src = optimizeMediaUrl(url, { width: MEDIA_WIDTH.banner, quality: 78 });
   return (
     <img
       className="douha-yellow-strip__bg"
-      src={url}
+      src={src}
       alt=""
       aria-hidden="true"
       decoding="async"
@@ -379,7 +383,8 @@ function yellowStripClassName(baseClassName, imageUrl) {
 function buildRoleStageBgProps(imageUrl) {
   const url = String(imageUrl || '').trim();
   if (!url) return { className: 'people-role-photos-stage' };
-  const safe = url.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  const optimized = optimizeMediaUrl(url, { width: MEDIA_WIDTH.banner, quality: 78 });
+  const safe = optimized.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
   return {
     className: 'people-role-photos-stage role-stage--has-bg',
     style: { '--role-stage-bg-url': `url("${safe}")` },
@@ -438,15 +443,17 @@ const faq = [
 
 /** Referencia de tamanho para exportar arquivos (alinha com o layout do site) */
 const IMAGE_SPEC = {
-  agendaPoster: `Tamanho sugerido para poster na agenda: 1080×1620 px (proporção 2:3, retrato). Tamanho máximo recomendado: ${POSTER_MAX_LABEL}.`,
+  agendaPoster: `Poster da agenda: 1080×1620 px (proporção 2:3, retrato). Máximo recomendado: ${POSTER_MAX_LABEL}.`,
   gallery:
-    'Tamanho sugerido para galeria: largura mínima 1200 px; proporção livre (imagem inteira). Foto larga: panoramas ou banners largos ocupam 2 colunas no carrossel.',
-  experienceCopyBanner: `Faixa amarela "Conheça a experiência": ${YELLOW_BANNER_PX.experienceCopy.width}×${YELLOW_BANNER_PX.experienceCopy.height} px (paisagem). Exporte nessa proporção; o texto vai na própria imagem.`,
-  setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). Exporte com o texto já na imagem (o site não sobrepõe copy HTML).`,
-  rolePhotosStage: `Fundo da faixa de fotos do role: ${ROLE_PHOTOS_STAGE_PX.width}×${ROLE_PHOTOS_STAGE_PX.height} px (paisagem). Exporte nessa proporção; cards FOTO ficam por cima.`,
-  footerLogo: `Logo do rodapé: ${FOOTER_LOGO_PX.size}×${FOOTER_LOGO_PX.size} px (quadrado 1:1). Use PNG com fundo transparente (obrigatório para não aparecer quadrado preto).`,
+    'Galeria: largura mínima 1200 px, proporção livre. Marque “foto larga” para ocupar 2 colunas no carrossel da home.',
+  experienceHero:
+    'Faixa acima de “Conheça a experiência”: proporção 3:1 ou 5:1 (paisagem). Deixe vazio para manter o fundo padrão.',
+  experienceCopyBanner: `Faixa amarela “Conheça a experiência”: ${YELLOW_BANNER_PX.experienceCopy.width}×${YELLOW_BANNER_PX.experienceCopy.height} px (paisagem). Exporte nessa proporção — o texto já vai na imagem.`,
+  setsBanner: `Faixa amarela Sets: ${YELLOW_BANNER_PX.sets.width}×${YELLOW_BANNER_PX.sets.height} px (paisagem). O texto precisa estar na imagem; o site não sobrepõe copy.`,
+  rolePhotosStage: `Fundo da faixa do role: ${ROLE_PHOTOS_STAGE_PX.width}×${ROLE_PHOTOS_STAGE_PX.height} px (paisagem). Os cards de foto ficam por cima.`,
+  footerLogo: `Logo do rodapé: ${FOOTER_LOGO_PX.size}×${FOOTER_LOGO_PX.size} px (quadrado). Use PNG com fundo transparente para não aparecer quadrado preto.`,
   editorialCover:
-    'Capa editorial (mosaico): 1600×1200 px ou maior, paisagem (4:3). Aparece no site somente nas 3 posições do mosaico; acervo fica sem imagem até a página da matéria.',
+    'Capa editorial: 1600×1200 px ou maior (paisagem 4:3). Aparece só nas 3 posições do mosaico; no acervo a imagem só entra na página da matéria.',
 };
 
 function normalizeAgendaItem(item, idx = 0) {
@@ -1198,6 +1205,9 @@ function AppShell({
   siteContent,
 }) {
   const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const [adminUiMode] = useAdminUiMode();
+  const useModernAdminShell = isAdminRoute && adminUiMode !== 'legacy';
   const [prints, setPrints] = useState([]);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isCursorFine, setIsCursorFine] = useState(true);
@@ -1223,7 +1233,7 @@ function AppShell({
   }, []);
 
   useEffect(() => {
-    if (!isCursorFine) return undefined;
+    if (!isCursorFine || useModernAdminShell) return undefined;
 
     const onMove = (event) => {
       const now = Date.now();
@@ -1261,7 +1271,16 @@ function AppShell({
 
     window.addEventListener('mousemove', onMove);
     return () => window.removeEventListener('mousemove', onMove);
-  }, [isCursorFine]);
+  }, [isCursorFine, useModernAdminShell]);
+
+  /* Painel admin moderno: shell próprio, sem chrome do site público. */
+  if (useModernAdminShell) {
+    return (
+      <div className="page page--admin">
+        {children}
+      </div>
+    );
+  }
 
   const socialItems = [
     {
@@ -1308,7 +1327,7 @@ function AppShell({
   };
 
   return (
-    <div className="page">
+    <div className={`page${isAdminRoute ? ' page--admin-legacy' : ''}`}>
       {isCursorFine && (
         <div className="paw-layer" aria-hidden="true">
           {prints.map((print) => (
@@ -1459,7 +1478,10 @@ function AppShell({
                 <div className="footer-logo-mark">
                   <img
                     className={footerLogoImageClassName(siteContent.footerLogoUrl)}
-                    src={String(siteContent.footerLogoUrl).trim()}
+                    src={optimizeMediaUrl(String(siteContent.footerLogoUrl).trim(), {
+                      width: MEDIA_WIDTH.footerLogo,
+                      quality: 82,
+                    })}
                     alt=""
                     width={FOOTER_LOGO_PX.size}
                     height={FOOTER_LOGO_PX.size}
@@ -1479,13 +1501,23 @@ function AppShell({
 
 function AgendaEventPoster({ night, overlayLabel }) {
   const hasPoster = Boolean(night.poster?.trim());
+  const posterSrc = hasPoster
+    ? optimizeMediaUrl(night.poster, { width: MEDIA_WIDTH.poster, quality: 78 })
+    : '';
+  const posterSrcSet = hasPoster
+    ? optimizeMediaSrcSet(night.poster, MEDIA_WIDTH.poster, 78)
+    : undefined;
   return (
     <div className="agenda-poster">
       {hasPoster ? (
         <img
-          src={night.poster}
+          src={posterSrc}
+          srcSet={posterSrcSet}
+          sizes="(max-width: 700px) 45vw, 220px"
           alt={`Poster do evento — ${night.lineup}`}
           title={IMAGE_SPEC.agendaPoster}
+          loading="lazy"
+          decoding="async"
         />
       ) : (
         <div className="agenda-poster-placeholder">
@@ -1832,13 +1864,14 @@ function heroCarouselImageProps(index) {
 /** Faixa pós-experiência: mosaico denso em "trilhos"; repetimos entradas pra preencher o loop. */
 const ROLE_STRIP_LANES = 7;
 const ROLE_STRIP_LANES_MOBILE = 2;
-const ROLE_STRIP_MIN_CARDS = 21;
+/** Densidade do mosaico: menos cards = menos decode/rede na home (loop visual se mantém). */
+const ROLE_STRIP_MIN_CARDS = 14;
 /** Mobile: 1 foto por trilho (2 no total) — evita empilhar na vertical. */
 const ROLE_LANE_X_MOBILE = [24, 76];
 /** Mobile: queda 12s; 1.375s entre esq/dir; espacamento por trilho divide 12s (sem sobrepor). */
 const ROLE_STRIP_MOBILE_FALL_SEC = 12;
 const ROLE_STRIP_MOBILE_STAGGER_SEC = 1.375;
-const ROLE_STRIP_MOBILE_CARD_COUNT = 8;
+const ROLE_STRIP_MOBILE_CARD_COUNT = 6;
 
 function roleMobileCardsInLane(lane, total = ROLE_STRIP_MOBILE_CARD_COUNT) {
   let count = 0;
@@ -2240,7 +2273,7 @@ function HomePage({
                 photo.mode === 'wide' ? (
                   <figure className="photo-frame hero-photo-frame hero-photo-frame-wide" key={`hero-photo-wide-${photo.primary}-${idx}`}>
                     <img
-                      src={photo.primary}
+                      src={optimizeMediaUrl(photo.primary, { width: MEDIA_WIDTH.heroWide, quality: 78 })}
                       alt=""
                       draggable={false}
                       onDragStart={(ev) => ev.preventDefault()}
@@ -2252,7 +2285,7 @@ function HomePage({
                   <figure className="photo-frame hero-photo-frame hero-photo-frame-double" key={`hero-photo-double-${photo.primary}-${photo.secondary}-${idx}`}>
                     <div className="hero-double-slot">
                       <img
-                        src={photo.primary}
+                        src={optimizeMediaUrl(photo.primary, { width: MEDIA_WIDTH.hero, quality: 78 })}
                         alt=""
                         draggable={false}
                         onDragStart={(ev) => ev.preventDefault()}
@@ -2262,7 +2295,7 @@ function HomePage({
                     </div>
                     <div className="hero-double-slot">
                       <img
-                        src={photo.secondary}
+                        src={optimizeMediaUrl(photo.secondary, { width: MEDIA_WIDTH.hero, quality: 78 })}
                         alt=""
                         draggable={false}
                         onDragStart={(ev) => ev.preventDefault()}
@@ -2274,7 +2307,7 @@ function HomePage({
                 ) : (
                   <figure className="photo-frame hero-photo-frame" key={`hero-photo-${photo.primary}-${idx}`}>
                     <img
-                      src={photo.primary}
+                      src={optimizeMediaUrl(photo.primary, { width: MEDIA_WIDTH.hero, quality: 78 })}
                       alt=""
                       draggable={false}
                       onDragStart={(ev) => ev.preventDefault()}
@@ -2306,7 +2339,10 @@ function HomePage({
             <>
               <img
                 className="experience-highlight-img"
-                src={String(siteContent.experienceHeroImageUrl).trim()}
+                src={optimizeMediaUrl(String(siteContent.experienceHeroImageUrl).trim(), {
+                  width: MEDIA_WIDTH.banner,
+                  quality: 78,
+                })}
                 alt=""
                 loading="lazy"
                 decoding="async"
@@ -2335,7 +2371,9 @@ function HomePage({
               >
                 {item.url && roleStripVisible ? (
                   <img
-                    src={item.url}
+                    src={optimizeMediaUrl(item.url, { width: MEDIA_WIDTH.role, quality: 76 })}
+                    srcSet={optimizeMediaSrcSet(item.url, MEDIA_WIDTH.role, 76)}
+                    sizes="(max-width: 700px) 28vw, 12vw"
                     alt=""
                     draggable={false}
                     loading="lazy"
@@ -3028,7 +3066,14 @@ function EditorialMosaicTile({ post, variant = 'side' }) {
     >
       <div className={`editorial-mosaic-tile__visual${coverUrl ? '' : ' editorial-mosaic-tile__visual--empty'}`}>
         {coverUrl ? (
-          <img src={coverUrl} alt="" loading="lazy" decoding="async" />
+          <img
+            src={optimizeMediaUrl(coverUrl, { width: MEDIA_WIDTH.editorial, quality: 78 })}
+            srcSet={optimizeMediaSrcSet(coverUrl, MEDIA_WIDTH.editorial, 78)}
+            sizes="(max-width: 700px) 92vw, 40vw"
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
         ) : (
           <div className="editorial-mosaic-tile__visual-fallback" aria-hidden="true">
             <span>{String(post.issue || 'DOUHA').trim()}</span>
@@ -3112,7 +3157,15 @@ function EditorialArticlePage({ editorialPosts }) {
 
           {coverUrl ? (
             <figure className="editorial-article__hero">
-              <img src={coverUrl} alt="" loading="eager" decoding="async" />
+              <img
+                src={optimizeMediaUrl(coverUrl, { width: MEDIA_WIDTH.banner, quality: 80 })}
+                srcSet={optimizeMediaSrcSet(coverUrl, MEDIA_WIDTH.banner, 80)}
+                sizes="(max-width: 900px) 100vw, 920px"
+                alt=""
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+              />
             </figure>
           ) : null}
 
@@ -3502,6 +3555,19 @@ function AdminPage({
   supabaseSetupError,
   adminSection = 'geral',
 }) {
+  /** Em localhost (Vite DEV) o painel abre sem auth pra revisar o visual. */
+  const isLocalAdminPreview = import.meta.env.DEV;
+  const canUseAdminUi = isAdminLoggedIn || isLocalAdminPreview;
+  const [adminUiMode, setAdminUiMode] = useAdminUiMode();
+  const isLegacyAdminUi = adminUiMode === 'legacy';
+  const sectionTitle = {
+    geral: 'Conteúdo do site',
+    visuais: 'Elementos visuais',
+    fotos: 'Fotos',
+    editorial: 'Matérias',
+    calendario: 'Agenda',
+    reservas: 'Reservas',
+  }[adminSection] || 'Painel';
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
@@ -3589,6 +3655,7 @@ function AdminPage({
     [editorialPosts],
   );
   const isGeneralSection = adminSection === 'geral';
+  const isVisualsSection = adminSection === 'visuais';
   const isPhotosSection = adminSection === 'fotos';
   const isEditorialSection = adminSection === 'editorial';
   const isCalendarSection = adminSection === 'calendario';
@@ -3612,9 +3679,9 @@ function AdminPage({
     window.alert('Salvo com sucesso.');
   };
 
-  // Mantem rascunhos do admin sincronizados com o estado principal quando logado.
+  // Mantem rascunhos do admin sincronizados com o estado principal quando logado (ou preview local).
   useEffect(() => {
-    if (!isAdminLoggedIn) return;
+    if (!canUseAdminUi) return;
     setDraftSiteContent(mergeSiteContentWithDefaults(siteContent));
     setDraftPhotos([...sitePhotos]);
     setDraftRolePhotos(rolePhotos.map((r) => normalizeRolePhotoEntry(r)).filter(Boolean));
@@ -3623,7 +3690,7 @@ function AdminPage({
       side1Id: String(siteContent?.editorialMosaicSide1Id || ''),
       side2Id: String(siteContent?.editorialMosaicSide2Id || ''),
     });
-  }, [isAdminLoggedIn, siteContent, sitePhotos, rolePhotos]);
+  }, [canUseAdminUi, siteContent, sitePhotos, rolePhotos]);
 
   const onLogin = async (event) => {
     event.preventDefault();
@@ -4399,473 +4466,657 @@ function AdminPage({
     });
   };
 
-  if (!isAdminLoggedIn) {
-    return (
-      <main>
-        <section className="section">
-          <div className="container admin-box">
-            <h2>Admin</h2>
-            <p className="about-copy">
-              Acesso restrito com conta Supabase Auth (e-mail + senha). O usuário precisa ter{' '}
-              <code>app_metadata.role = admin</code> no painel do Supabase.
-            </p>
-            <form className="admin-login-form" onSubmit={onLogin}>
-              <label htmlFor="admin-email">E-mail</label>
-              <input
-                id="admin-email"
-                type="email"
-                value={emailInput}
-                onChange={(event) => setEmailInput(event.target.value)}
-                placeholder="admin@douhaclub.com"
-                autoComplete="username"
-                required
-              />
-              <label htmlFor="admin-password">Senha</label>
-              <input
-                id="admin-password"
-                type="password"
-                value={passwordInput}
-                onChange={(event) => setPasswordInput(event.target.value)}
-                placeholder="Senha do administrador"
-                autoComplete="current-password"
-                required
-              />
-              {authError && <p className="admin-error">{authError}</p>}
-              <button type="submit" className="pill pill-light" disabled={isSigningIn}>
-                {isSigningIn ? 'Entrando...' : 'Entrar no painel'}
+  if (!canUseAdminUi) {
+    const loginForm = (
+      <form className={isLegacyAdminUi ? 'admin-form' : 'admin-login-form'} onSubmit={onLogin}>
+        <label htmlFor="admin-email">E-mail</label>
+        <input
+          id="admin-email"
+          type="email"
+          value={emailInput}
+          onChange={(event) => setEmailInput(event.target.value)}
+          placeholder="admin@douhaclub.com"
+          autoComplete="username"
+          required
+        />
+        <label htmlFor="admin-password">Senha</label>
+        <input
+          id="admin-password"
+          type="password"
+          value={passwordInput}
+          onChange={(event) => setPasswordInput(event.target.value)}
+          placeholder="Senha do administrador"
+          autoComplete="current-password"
+          required
+        />
+        {authError && <p className="admin-error">{authError}</p>}
+        <button
+          type="submit"
+          className={isLegacyAdminUi ? 'pill pill-light' : 'admin-btn admin-btn--primary'}
+          disabled={isSigningIn}
+        >
+          {isSigningIn ? 'Entrando...' : 'Entrar'}
+        </button>
+      </form>
+    );
+
+    if (isLegacyAdminUi) {
+      return (
+        <main>
+          <section className="section">
+            <div className="container admin-box">
+              <h2>Admin</h2>
+              <p className="about-copy">
+                Acesso restrito com conta Supabase Auth (e-mail + senha). O usuário precisa ter{' '}
+                <code>app_metadata.role = admin</code> no painel do Supabase.
+              </p>
+              {loginForm}
+              <button type="button" className="pill" onClick={() => setAdminUiMode('modern')}>
+                Usar visual novo
               </button>
-            </form>
-          </div>
-        </section>
-      </main>
+            </div>
+          </section>
+        </main>
+      );
+    }
+
+    return (
+      <AdminLoginScreen>
+        <h1>Entrar no painel</h1>
+        <p className="admin-login-card__copy">
+          Use o e-mail e a senha do administrador Douha.
+        </p>
+        {loginForm}
+        <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setAdminUiMode('legacy')}>
+          Ver visual legado
+        </button>
+      </AdminLoginScreen>
     );
   }
 
-  return (
-    <main>
-      <section className="section">
-        <div className="container admin-box">
-          <div className="section-head">
-            <h2>
-              Admin
-              {isCalendarSection ? ' · Agenda' : ''}
-              {isReservasSection ? ' · Reservas' : ''}
-              {isPhotosSection ? ' · Fotos' : ''}
-              {isEditorialSection ? ' · Editorial' : ''}
-              {isGeneralSection ? ' · Conteudo' : ''}
-            </h2>
-            <div className="admin-actions">
-              <button type="button" className="pill" onClick={onResetAgenda}>Limpar agenda</button>
-              <button type="button" className="pill pill-light" onClick={onLogout}>Sair</button>
-            </div>
-          </div>
-          <nav className="admin-nav">
-            <Link className="pill" to="/admin">Conteudo do site</Link>
-            <Link className="pill" to="/admin/fotos">Fotos</Link>
-            <Link className="pill" to="/admin/editorial">Materias</Link>
-            <Link className="pill" to="/admin/calendario">Agenda / Calendário</Link>
-            <Link className="pill" to="/admin/reservas">Reservas / Mapa</Link>
-          </nav>
+  const handleAdminExit = async () => {
+    await onLogout();
+    if (isLocalAdminPreview) {
+      window.location.assign('/');
+    }
+  };
 
-          {saveHint && <p className="admin-save-hint" role="status">{saveHint}</p>}
-          {supabaseSetupError && <p className="admin-error">{supabaseSetupError}</p>}
-          {agendaSyncError && <p className="admin-error">{agendaSyncError}</p>}
+  const adminTopActions = (
+    <>
+      {isLocalAdminPreview && !isAdminLoggedIn ? (
+        <span className="admin-local-badge" title="Só no npm run dev">Local · sem login</span>
+      ) : null}
+      <button
+        type="button"
+        className="admin-btn admin-btn--ghost"
+        onClick={() => setAdminUiMode('legacy')}
+        title="Abre o visual antigo do painel para comparar"
+      >
+        Ver legado
+      </button>
+      {isCalendarSection ? (
+        <button type="button" className="admin-btn admin-btn--ghost" onClick={onResetAgenda}>
+          Limpar agenda
+        </button>
+      ) : null}
+      <button type="button" className="admin-btn admin-btn--ghost" onClick={handleAdminExit}>
+        Sair
+      </button>
+    </>
+  );
 
-          {isGeneralSection ? <article id="admin-overview" className="admin-panel-card admin-panel-card-highlight">
-            <h3>Visao geral rapida</h3>
-            <div className="admin-kpi-grid">
-              <div className="admin-kpi-item"><strong>{adminStats.total}</strong><span>Eventos cadastrados</span></div>
-              <div className="admin-kpi-item"><strong>{adminStats.withTicket}</strong><span>Com link de ingresso</span></div>
-              <div className="admin-kpi-item"><strong>{adminStats.withPhotos}</strong><span>Com link de fotos</span></div>
-              <div className="admin-kpi-item"><strong>{adminStats.totalPhotos}</strong><span>Fotos na galeria</span></div>
-            </div>
-          </article> : null}
+  const adminStatusBlocks = (
+    <>
+      {isLocalAdminPreview && !isAdminLoggedIn ? (
+        <p className="admin-save-hint" role="status">
+          Modo local: painel aberto sem login para revisar o visual. Para salvar no Supabase, ainda é preciso entrar com uma conta admin.
+        </p>
+      ) : null}
+      {(saveHint || supabaseSetupError || agendaSyncError) ? (
+        <div className="admin-status-stack" role="status">
+          {saveHint ? <p className="admin-save-hint">{saveHint}</p> : null}
+          {supabaseSetupError ? <p className="admin-error">{supabaseSetupError}</p> : null}
+          {agendaSyncError ? <p className="admin-error">{agendaSyncError}</p> : null}
+        </div>
+      ) : null}
+    </>
+  );
 
-          {isGeneralSection ? <article id="admin-site-content" className="admin-panel-card">
-            <h3>Conteudo geral do site</h3>
-            <div className="admin-form">
-              <label>Texto principal de Quem Somos</label>
-              <textarea
-                value={draftSiteContent.whoWeAreText}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, whoWeAreText: event.target.value }))}
-              />
-              <label>Instagram (Quem Somos)</label>
-              <input
-                value={draftSiteContent.whoWeAreInstagram}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, whoWeAreInstagram: event.target.value }))}
-              />
-              <label>Email comercial</label>
-              <input
-                value={draftSiteContent.contactEmail}
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, contactEmail: event.target.value }))}
-              />
-              <label>WhatsApp comercial (numero ou link wa.me)</label>
-              <input
-                value={draftSiteContent.contactWhatsApp}
-                placeholder="https://wa.me/5511999999999 ou 5511999999999"
-                onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, contactWhatsApp: event.target.value }))}
-              />
-              <div className="admin-form-pair-row">
-                <div className="admin-form-field">
-                  <label htmlFor="site-newsletter-label">Newsletter (titulo)</label>
-                  <input
-                    id="site-newsletter-label"
-                    value={draftSiteContent.communityNewsletterLabel}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityNewsletterLabel: event.target.value }))}
-                  />
-                </div>
-                <div className="admin-form-field">
-                  <label htmlFor="site-newsletter-url">Newsletter (link)</label>
-                  <input
-                    id="site-newsletter-url"
-                    value={draftSiteContent.communityNewsletterUrl}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityNewsletterUrl: event.target.value }))}
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-              <div className="admin-form-pair-row">
-                <div className="admin-form-field">
-                  <label htmlFor="site-cm-wa-label">Comunidade WhatsApp (titulo)</label>
-                  <input
-                    id="site-cm-wa-label"
-                    value={draftSiteContent.communityWhatsAppLabel}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityWhatsAppLabel: event.target.value }))}
-                  />
-                </div>
-                <div className="admin-form-field">
-                  <label htmlFor="site-cm-wa-url">Comunidade WhatsApp (numero ou link wa.me)</label>
-                  <input
-                    id="site-cm-wa-url"
-                    placeholder="https://wa.me/5511999999999"
-                    value={draftSiteContent.communityWhatsAppUrl}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityWhatsAppUrl: event.target.value }))}
-                  />
-                </div>
-              </div>
-              <div className="admin-form-pair-row">
-                <div className="admin-form-field">
-                  <label htmlFor="site-cm-ig-label">Comunidade Instagram (titulo)</label>
-                  <input
-                    id="site-cm-ig-label"
-                    value={draftSiteContent.communityInstagramLabel}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityInstagramLabel: event.target.value }))}
-                  />
-                </div>
-                <div className="admin-form-field">
-                  <label htmlFor="site-cm-ig-url">Comunidade Instagram (link)</label>
-                  <input
-                    id="site-cm-ig-url"
-                    value={draftSiteContent.communityInstagramUrl}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityInstagramUrl: event.target.value }))}
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-              <div className="admin-form-pair-row">
-                <div className="admin-form-field">
-                  <label htmlFor="site-soc-ig-handle">Instagram (perfil @)</label>
-                  <input
-                    id="site-soc-ig-handle"
-                    value={draftSiteContent.socialInstagramHandle}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialInstagramHandle: event.target.value }))}
-                  />
-                </div>
-                <div className="admin-form-field">
-                  <label htmlFor="site-soc-ig-url">Instagram (link)</label>
-                  <input
-                    id="site-soc-ig-url"
-                    value={draftSiteContent.socialInstagramUrl}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialInstagramUrl: event.target.value }))}
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-              <div className="admin-form-pair-row">
-                <div className="admin-form-field">
-                  <label htmlFor="site-soc-tt-handle">TikTok (perfil @)</label>
-                  <input
-                    id="site-soc-tt-handle"
-                    value={draftSiteContent.socialTikTokHandle}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialTikTokHandle: event.target.value }))}
-                  />
-                </div>
-                <div className="admin-form-field">
-                  <label htmlFor="site-soc-tt-url">TikTok (link)</label>
-                  <input
-                    id="site-soc-tt-url"
-                    value={draftSiteContent.socialTikTokUrl}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialTikTokUrl: event.target.value }))}
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-              <div className="admin-form-pair-row">
-                <div className="admin-form-field">
-                  <label htmlFor="site-soc-sc-handle">SoundCloud (perfil @)</label>
-                  <input
-                    id="site-soc-sc-handle"
-                    value={draftSiteContent.socialSoundCloudHandle}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialSoundCloudHandle: event.target.value }))}
-                  />
-                </div>
-                <div className="admin-form-field">
-                  <label htmlFor="site-soc-sc-url">SoundCloud (link)</label>
-                  <input
-                    id="site-soc-sc-url"
-                    value={draftSiteContent.socialSoundCloudUrl}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialSoundCloudUrl: event.target.value }))}
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-              <div className="admin-form-pair-row">
-                <div className="admin-form-field">
-                  <label htmlFor="site-soc-yt-handle">YouTube (perfil @)</label>
-                  <input
-                    id="site-soc-yt-handle"
-                    value={draftSiteContent.socialYouTubeHandle}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialYouTubeHandle: event.target.value }))}
-                  />
-                </div>
-                <div className="admin-form-field">
-                  <label htmlFor="site-soc-yt-url">YouTube (link)</label>
-                  <input
-                    id="site-soc-yt-url"
-                    value={draftSiteContent.socialYouTubeUrl}
-                    onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialYouTubeUrl: event.target.value }))}
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-              <div className="admin-yellow-banners-block">
-                <h4 className="admin-subheading">Faixas amarelas (2) — textura atras do texto</h4>
-                <p className="about-copy">
-                  São <strong>duas faixas separadas</strong> na Home. Cada uma tem seu upload. Vazio = amarelo padrão.
-                  Depois de enviar as duas, clique em <strong>Salvar alterações</strong>.
-                </p>
-              </div>
-              <article className="admin-panel-card admin-yellow-strip-card">
-                <h3>Faixa 1 — Conheça a experiência Douha</h3>
-                <p className="about-copy image-spec-note">{IMAGE_SPEC.experienceCopyBanner}</p>
-                <div className="admin-form">
-                  <label htmlFor="admin-experience-copy-banner-url">URL da textura</label>
-                  <input
-                    id="admin-experience-copy-banner-url"
-                    type="text"
-                    inputMode="url"
-                    autoComplete="off"
-                    placeholder="https://..."
-                    value={draftSiteContent.experienceCopyBannerBgUrl ?? ''}
-                    onChange={(event) => setDraftSiteContent((prev) => ({
-                      ...mergeSiteContentWithDefaults(prev),
-                      experienceCopyBannerBgUrl: event.target.value,
-                    }))}
-                  />
-                  <label htmlFor="admin-experience-copy-banner-file">Enviar textura (experiência)</label>
-                  <input
-                    id="admin-experience-copy-banner-file"
-                    type="file"
-                    accept="image/*"
-                    onChange={onExperienceCopyBannerBgUpload}
-                    disabled={isUploadingExperienceCopyBannerBg}
-                  />
-                  {isUploadingExperienceCopyBannerBg ? (
-                    <p className="admin-save-hint" role="status">Enviando textura da faixa experiência...</p>
-                  ) : null}
-                  {experienceCopyBannerUploadError ? (
-                    <p className="admin-error">{experienceCopyBannerUploadError}</p>
-                  ) : null}
-                  {String(draftSiteContent.experienceCopyBannerBgUrl || '').trim() ? (
-                    <div className="admin-yellow-banner-preview experience-highlight-copy douha-yellow-strip douha-yellow-strip--has-bg">
-                      <YellowStripBg imageUrl={draftSiteContent.experienceCopyBannerBgUrl} />
-                      <span>Preview faixa 1</span>
-                    </div>
-                  ) : null}
-                </div>
-              </article>
-              <article className="admin-panel-card admin-yellow-strip-card">
-                <h3>Faixa 2 — Sets (antes dos videos)</h3>
-                <p className="about-copy image-spec-note">{IMAGE_SPEC.setsBanner}</p>
-                <div className="admin-form">
-                  <label htmlFor="admin-sets-banner-url">URL da textura</label>
-                  <input
-                    id="admin-sets-banner-url"
-                    type="text"
-                    inputMode="url"
-                    autoComplete="off"
-                    placeholder="https://..."
-                    value={draftSiteContent.setsBannerBgUrl ?? ''}
-                    onChange={(event) => setDraftSiteContent((prev) => ({
-                      ...mergeSiteContentWithDefaults(prev),
-                      setsBannerBgUrl: event.target.value,
-                    }))}
-                  />
-                  <label htmlFor="admin-sets-banner-file">Enviar textura (Sets)</label>
-                  <input
-                    id="admin-sets-banner-file"
-                    type="file"
-                    accept="image/*"
-                    onChange={onSetsBannerBgUpload}
-                    disabled={isUploadingSetsBannerBg}
-                  />
-                  {isUploadingSetsBannerBg ? (
-                    <p className="admin-save-hint" role="status">Enviando textura da faixa Sets...</p>
-                  ) : null}
-                  {setsBannerUploadError ? <p className="admin-error">{setsBannerUploadError}</p> : null}
-                  {String(draftSiteContent.setsBannerBgUrl || '').trim() ? (
-                    <div className="admin-yellow-banner-preview sets-banner douha-yellow-strip douha-yellow-strip--has-bg">
-                      <YellowStripBg imageUrl={draftSiteContent.setsBannerBgUrl} />
-                      <span>Preview faixa 2</span>
-                    </div>
-                  ) : null}
-                </div>
-              </article>
-              <div className="admin-yellow-banners-block">
-                <p className="about-copy admin-yellow-banners-save-hint">
-                  Lembre de <strong>Salvar alterações</strong> no bloco de textos/links acima para gravar as duas faixas no site.
-                </p>
-              </div>
-              {siteContentSaveError ? <p className="admin-error">{siteContentSaveError}</p> : null}
-              <div className="admin-actions">
-                <button type="button" className="pill pill-light" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
-                  {isSavingSiteContent ? 'Salvando...' : 'Salvar alterações'}
-                </button>
-                <button type="button" className="pill" onClick={onResetSiteContentDraft} disabled={isSavingSiteContent}>Restaurar textos padrão</button>
-              </div>
-            </div>
-          </article> : null}
+  const adminPanels = (
+    <>
+          {adminStatusBlocks}
 
           {isGeneralSection ? (
-          <article id="admin-footer-logo" className="admin-panel-card">
-            <h3>Logo do rodapé</h3>
-            <p className="about-copy">
-              Detalhe <strong>pequeno e redondo</strong> na mesma linha do copyright (centro). Use <strong>PNG com fundo transparente</strong>.
-              Envie em <strong>PNG com fundo transparente</strong> para não aparecer o quadrado preto.
-            </p>
-            <p className="about-copy image-spec-note">{IMAGE_SPEC.footerLogo}</p>
-            <div className="admin-form">
-              <label htmlFor="admin-footer-logo-url">URL da logo</label>
-              <input
-                id="admin-footer-logo-url"
-                type="text"
-                inputMode="url"
-                autoComplete="off"
-                placeholder="https://..."
-                value={draftSiteContent.footerLogoUrl ?? ''}
-                onChange={(event) => setDraftSiteContent((prev) => ({
-                  ...mergeSiteContentWithDefaults(prev),
-                  footerLogoUrl: event.target.value,
-                }))}
-              />
-              <label htmlFor="admin-footer-logo-file">Enviar logo do computador</label>
-              <input
-                id="admin-footer-logo-file"
-                type="file"
-                accept="image/png,image/webp,image/jpeg,image/*"
-                onChange={onFooterLogoUpload}
-                disabled={isUploadingFooterLogo}
-              />
-              {isUploadingFooterLogo ? (
-                <p className="admin-save-hint" role="status">Enviando logo...</p>
-              ) : null}
-              {footerLogoUploadError ? <p className="admin-error">{footerLogoUploadError}</p> : null}
-              {String(draftSiteContent.footerLogoUrl || '').trim() ? (
-                <div className="admin-footer-logo-preview">
-                  <p className="about-copy admin-preview-label">Preview (redonda, acima da linha do rodapé)</p>
-                  <div className="footer-logo-mark">
-                    <img
-                      className={footerLogoImageClassName(draftSiteContent.footerLogoUrl)}
-                      src={String(draftSiteContent.footerLogoUrl).trim()}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
+            <>
+              <article id="admin-overview" className="admin-panel-card admin-panel-card-highlight">
+                <header className="admin-card-head">
+                  <h3>Visão geral</h3>
+                  <p>Resumo rápido do que já está cadastrado no painel.</p>
+                </header>
+                <div className="admin-kpi-grid">
+                  <div className="admin-kpi-item"><strong>{adminStats.total}</strong><span>Eventos cadastrados</span></div>
+                  <div className="admin-kpi-item"><strong>{adminStats.withTicket}</strong><span>Com link de ingresso</span></div>
+                  <div className="admin-kpi-item"><strong>{adminStats.withPhotos}</strong><span>Com link de fotos</span></div>
+                  <div className="admin-kpi-item"><strong>{adminStats.totalPhotos}</strong><span>Fotos na galeria</span></div>
+                </div>
+              </article>
+
+              <article id="admin-site-content" className="admin-panel-card">
+                <header className="admin-card-head">
+                  <h3>Quem somos &amp; contato</h3>
+                  <p>Texto da página Sobre e os canais comerciais do site.</p>
+                </header>
+                <div className="admin-form admin-form--wide">
+                  <div className="admin-form-field">
+                    <label htmlFor="site-who-text">Texto principal de Quem Somos</label>
+                    <textarea
+                      id="site-who-text"
+                      rows={5}
+                      value={draftSiteContent.whoWeAreText}
+                      onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, whoWeAreText: event.target.value }))}
                     />
                   </div>
+                  <div className="admin-form-field">
+                    <label htmlFor="site-who-ig">Instagram (Quem Somos)</label>
+                    <input
+                      id="site-who-ig"
+                      value={draftSiteContent.whoWeAreInstagram}
+                      onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, whoWeAreInstagram: event.target.value }))}
+                    />
+                  </div>
+                  <div className="admin-form-pair-row">
+                    <div className="admin-form-field">
+                      <label htmlFor="site-contact-email">Email comercial</label>
+                      <input
+                        id="site-contact-email"
+                        value={draftSiteContent.contactEmail}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, contactEmail: event.target.value }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="site-contact-wa">WhatsApp comercial</label>
+                      <input
+                        id="site-contact-wa"
+                        value={draftSiteContent.contactWhatsApp}
+                        placeholder="https://wa.me/5511999999999 ou 5511999999999"
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, contactWhatsApp: event.target.value }))}
+                      />
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <p className="about-copy admin-muted">Sem logo: nenhum bloco extra no rodapé do site.</p>
-              )}
-              <div className="admin-actions">
-                <button type="button" className="pill pill-light" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
-                  {isSavingSiteContent ? 'Salvando...' : 'Salvar logo do rodapé'}
-                </button>
+              </article>
+
+              <article className="admin-panel-card">
+                <header className="admin-card-head">
+                  <h3>Comunidade</h3>
+                  <p>Títulos e links dos botões de newsletter e canais da comunidade.</p>
+                </header>
+                <div className="admin-form admin-form--wide">
+                  <div className="admin-form-pair-row">
+                    <div className="admin-form-field">
+                      <label htmlFor="site-newsletter-label">Newsletter (título)</label>
+                      <input
+                        id="site-newsletter-label"
+                        value={draftSiteContent.communityNewsletterLabel}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityNewsletterLabel: event.target.value }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="site-newsletter-url">Newsletter (link)</label>
+                      <input
+                        id="site-newsletter-url"
+                        value={draftSiteContent.communityNewsletterUrl}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityNewsletterUrl: event.target.value }))}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                  <div className="admin-form-pair-row">
+                    <div className="admin-form-field">
+                      <label htmlFor="site-cm-wa-label">Comunidade WhatsApp (título)</label>
+                      <input
+                        id="site-cm-wa-label"
+                        value={draftSiteContent.communityWhatsAppLabel}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityWhatsAppLabel: event.target.value }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="site-cm-wa-url">Comunidade WhatsApp (link)</label>
+                      <input
+                        id="site-cm-wa-url"
+                        placeholder="https://wa.me/5511999999999"
+                        value={draftSiteContent.communityWhatsAppUrl}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityWhatsAppUrl: event.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <div className="admin-form-pair-row">
+                    <div className="admin-form-field">
+                      <label htmlFor="site-cm-ig-label">Comunidade Instagram (título)</label>
+                      <input
+                        id="site-cm-ig-label"
+                        value={draftSiteContent.communityInstagramLabel}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityInstagramLabel: event.target.value }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="site-cm-ig-url">Comunidade Instagram (link)</label>
+                      <input
+                        id="site-cm-ig-url"
+                        value={draftSiteContent.communityInstagramUrl}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, communityInstagramUrl: event.target.value }))}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <article className="admin-panel-card">
+                <header className="admin-card-head">
+                  <h3>Redes sociais</h3>
+                  <p>Perfis e links usados no rodapé e nos blocos sociais do site.</p>
+                </header>
+                <div className="admin-form admin-form--wide">
+                  <div className="admin-form-pair-row">
+                    <div className="admin-form-field">
+                      <label htmlFor="site-soc-ig-handle">Instagram (perfil @)</label>
+                      <input
+                        id="site-soc-ig-handle"
+                        value={draftSiteContent.socialInstagramHandle}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialInstagramHandle: event.target.value }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="site-soc-ig-url">Instagram (link)</label>
+                      <input
+                        id="site-soc-ig-url"
+                        value={draftSiteContent.socialInstagramUrl}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialInstagramUrl: event.target.value }))}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                  <div className="admin-form-pair-row">
+                    <div className="admin-form-field">
+                      <label htmlFor="site-soc-tt-handle">TikTok (perfil @)</label>
+                      <input
+                        id="site-soc-tt-handle"
+                        value={draftSiteContent.socialTikTokHandle}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialTikTokHandle: event.target.value }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="site-soc-tt-url">TikTok (link)</label>
+                      <input
+                        id="site-soc-tt-url"
+                        value={draftSiteContent.socialTikTokUrl}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialTikTokUrl: event.target.value }))}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                  <div className="admin-form-pair-row">
+                    <div className="admin-form-field">
+                      <label htmlFor="site-soc-sc-handle">SoundCloud (perfil @)</label>
+                      <input
+                        id="site-soc-sc-handle"
+                        value={draftSiteContent.socialSoundCloudHandle}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialSoundCloudHandle: event.target.value }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="site-soc-sc-url">SoundCloud (link)</label>
+                      <input
+                        id="site-soc-sc-url"
+                        value={draftSiteContent.socialSoundCloudUrl}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialSoundCloudUrl: event.target.value }))}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                  <div className="admin-form-pair-row">
+                    <div className="admin-form-field">
+                      <label htmlFor="site-soc-yt-handle">YouTube (perfil @)</label>
+                      <input
+                        id="site-soc-yt-handle"
+                        value={draftSiteContent.socialYouTubeHandle}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialYouTubeHandle: event.target.value }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="site-soc-yt-url">YouTube (link)</label>
+                      <input
+                        id="site-soc-yt-url"
+                        value={draftSiteContent.socialYouTubeUrl}
+                        onChange={(event) => setDraftSiteContent((prev) => ({ ...prev, socialYouTubeUrl: event.target.value }))}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              {siteContentSaveError ? <p className="admin-error">{siteContentSaveError}</p> : null}
+              <div className="admin-sticky-actions">
+                <p className="admin-sticky-actions__hint">Grava textos, links e redes do site.</p>
+                <div className="admin-actions">
+                  <button type="button" className="admin-btn admin-btn--primary" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
+                    {isSavingSiteContent ? 'Salvando...' : 'Salvar conteúdo'}
+                  </button>
+                  <button type="button" className="admin-btn admin-btn--ghost" onClick={onResetSiteContentDraft} disabled={isSavingSiteContent}>
+                    Restaurar textos padrão
+                  </button>
+                </div>
               </div>
-            </div>
-          </article>
+            </>
           ) : null}
 
-          {isPhotosSection ? (
-          <article id="admin-experience-hero" className="admin-panel-card">
-            <h3>Faixa acima de &quot;Conheça a experiência Douha&quot;</h3>
-            <p className="about-copy">
-              Salvar grava no site e no navegador.
-            </p>
-            <p className="about-copy">
-              Proporção da arte: <strong>3:1</strong> ou <strong>5:1</strong> (paisagem). Vazio = fundo padrão.
-            </p>
-            <div className="admin-form">
-              <label htmlFor="admin-experience-hero-url">URL da imagem</label>
-              <input
-                id="admin-experience-hero-url"
-                type="text"
-                inputMode="url"
-                autoComplete="off"
-                placeholder="https://..."
-                value={draftSiteContent.experienceHeroImageUrl ?? ''}
-                onChange={(event) => {
-                  setExperienceHeroPreviewFailed(false);
-                  setDraftSiteContent((prev) => ({
-                    ...mergeSiteContentWithDefaults(prev),
-                    experienceHeroImageUrl: event.target.value,
-                  }));
-                }}
-              />
-              <label htmlFor="admin-experience-hero-file">Enviar imagem do computador</label>
-              <input
-                id="admin-experience-hero-file"
-                type="file"
-                accept="image/*"
-                onChange={onExperienceHeroUpload}
-                disabled={isUploadingExperienceHero}
-              />
-              {isUploadingExperienceHero && <p className="admin-save-hint" role="status">Enviando imagem...</p>}
-              {experienceHeroUploadError && <p className="admin-error">{experienceHeroUploadError}</p>}
-              {String(draftSiteContent.experienceHeroImageUrl || '').trim() ? (
-                <div className="admin-experience-hero-preview">
-                  <p className="about-copy admin-preview-label">Preview (como na Home)</p>
-                  {!experienceHeroPreviewFailed ? (
-                    <img
-                      src={String(draftSiteContent.experienceHeroImageUrl).trim()}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      onLoad={() => setExperienceHeroPreviewFailed(false)}
-                      onError={() => setExperienceHeroPreviewFailed(true)}
-                    />
+          {isVisualsSection ? (
+            <>
+              <div className="admin-section-intro">
+                <h3>Faixas da Home</h3>
+                <p className="about-copy">
+                  Aqui ficam as artes fixas do site: faixa acima da experiência, as duas faixas amarelas e o logo do rodapé.
+                  Depois de enviar, use <strong>Salvar visuais</strong>.
+                </p>
+              </div>
+
+              <article id="admin-experience-hero" className="admin-panel-card">
+                <header className="admin-card-head">
+                  <h3>Faixa acima de “Conheça a experiência”</h3>
+                  <p className="about-copy image-spec-note">{IMAGE_SPEC.experienceHero}</p>
+                </header>
+                <div className="admin-form admin-form--wide">
+                  <div className="admin-media-row">
+                    <div className="admin-form-field">
+                      <label htmlFor="admin-experience-hero-url">URL da imagem</label>
+                      <input
+                        id="admin-experience-hero-url"
+                        type="text"
+                        inputMode="url"
+                        autoComplete="off"
+                        placeholder="https://..."
+                        value={draftSiteContent.experienceHeroImageUrl ?? ''}
+                        onChange={(event) => {
+                          setExperienceHeroPreviewFailed(false);
+                          setDraftSiteContent((prev) => ({
+                            ...mergeSiteContentWithDefaults(prev),
+                            experienceHeroImageUrl: event.target.value,
+                          }));
+                        }}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="admin-experience-hero-file">Enviar arquivo</label>
+                      <input
+                        id="admin-experience-hero-file"
+                        type="file"
+                        accept="image/*"
+                        onChange={onExperienceHeroUpload}
+                        disabled={isUploadingExperienceHero}
+                      />
+                    </div>
+                  </div>
+                  {isUploadingExperienceHero ? <p className="admin-save-hint" role="status">Enviando imagem...</p> : null}
+                  {experienceHeroUploadError ? <p className="admin-error">{experienceHeroUploadError}</p> : null}
+                  {String(draftSiteContent.experienceHeroImageUrl || '').trim() ? (
+                    <div className="admin-experience-hero-preview">
+                      <p className="about-copy admin-preview-label">Preview (como na Home)</p>
+                      {!experienceHeroPreviewFailed ? (
+                        <img
+                          src={String(draftSiteContent.experienceHeroImageUrl).trim()}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          onLoad={() => setExperienceHeroPreviewFailed(false)}
+                          onError={() => setExperienceHeroPreviewFailed(true)}
+                        />
+                      ) : (
+                        <p className="admin-error">Não foi possível carregar esta URL. Confira o link ou envie o arquivo de novo.</p>
+                      )}
+                    </div>
                   ) : (
-                    <p className="admin-error">Não foi possível carregar esta URL. Confira o link, tente outro endereço ou use o upload.</p>
+                    <p className="about-copy admin-muted">Sem imagem: a Home mantém só o fundo padrão nessa faixa.</p>
                   )}
                 </div>
-              ) : (
-                <p className="about-copy admin-muted">Sem imagem: a Home mostra só o fundo padrão nessa faixa.</p>
-              )}
-              <div className="admin-actions">
-                <button type="button" className="pill pill-light" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
-                  {isSavingSiteContent ? 'Salvando...' : 'Salvar faixa'}
-                </button>
+              </article>
+
+              <div className="admin-split-grid">
+                <article className="admin-panel-card">
+                  <header className="admin-card-head">
+                    <h3>Faixa amarela 1 — Experiência</h3>
+                    <p className="image-spec-note">{IMAGE_SPEC.experienceCopyBanner}</p>
+                  </header>
+                  <div className="admin-form">
+                    <div className="admin-media-row">
+                      <div className="admin-form-field">
+                        <label htmlFor="admin-experience-copy-banner-url">URL da textura</label>
+                        <input
+                          id="admin-experience-copy-banner-url"
+                          type="text"
+                          inputMode="url"
+                          autoComplete="off"
+                          placeholder="https://..."
+                          value={draftSiteContent.experienceCopyBannerBgUrl ?? ''}
+                          onChange={(event) => setDraftSiteContent((prev) => ({
+                            ...mergeSiteContentWithDefaults(prev),
+                            experienceCopyBannerBgUrl: event.target.value,
+                          }))}
+                        />
+                      </div>
+                      <div className="admin-form-field">
+                        <label htmlFor="admin-experience-copy-banner-file">Enviar arquivo</label>
+                        <input
+                          id="admin-experience-copy-banner-file"
+                          type="file"
+                          accept="image/*"
+                          onChange={onExperienceCopyBannerBgUpload}
+                          disabled={isUploadingExperienceCopyBannerBg}
+                        />
+                      </div>
+                    </div>
+                    {isUploadingExperienceCopyBannerBg ? (
+                      <p className="admin-save-hint" role="status">Enviando textura da faixa experiência...</p>
+                    ) : null}
+                    {experienceCopyBannerUploadError ? (
+                      <p className="admin-error">{experienceCopyBannerUploadError}</p>
+                    ) : null}
+                    {String(draftSiteContent.experienceCopyBannerBgUrl || '').trim() ? (
+                      <div className="admin-yellow-banner-preview experience-highlight-copy douha-yellow-strip douha-yellow-strip--has-bg">
+                        <YellowStripBg imageUrl={draftSiteContent.experienceCopyBannerBgUrl} />
+                        <span>Preview faixa 1</span>
+                      </div>
+                    ) : (
+                      <p className="about-copy admin-muted">Vazio = amarelo padrão do site.</p>
+                    )}
+                  </div>
+                </article>
+
+                <article className="admin-panel-card">
+                  <header className="admin-card-head">
+                    <h3>Faixa amarela 2 — Sets</h3>
+                    <p className="image-spec-note">{IMAGE_SPEC.setsBanner}</p>
+                  </header>
+                  <div className="admin-form">
+                    <div className="admin-media-row">
+                      <div className="admin-form-field">
+                        <label htmlFor="admin-sets-banner-url">URL da textura</label>
+                        <input
+                          id="admin-sets-banner-url"
+                          type="text"
+                          inputMode="url"
+                          autoComplete="off"
+                          placeholder="https://..."
+                          value={draftSiteContent.setsBannerBgUrl ?? ''}
+                          onChange={(event) => setDraftSiteContent((prev) => ({
+                            ...mergeSiteContentWithDefaults(prev),
+                            setsBannerBgUrl: event.target.value,
+                          }))}
+                        />
+                      </div>
+                      <div className="admin-form-field">
+                        <label htmlFor="admin-sets-banner-file">Enviar arquivo</label>
+                        <input
+                          id="admin-sets-banner-file"
+                          type="file"
+                          accept="image/*"
+                          onChange={onSetsBannerBgUpload}
+                          disabled={isUploadingSetsBannerBg}
+                        />
+                      </div>
+                    </div>
+                    {isUploadingSetsBannerBg ? (
+                      <p className="admin-save-hint" role="status">Enviando textura da faixa Sets...</p>
+                    ) : null}
+                    {setsBannerUploadError ? <p className="admin-error">{setsBannerUploadError}</p> : null}
+                    {String(draftSiteContent.setsBannerBgUrl || '').trim() ? (
+                      <div className="admin-yellow-banner-preview sets-banner douha-yellow-strip douha-yellow-strip--has-bg">
+                        <YellowStripBg imageUrl={draftSiteContent.setsBannerBgUrl} />
+                        <span>Preview faixa 2</span>
+                      </div>
+                    ) : (
+                      <p className="about-copy admin-muted">Vazio = amarelo padrão do site.</p>
+                    )}
+                  </div>
+                </article>
               </div>
-            </div>
-          </article>
+
+              <article id="admin-role-stage-visual" className="admin-panel-card">
+                <header className="admin-card-head">
+                  <h3>Fundo da faixa do role</h3>
+                  <p className="about-copy">
+                    Textura atrás dos cards de foto do role na Home. As fotos em si continuam em <strong>Fotos</strong>.
+                  </p>
+                  <p className="about-copy image-spec-note">{IMAGE_SPEC.rolePhotosStage}</p>
+                </header>
+                <div className="admin-form admin-form--wide">
+                  <div className="admin-media-row">
+                    <div className="admin-form-field">
+                      <label htmlFor="admin-role-stage-bg-url">URL do fundo</label>
+                      <input
+                        id="admin-role-stage-bg-url"
+                        type="text"
+                        inputMode="url"
+                        autoComplete="off"
+                        placeholder="https://..."
+                        value={draftSiteContent.rolePhotosStageBgUrl ?? ''}
+                        onChange={(event) => setDraftSiteContent((prev) => ({
+                          ...mergeSiteContentWithDefaults(prev),
+                          rolePhotosStageBgUrl: event.target.value,
+                        }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="admin-role-stage-bg-file">Enviar arquivo</label>
+                      <input
+                        id="admin-role-stage-bg-file"
+                        type="file"
+                        accept="image/*"
+                        onChange={onRoleStageBgUpload}
+                        disabled={isUploadingRoleStageBg}
+                      />
+                    </div>
+                  </div>
+                  {isUploadingRoleStageBg ? (
+                    <p className="admin-save-hint" role="status">Enviando fundo da faixa do role...</p>
+                  ) : null}
+                  {roleStageBgUploadError ? <p className="admin-error">{roleStageBgUploadError}</p> : null}
+                  {String(draftSiteContent.rolePhotosStageBgUrl || '').trim() ? (
+                    <div
+                      className="admin-role-stage-preview people-role-photos-stage role-stage--has-bg"
+                      style={{
+                        '--role-stage-bg-url': `url("${String(draftSiteContent.rolePhotosStageBgUrl).trim().replace(/"/g, '\\"')}")`,
+                      }}
+                    >
+                      <span>Preview — cards FOTO ficam por cima no site</span>
+                    </div>
+                  ) : (
+                    <p className="about-copy admin-muted">Vazio = fundo bege / ilustração padrão.</p>
+                  )}
+                </div>
+              </article>
+
+              <article id="admin-footer-logo" className="admin-panel-card">
+                <header className="admin-card-head">
+                  <h3>Logo do rodapé</h3>
+                  <p className="about-copy">
+                    Detalhe <strong>pequeno e redondo</strong> na linha do copyright. Use <strong>PNG com fundo transparente</strong>.
+                  </p>
+                  <p className="about-copy image-spec-note">{IMAGE_SPEC.footerLogo}</p>
+                </header>
+                <div className="admin-form">
+                  <div className="admin-media-row">
+                    <div className="admin-form-field">
+                      <label htmlFor="admin-footer-logo-url">URL da logo</label>
+                      <input
+                        id="admin-footer-logo-url"
+                        type="text"
+                        inputMode="url"
+                        autoComplete="off"
+                        placeholder="https://..."
+                        value={draftSiteContent.footerLogoUrl ?? ''}
+                        onChange={(event) => setDraftSiteContent((prev) => ({
+                          ...mergeSiteContentWithDefaults(prev),
+                          footerLogoUrl: event.target.value,
+                        }))}
+                      />
+                    </div>
+                    <div className="admin-form-field">
+                      <label htmlFor="admin-footer-logo-file">Enviar arquivo</label>
+                      <input
+                        id="admin-footer-logo-file"
+                        type="file"
+                        accept="image/png,image/webp,image/jpeg,image/*"
+                        onChange={onFooterLogoUpload}
+                        disabled={isUploadingFooterLogo}
+                      />
+                    </div>
+                  </div>
+                  {isUploadingFooterLogo ? (
+                    <p className="admin-save-hint" role="status">Enviando logo...</p>
+                  ) : null}
+                  {footerLogoUploadError ? <p className="admin-error">{footerLogoUploadError}</p> : null}
+                  {String(draftSiteContent.footerLogoUrl || '').trim() ? (
+                    <div className="admin-footer-logo-preview">
+                      <p className="about-copy admin-preview-label">Preview (redonda, no rodapé)</p>
+                      <div className="footer-logo-mark">
+                        <img
+                          className={footerLogoImageClassName(draftSiteContent.footerLogoUrl)}
+                          src={String(draftSiteContent.footerLogoUrl).trim()}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="about-copy admin-muted">Sem logo: o rodapé fica só com o copyright.</p>
+                  )}
+                </div>
+              </article>
+
+              {siteContentSaveError ? <p className="admin-error">{siteContentSaveError}</p> : null}
+              <div className="admin-sticky-actions">
+                <p className="admin-sticky-actions__hint">Grava faixas, fundos e logo do rodapé.</p>
+                <div className="admin-actions">
+                  <button type="button" className="admin-btn admin-btn--primary" onClick={onSaveSiteContent} disabled={isSavingSiteContent}>
+                    {isSavingSiteContent ? 'Salvando...' : 'Salvar visuais'}
+                  </button>
+                </div>
+              </div>
+            </>
           ) : null}
 
           {isPhotosSection ? <article id="admin-gallery" className="admin-panel-card">
-            <h3>Galeria principal (carrossel do topo + página Fotos)</h3>
-            <p className="about-copy">
-              As fotos daqui alimentam o carrossel inicial do site (topo) e a página de Fotos. Esta seção NAO altera a faixa de fotos do bloco pos
-              &quot;Conheça a Experiência Douha&quot;.
-            </p>
-            <p className="about-copy image-spec-note">{IMAGE_SPEC.gallery}</p>
+            <header className="admin-card-head">
+              <h3>Galeria principal</h3>
+              <p className="about-copy">
+                Fotos do carrossel do topo e da página Fotos. Não muda a faixa “Conheça a experiência”
+                nem a faixa diagonal do role.
+              </p>
+              <p className="about-copy image-spec-note">{IMAGE_SPEC.gallery}</p>
+            </header>
             <label className="admin-checkbox-row">
               <input
                 type="checkbox"
@@ -4877,7 +5128,7 @@ function AdminPage({
                 }}
               />
               <span>
-                Proximo envio: <strong>foto larga</strong> (uma imagem ocupa 2 cards no carrossel da home).
+                Próximo envio: <strong>foto larga</strong> (ocupa 2 cards no carrossel da home).
               </span>
             </label>
             <input type="file" accept="image/*" multiple onChange={onAdminPhotoUpload} />
@@ -4929,71 +5180,20 @@ function AdminPage({
               })}
             </div>
             <div className="admin-actions">
-              <button type="button" className="pill pill-light" onClick={onSaveGallery} disabled={isSavingGallery}>
+              <button type="button" className="admin-btn admin-btn--primary" onClick={onSaveGallery} disabled={isSavingGallery}>
                 {isSavingGallery ? 'Salvando galeria...' : 'Salvar galeria'}
               </button>
             </div>
           </article> : null}
 
           {isPhotosSection ? <article id="admin-role-photos" className="admin-panel-card">
-            <h3>Fotos do role (faixa da home)</h3>
-            <p className="about-copy">
-              Envie imagens em proporção 3:4 (retrato) ou 4:3 (paisagem); no site todas aparecem no mesmo quadro 3:4 com recorte central (object-fit).
-              A faixa rola em diagonal apos &quot;Conheça a Experiência Douha&quot;; não altera o carrossel do topo.
-            </p>
-            <div className="admin-role-stage-bg-block">
-              <h4 className="admin-subheading">Fundo da faixa (2º plano — atras dos cards)</h4>
-              <p className="about-copy image-spec-note">{IMAGE_SPEC.rolePhotosStage}</p>
+            <header className="admin-card-head">
+              <h3>Fotos do role</h3>
               <p className="about-copy">
-                Substitui o fundo bege/ilustrações padrão. Os cards <strong>FOTO</strong> continuam por cima. Vazio = visual padrão.
-                Depois de enviar, use <strong>Salvar alterações</strong> em Geral ou o botao abaixo.
+                Envie em 3:4 ou 4:3 — no site todas entram no quadro 3:4 com recorte central.
+                A faixa rola em diagonal depois de “Conheça a experiência”. O fundo dessa faixa fica em <strong>Visuais</strong>.
               </p>
-              <div className="admin-form">
-                <label htmlFor="admin-role-stage-bg-url">URL do fundo</label>
-                <input
-                  id="admin-role-stage-bg-url"
-                  type="text"
-                  inputMode="url"
-                  autoComplete="off"
-                  placeholder="https://..."
-                  value={draftSiteContent.rolePhotosStageBgUrl ?? ''}
-                  onChange={(event) => setDraftSiteContent((prev) => ({
-                    ...mergeSiteContentWithDefaults(prev),
-                    rolePhotosStageBgUrl: event.target.value,
-                  }))}
-                />
-                <label htmlFor="admin-role-stage-bg-file">Enviar textura / imagem de fundo</label>
-                <input
-                  id="admin-role-stage-bg-file"
-                  type="file"
-                  accept="image/*"
-                  onChange={onRoleStageBgUpload}
-                  disabled={isUploadingRoleStageBg}
-                />
-                {isUploadingRoleStageBg ? (
-                  <p className="admin-save-hint" role="status">Enviando fundo da faixa do role...</p>
-                ) : null}
-                {roleStageBgUploadError ? <p className="admin-error">{roleStageBgUploadError}</p> : null}
-                {String(draftSiteContent.rolePhotosStageBgUrl || '').trim() ? (
-                  <div
-                    className="admin-role-stage-preview people-role-photos-stage role-stage--has-bg"
-                    style={{
-                      '--role-stage-bg-url': `url("${String(draftSiteContent.rolePhotosStageBgUrl).trim().replace(/"/g, '\\"')}")`,
-                    }}
-                  >
-                    <span>Preview — cards FOTO ficam por cima no site</span>
-                  </div>
-                ) : null}
-                <button
-                  type="button"
-                  className="pill"
-                  onClick={onSaveSiteContent}
-                  disabled={isSavingSiteContent}
-                >
-                  {isSavingSiteContent ? 'Salvando...' : 'Salvar fundo no site'}
-                </button>
-              </div>
-            </div>
+            </header>
             {rolePhotosError ? <p className="admin-error">{rolePhotosError}</p> : null}
             <input type="file" accept="image/*" multiple onChange={onRolePhotoUpload} />
             <div className="admin-photo-grid">
@@ -5017,18 +5217,20 @@ function AdminPage({
               })}
             </div>
             <div className="admin-actions">
-              <button type="button" className="pill pill-light" onClick={onSaveRolePhotos} disabled={isSavingRolePhotos}>
+              <button type="button" className="admin-btn admin-btn--primary" onClick={onSaveRolePhotos} disabled={isSavingRolePhotos}>
                 {isSavingRolePhotos ? 'Salvando fotos do role...' : 'Salvar fotos do role'}
               </button>
             </div>
           </article> : null}
 
           {isEditorialSection ? <article id="admin-editorial-mosaic" className="admin-panel-card">
-            <h3>Mosaico da página Editorial</h3>
-            <p className="about-copy">
-              Arraste as matérias publicadas para o layout fixo do site (1 principal + 2 secundárias).
-              As demais ficam no <strong>Acervo</strong> na página pública. Slot vazio = preenchimento automático.
-            </p>
+            <header className="admin-card-head">
+              <h3>Mosaico da página Editorial</h3>
+              <p className="about-copy">
+                Arraste matérias publicadas para o layout fixo (1 principal + 2 secundárias).
+                As outras ficam no <strong>Acervo</strong>. Slot vazio = preenchimento automático.
+              </p>
+            </header>
             {editorialMosaicError ? <p className="admin-error">{editorialMosaicError}</p> : null}
             <AdminEditorialMosaicBoard
               posts={publishedEditorialForMosaic}
@@ -5036,12 +5238,12 @@ function AdminPage({
               onChange={setDraftEditorialMosaic}
             />
             <div className="admin-actions">
-              <button type="button" className="pill" onClick={onSwapEditorialMosaicSides}>
+              <button type="button" className="admin-btn admin-btn--ghost" onClick={onSwapEditorialMosaicSides}>
                 Trocar secundárias
               </button>
               <button
                 type="button"
-                className="pill pill-light"
+                className="admin-btn admin-btn--primary"
                 onClick={onSaveEditorialMosaic}
                 disabled={isSavingEditorialMosaic}
               >
@@ -5051,10 +5253,12 @@ function AdminPage({
           </article> : null}
 
           {isEditorialSection ? <article id="admin-editorial" className="admin-panel-card">
-            <h3>Matérias / Editorial</h3>
-            <p className="about-copy">
-              Crie e atualize matérias. A capa aparece no site <strong>apenas no mosaico</strong> (3 posições); no acervo fica sem imagem até a página da matéria.
-            </p>
+            <header className="admin-card-head">
+              <h3>Matérias / Editorial</h3>
+              <p className="about-copy">
+                Crie e edite matérias. A capa aparece no site só no mosaico (3 posições); no acervo a imagem entra na página da matéria.
+              </p>
+            </header>
             {editorialError ? <p className="admin-error">{editorialError}</p> : null}
             <form className="admin-form" onSubmit={onSaveEditorial}>
               <label>Título</label>
@@ -5091,8 +5295,8 @@ function AdminPage({
               <div className="admin-form-field">
                 <label htmlFor="admin-editorial-body">Texto completo</label>
                 <p className="about-copy image-spec-note">
-                  Enter = quebra de linha no mesmo parágrafo. Linha em branco = novo parágrafo (o site repete igual).
-                  Bloco só com ## titulo, ### subtitulo ou linhas com - item = lista.
+                  Enter = quebra de linha. Linha em branco = novo parágrafo.
+                  Use ## título, ### subtítulo ou linhas com - item para lista.
                 </p>
                 <textarea
                   id="admin-editorial-body"
@@ -5206,17 +5410,19 @@ function AdminPage({
           ) : null}
 
           {isCalendarSection ? <div className="admin-actions admin-calendar-toolbar">
-            <button type="button" className="pill pill-light" onClick={() => onCreateFromCalendar({ year: draftYear, monthIndex: draftMonthIndex })}>
+            <button type="button" className="admin-btn admin-btn--primary" onClick={() => onCreateFromCalendar({ year: draftYear, monthIndex: draftMonthIndex })}>
               Novo evento manual
             </button>
             {showEventForm ? (
-              <button type="button" className="pill" onClick={() => setShowEventForm(false)}>Fechar formulário</button>
+              <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setShowEventForm(false)}>Fechar formulário</button>
             ) : null}
           </div> : null}
 
           {isCalendarSection && showEventForm ? (
-            <form id="admin-event-form" ref={formRef} className="admin-form admin-event-form" onSubmit={onSave}>
-              <h3>{editingId ? 'Editar evento' : 'Agendar evento'}</h3>
+            <form id="admin-event-form" ref={formRef} className="admin-form admin-event-form admin-panel-card" onSubmit={onSave}>
+              <header className="admin-card-head">
+                <h3>{editingId ? 'Editar evento' : 'Agendar evento'}</h3>
+              </header>
               {createSlotLabel ? (
                 <p className="admin-save-hint" role="status">{createSlotLabel}</p>
               ) : null}
@@ -5374,20 +5580,22 @@ function AdminPage({
               </fieldset>
 
               <div className="admin-actions">
-                <button type="submit" className="pill pill-light" disabled={isSavingEvent || isUploadingPoster}>
+                <button type="submit" className="admin-btn admin-btn--primary" disabled={isSavingEvent || isUploadingPoster}>
                   {isUploadingPoster
                     ? 'Aguardando upload do poster...'
                     : isSavingEvent
                       ? 'Salvando...'
                       : (editingId ? 'Salvar alterações' : 'Adicionar evento')}
                 </button>
-                <button type="button" className="pill" onClick={resetDraft}>Limpar formulário</button>
+                <button type="button" className="admin-btn admin-btn--ghost" onClick={resetDraft}>Limpar formulário</button>
               </div>
             </form>
           ) : null}
 
           {isCalendarSection ? <article id="admin-calendar" className="admin-panel-card">
-            <h3>Calendário do Admin</h3>
+            <header className="admin-card-head">
+              <h3>Calendário do Admin</h3>
+            </header>
             <p className="about-copy">
               Até <strong>{MAX_EVENTS_PER_MONTH} eventos por mês</strong>, ordenados pela <strong>data do evento</strong> (não pela ordem de cadastro).
               {CALENDAR_CARDS_PER_ROW} na 1ª linha; do 5º em diante na 2ª, preenchendo da esquerda para a direita.
@@ -5404,9 +5612,58 @@ function AdminPage({
               embedded
             />
           </article> : null}
-        </div>
-      </section>
-    </main>
+    </>
+  );
+
+  if (isLegacyAdminUi) {
+    return (
+      <main>
+        <section className="section">
+          <div className="container admin-box">
+            <div className="section-head">
+              <h2>Admin · {sectionTitle}</h2>
+              <div className="admin-actions">
+                <button type="button" className="pill pill-light" onClick={() => setAdminUiMode('modern')}>
+                  Usar visual novo
+                </button>
+                {isCalendarSection ? (
+                  <button type="button" className="pill" onClick={onResetAgenda}>
+                    Limpar agenda
+                  </button>
+                ) : null}
+                <button type="button" className="pill" onClick={handleAdminExit}>
+                  Sair
+                </button>
+              </div>
+            </div>
+            <p className="about-copy admin-legacy-note">
+              Visual legado — o mesmo painel de sempre, pra comparar com o time. Funções novas (Visuais, documento de reservas, etc.) continuam disponíveis.
+            </p>
+            <nav className="admin-nav" aria-label="Seções do admin">
+              <Link className="pill" to="/admin">Conteúdo</Link>
+              <Link className="pill" to="/admin/visuais">Visuais</Link>
+              <Link className="pill" to="/admin/fotos">Fotos</Link>
+              <Link className="pill" to="/admin/editorial">Matérias</Link>
+              <Link className="pill" to="/admin/calendario">Agenda / Calendário</Link>
+              <Link className="pill" to="/admin/reservas">Reservas / Mapa</Link>
+            </nav>
+            {adminPanels}
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <AdminShell
+      adminSection={adminSection}
+      onLogout={handleAdminExit}
+      actions={adminTopActions}
+    >
+      <div className="admin-box">
+        {adminPanels}
+      </div>
+    </AdminShell>
   );
 }
 
@@ -5842,6 +6099,34 @@ export default function App() {
                     : ''
                 }
                 adminSection="geral"
+              />
+            )}
+          />
+          <Route
+            path="/admin/visuais"
+            element={(
+              <AdminPage
+                agendaEvents={agendaEvents}
+                setAgendaEvents={setAgendaEvents}
+                onResetAgenda={onResetAgenda}
+                isAdminLoggedIn={isAdminLoggedIn}
+                setIsAdminLoggedIn={setIsAdminLoggedIn}
+                sitePhotos={sitePhotos}
+                setSitePhotos={setSitePhotos}
+                rolePhotos={rolePhotos}
+                setRolePhotos={setRolePhotos}
+                editorialPosts={editorialPosts}
+                setEditorialPosts={setEditorialPosts}
+                siteContent={siteContent}
+                setSiteContent={setSiteContent}
+                onEventSavedFocus={(focus) => setCalendarFocus(focus)}
+                agendaSyncError={agendaSyncError}
+                supabaseSetupError={
+                  !isSupabaseConfigured && supabaseConfigError
+                    ? `Revise o .env do Douha: ${supabaseConfigError}`
+                    : ''
+                }
+                adminSection="visuais"
               />
             )}
           />

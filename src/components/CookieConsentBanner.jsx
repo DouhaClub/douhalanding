@@ -1,11 +1,13 @@
 import { useCallback, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { initAnalyticsIfConsented } from '../lib/analytics';
 import { needsConsentBanner, saveConsentChoice } from '../lib/consentStorage';
 import { registerServiceWorkerIfAccepted, unregisterServiceWorker } from '../lib/registerServiceWorker';
 
 export function CookieConsentBanner() {
+  const location = useLocation();
   const [open, setOpen] = useState(() => needsConsentBanner());
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   const onAccept = useCallback(async () => {
     saveConsentChoice('accepted');
@@ -20,7 +22,7 @@ export function CookieConsentBanner() {
     await unregisterServiceWorker();
   }, []);
 
-  if (!open) return null;
+  if (!open || isAdminRoute) return null;
 
   return (
     <div

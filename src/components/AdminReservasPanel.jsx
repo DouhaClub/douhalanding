@@ -11,6 +11,7 @@ import {
   getOccupiedTableIds,
   isMissingReservationColumnsError,
   normalizeReservationLayout,
+  openReservationGuestDocument,
   RESERVATION_STATUS,
   saveEventReservationConfig,
   updateReservationStatus,
@@ -77,6 +78,7 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
   const [layoutJson, setLayoutJson] = useState('');
   const [spotBusyId, setSpotBusyId] = useState('');
   const [isSavingPrices, setIsSavingPrices] = useState(false);
+  const [docBusyId, setDocBusyId] = useState('');
 
   const upcomingEvents = useMemo(
     () => [...(agendaEvents || [])].filter(isUpcomingEvent).sort(compareEventsByDate),
@@ -325,6 +327,26 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
     }
   };
 
+  const onGenerateDocument = async (event) => {
+    if (!event?.id) return;
+    setError('');
+    setHint('');
+    setDocBusyId(event.id);
+    try {
+      const rows = selectedEventId === event.id
+        ? reservations
+        : await fetchReservationsForEvent(event.id);
+      const layout = normalizeReservationLayout(event.reservationLayout) || DEFAULT_LAYOUT;
+      openReservationGuestDocument({ event, reservations: rows, layout });
+      setHint(`Documento gerado: ${formatEventReservationLabel(event)}`);
+      if (selectedEventId !== event.id) setSelectedEventId(event.id);
+    } catch (err) {
+      setError(formatReservationError(err));
+    } finally {
+      setDocBusyId('');
+    }
+  };
+
   /** Cancelar = excluir de vez (libera a mesa e não deixa registro morto). */
   const onCancelReservation = async (row) => {
     if (!window.confirm(`Cancelar e excluir a pré-reserva de ${row.guest_name} (${row.table_id})? A mesa volta a ficar disponível.`)) return;
@@ -361,7 +383,7 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
           layout={previewLayout}
           occupiedTableIds={previewOccupiedIds}
           preview
-          hint="Áreas clicáveis invisíveis sobre a planta. Spots fechados ou com pré-reserva aparecem como reservados no site."
+          hint="Passe o mouse nas mesas e camarotes. Spots fechados ou com pré-reserva aparecem como reservados no site."
         />
       </article>
 
@@ -370,7 +392,7 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
           <div>
             <h3>Pré-reserva por evento</h3>
             <p className="about-copy admin-muted">
-              {activeCount} de {upcomingEvents.length} evento(s) futuros com pré-reserva aberta. Eventos já realizados não aparecem aqui.
+              {activeCount} de {upcomingEvents.length} evento(s) futuros com pré-reserva aberta. Eventos passados não entram nesta lista.
             </p>
           </div>
           <div className="admin-actions admin-res-bulk-actions">
@@ -479,16 +501,24 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
                         <div className="admin-actions">
                           <button
                             type="button"
-                            className="pill"
+                            className="admin-btn admin-btn--ghost"
                             onClick={() => setSelectedEventId(event.id)}
                           >
                             Ver mapa
                           </button>
                           {event.reservationsEnabled ? (
-                            <Link className="pill pill-light" to={`/reservas/${event.id}`} target="_blank" rel="noopener noreferrer">
+                            <Link className="admin-btn admin-btn--ghost" to={`/reservas/${event.id}`} target="_blank" rel="noopener noreferrer">
                               Abrir /reservas
                             </Link>
                           ) : null}
+                          <button
+                            type="button"
+                            className="admin-btn admin-btn--primary"
+                            disabled={docBusyId === event.id}
+                            onClick={() => onGenerateDocument(event)}
+                          >
+                            {docBusyId === event.id ? 'Gerando...' : 'Gerar documento'}
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -561,8 +591,20 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
 
       {selectedEvent ? (
         <article className="admin-panel-card">
-          <h3>Pré-reservas recebidas</h3>
-          <p className="about-copy admin-muted">{formatEventReservationLabel(selectedEvent)}</p>
+          <div className="admin-res-toolbar">
+            <div>
+              <h3>Pré-reservas recebidas</h3>
+              <p className="about-copy admin-muted">{formatEventReservationLabel(selectedEvent)}</p>
+            </div>
+            <button
+              type="button"
+              className="admin-btn admin-btn--primary"
+              disabled={docBusyId === selectedEvent.id || isLoadingReservations}
+              onClick={() => onGenerateDocument(selectedEvent)}
+            >
+              {docBusyId === selectedEvent.id ? 'Gerando...' : 'Gerar documento'}
+            </button>
+          </div>
           {isLoadingReservations ? <p className="admin-save-hint">Carregando...</p> : null}
           {!reservations.length && !isLoadingReservations ? (
             <p className="about-copy admin-muted">Nenhuma pré-reserva neste evento ainda.</p>
