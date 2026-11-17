@@ -5394,6 +5394,14 @@ button:disabled,
   cursor: default;
 }
 
+.reservation-map-tooltip__admin-info {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  opacity: 0.88;
+  white-space: pre-wrap;
+}
+
 .reservation-map-tooltip__price {
   margin: 6px 0 0;
   font-size: 0.82rem;
@@ -5747,8 +5755,45 @@ button:disabled,
   cursor: not-allowed;
 }
 
+.admin-res-spot.is-editing {
+  border-color: rgba(31, 28, 18, 0.7);
+  box-shadow: 0 0 0 2px rgba(31, 28, 18, 0.12);
+}
+
+.admin-res-spot.has-info:not(.is-closed):not(.is-guest) {
+  border-style: dashed;
+}
+
 .admin-res-spot:disabled {
   opacity: 0.75;
+}
+
+.admin-res-spot-card {
+  display: grid;
+  gap: 14px;
+  margin: 4px 0 12px;
+  padding: 16px;
+  border: 1px solid rgba(31, 28, 18, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 250, 242, 0.96);
+}
+
+.admin-res-spot-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.admin-res-spot-card__head h4 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+
+.admin-res-spot-card__toggle {
+  margin: 0;
+  max-width: none;
 }
 
 .admin-res-spots-note {

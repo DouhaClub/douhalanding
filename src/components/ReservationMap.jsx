@@ -146,6 +146,9 @@ function ReservationMapTooltip({ table, occupied }) {
       <p className={`reservation-map-tooltip__status${occupied ? ' is-busy' : ' is-free'}`}>
         {occupied ? 'Reservado' : 'Aberto — disponível'}
       </p>
+      {spot?.adminInfo ? (
+        <p className="reservation-map-tooltip__admin-info">{spot.adminInfo}</p>
+      ) : null}
       {!occupied && spot?.priceTotal ? (
         <p className="reservation-map-tooltip__price">
           {formatBrl(spot.priceTotal)}

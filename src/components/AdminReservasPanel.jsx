@@ -11,7 +11,7 @@ import {
   getOccupiedTableIds,
   isMissingReservationColumnsError,
   normalizeReservationLayout,
-  openReservationGuestDocument,
+  downloadReservationGuestPdf,
   RESERVATION_STATUS,
   saveEventReservationConfig,
   updateReservationStatus,
@@ -49,7 +49,6 @@ function compareEventsByDate(a, b) {
   return String(a.date || '').localeCompare(String(b.date || ''));
 }
 
-/** Eventos de hoje em diante (fim do dia do evento ainda não passou). */
 function isUpcomingEvent(event) {
   const parsed = parseEventDateParts(event?.date);
   if (!parsed) return false;
@@ -77,6 +76,9 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [layoutJson, setLayoutJson] = useState('');
   const [spotBusyId, setSpotBusyId] = useState('');
+  const [spotEditorId, setSpotEditorId] = useState('');
+  const [spotInfoDraft, setSpotInfoDraft] = useState('');
+  const [spotClosedDraft, setSpotClosedDraft] = useState(false);
   const [isSavingPrices, setIsSavingPrices] = useState(false);
   const [docBusyId, setDocBusyId] = useState('');
 
@@ -155,6 +157,12 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
   }, [selectedEventId, loadReservations]);
 
   useEffect(() => {
+    setSpotEditorId('');
+    setSpotInfoDraft('');
+    setSpotClosedDraft(false);
+  }, [selectedEventId]);
+
+  useEffect(() => {
     if (!selectedEvent) {
       setLayoutJson(JSON.stringify(DEFAULT_LAYOUT, null, 2));
       return;
@@ -194,26 +202,62 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
     }
   };
 
-  const onToggleSpotBlocked = async (table) => {
-    if (!selectedEvent) return;
+  const editingSpot = useMemo(
+    () => (previewLayout?.tables || []).find((table) => table.id === spotEditorId) || null,
+    [previewLayout, spotEditorId],
+  );
+
+  const onOpenSpotCard = (table) => {
+    if (!table?.id) return;
+    setError('');
+    setSpotEditorId(table.id);
+    setSpotInfoDraft(String(table.adminInfo || '').trim());
+    setSpotClosedDraft(blockedTableIds.has(table.id));
+  };
+
+  const onCloseSpotCard = () => {
+    setSpotEditorId('');
+    setSpotInfoDraft('');
+    setSpotClosedDraft(false);
+  };
+
+  const onSaveSpotCard = async () => {
+    if (!selectedEvent || !editingSpot) return;
     setError('');
     setHint('');
-    setSpotBusyId(table.id);
+    setSpotBusyId(editingSpot.id);
     try {
       const layout = normalizeReservationLayout(selectedEvent.reservationLayout) || DEFAULT_LAYOUT;
       const blocked = getBlockedTableIdSet(layout);
-      const id = String(table.id);
-      if (blocked.has(id)) blocked.delete(id);
-      else blocked.add(id);
-      const nextLayout = { ...layout, blockedTableIds: [...blocked] };
+      const id = String(editingSpot.id);
+      if (spotClosedDraft) blocked.add(id);
+      else blocked.delete(id);
+
+      const info = String(spotInfoDraft || '').trim();
+      const tables = (layout.tables || []).map((table) => {
+        if (String(table.id) !== id) return table;
+        const next = { ...table };
+        if (info) next.adminInfo = info;
+        else delete next.adminInfo;
+        return next;
+      });
+
+      const nextLayout = {
+        ...layout,
+        tables,
+        blockedTableIds: [...blocked],
+      };
       await saveEventReservationConfig(selectedEvent.id, {
         enabled: Boolean(selectedEvent.reservationsEnabled),
         layout: nextLayout,
       });
       patchLocalEvent(selectedEvent.id, { reservationLayout: nextLayout });
-      setHint(blocked.has(id)
-        ? `${table.label} fechado — aparece como "Reservado" no site.`
-        : `${table.label} aberto para pré-reserva.`);
+      setHint(
+        spotClosedDraft
+          ? `${editingSpot.label} fechado${info ? ' com informação no mapa' : ''} — aparece como "Reservado".`
+          : `${editingSpot.label} aberto${info ? ' com informação no mapa' : ''} para pré-reserva.`,
+      );
+      onCloseSpotCard();
     } catch (err) {
       setError(formatReservationError(err));
     } finally {
@@ -262,7 +306,7 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
   const onBulkSet = async (enabled, ids = null) => {
     const targetIds = ids || upcomingEvents.map((event) => event.id);
     if (!targetIds.length) return;
-    if (!enabled && !window.confirm(`Desativar pré-reserva em ${targetIds.length} evento(s)?`)) return;
+    if (!enabled && !window.confirm(`Desativar pré-reserva em ${targetIds.length} evento(s) futuros?`)) return;
 
     setIsBulkSaving(true);
     setError('');
@@ -333,13 +377,13 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
     setHint('');
     setDocBusyId(event.id);
     try {
-      const rows = selectedEventId === event.id
-        ? reservations
-        : await fetchReservationsForEvent(event.id);
+      /* Sempre busca de novo pra não gerar PDF com lista vazia/stale. */
+      const rows = await fetchReservationsForEvent(event.id);
       const layout = normalizeReservationLayout(event.reservationLayout) || DEFAULT_LAYOUT;
-      openReservationGuestDocument({ event, reservations: rows, layout });
-      setHint(`Documento gerado: ${formatEventReservationLabel(event)}`);
-      if (selectedEventId !== event.id) setSelectedEventId(event.id);
+      const filename = await downloadReservationGuestPdf({ event, reservations: rows, layout });
+      setReservations(rows);
+      setSelectedEventId(event.id);
+      setHint(`PDF baixado: ${filename}`);
     } catch (err) {
       setError(formatReservationError(err));
     } finally {
@@ -392,7 +436,7 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
           <div>
             <h3>Pré-reserva por evento</h3>
             <p className="about-copy admin-muted">
-              {activeCount} de {upcomingEvents.length} evento(s) futuros com pré-reserva aberta. Eventos passados não entram nesta lista.
+              {activeCount} de {upcomingEvents.length} evento(s) futuros com pré-reserva aberta. Eventos já realizados não aparecem aqui.
             </p>
           </div>
           <div className="admin-actions admin-res-bulk-actions">
@@ -517,7 +561,7 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
                             disabled={docBusyId === event.id}
                             onClick={() => onGenerateDocument(event)}
                           >
-                            {docBusyId === event.id ? 'Gerando...' : 'Gerar documento'}
+                            {docBusyId === event.id ? 'Gerando PDF...' : 'Gerar PDF'}
                           </button>
                         </div>
                       </td>
@@ -534,14 +578,16 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
         <article className="admin-panel-card">
           <h3>Abrir / fechar mesas e camarotes</h3>
           <p className="about-copy admin-muted">
-            {formatEventReservationLabel(selectedEvent)} — spot <strong>fechado</strong> aparece como
-            {' '}<strong>"Reservado"</strong> quando o público passa o mouse no mapa.
+            {formatEventReservationLabel(selectedEvent)} — clique em <strong>C3</strong>, <strong>C4</strong> ou qualquer spot
+            para abrir o card: abrir/fechar e colocar informação que aparece no mapa.
           </p>
           <div className="admin-res-spots-grid">
             {reservableSpots.map((table) => {
               const hasGuestReservation = occupiedTableIds.has(table.id);
               const isClosed = blockedTableIds.has(table.id);
               const isSaving = spotBusyId === table.id;
+              const isEditing = spotEditorId === table.id;
+              const hasInfo = Boolean(String(table.adminInfo || '').trim());
               const statusLabel = isSaving
                 ? 'Salvando...'
                 : hasGuestReservation
@@ -551,19 +597,77 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
                 <button
                   key={table.id}
                   type="button"
-                  className={`admin-res-spot${isClosed ? ' is-closed' : ''}${hasGuestReservation ? ' is-guest' : ''}`}
+                  className={`admin-res-spot${isClosed ? ' is-closed' : ''}${hasGuestReservation ? ' is-guest' : ''}${isEditing ? ' is-editing' : ''}${hasInfo ? ' has-info' : ''}`}
                   disabled={isSaving || hasGuestReservation}
                   title={hasGuestReservation
                     ? 'Há pré-reserva de cliente — gerencie na lista abaixo.'
-                    : isClosed ? 'Clique para abrir' : 'Clique para fechar'}
-                  onClick={() => onToggleSpotBlocked(table)}
+                    : 'Clique para editar status e informação'}
+                  onClick={() => onOpenSpotCard(table)}
                 >
                   <strong>{table.label.replace(/^(Mesa|Camarote)\s*/i, '').replace(/\s*—.*$/, '')}</strong>
-                  <span>{statusLabel}</span>
+                  <span>{statusLabel}{hasInfo ? ' · info' : ''}</span>
                 </button>
               );
             })}
           </div>
+
+          {editingSpot ? (
+            <div className="admin-res-spot-card" role="dialog" aria-label={`Editar ${editingSpot.label}`}>
+              <div className="admin-res-spot-card__head">
+                <div>
+                  <h4>{editingSpot.label}</h4>
+                  <p className="about-copy admin-muted">
+                    Informação aparece quando o público passa o mouse nesse lugar no mapa.
+                  </p>
+                </div>
+                <button type="button" className="admin-btn admin-btn--ghost" onClick={onCloseSpotCard}>
+                  Fechar
+                </button>
+              </div>
+              <label className="admin-res-toggle admin-res-spot-card__toggle">
+                <input
+                  type="checkbox"
+                  checked={!spotClosedDraft}
+                  disabled={spotBusyId === editingSpot.id}
+                  onChange={(e) => setSpotClosedDraft(!e.target.checked)}
+                />
+                <span className="admin-res-toggle-ui" aria-hidden="true" />
+                <span className="admin-res-toggle-label">
+                  {spotClosedDraft ? 'Fechado (aparece como Reservado)' : 'Aberto para pré-reserva'}
+                </span>
+              </label>
+              <div className="admin-form-field">
+                <label htmlFor="admin-spot-info">Informação no mapa</label>
+                <textarea
+                  id="admin-spot-info"
+                  rows={3}
+                  value={spotInfoDraft}
+                  placeholder="Ex.: Reservado para convidados VIP · Nome da empresa · Observação interna"
+                  onChange={(e) => setSpotInfoDraft(e.target.value)}
+                  disabled={spotBusyId === editingSpot.id}
+                />
+              </div>
+              <div className="admin-actions">
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--primary"
+                  onClick={onSaveSpotCard}
+                  disabled={spotBusyId === editingSpot.id}
+                >
+                  {spotBusyId === editingSpot.id ? 'Salvando...' : 'Salvar spot'}
+                </button>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--ghost"
+                  onClick={onCloseSpotCard}
+                  disabled={spotBusyId === editingSpot.id}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           <p className="about-copy admin-muted admin-res-spots-note">
             Spots com pré-reserva de cliente já contam como reservados — confirme ou cancele na lista abaixo.
           </p>
@@ -602,7 +706,7 @@ export function AdminReservasPanel({ agendaEvents, setAgendaEvents }) {
               disabled={docBusyId === selectedEvent.id || isLoadingReservations}
               onClick={() => onGenerateDocument(selectedEvent)}
             >
-              {docBusyId === selectedEvent.id ? 'Gerando...' : 'Gerar documento'}
+              {docBusyId === selectedEvent.id ? 'Gerando PDF...' : 'Gerar PDF'}
             </button>
           </div>
           {isLoadingReservations ? <p className="admin-save-hint">Carregando...</p> : null}
