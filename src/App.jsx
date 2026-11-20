@@ -71,6 +71,10 @@ import { registerServiceWorkerIfAccepted } from './lib/registerServiceWorker';
 import { MEDIA_WIDTH, optimizeMediaSrcSet, optimizeMediaUrl } from './lib/mediaUrl';
 
 const CALENDAR_FOCUS_KEY = 'douha_calendar_focus_v1';
+const AGENDA_CACHE_KEY = 'douha_agenda_cache_v1';
+const AGENDA_FETCH_TIMEOUT_MS = 12000;
+const AGENDA_POLL_OK_MS = 60000;
+const AGENDA_POLL_FAIL_MS = 180000;
 const PHOTOS_STORAGE_KEY = 'douha_site_photos_v1';
 const ROLE_PHOTOS_STORAGE_KEY = 'douha_role_photos_v2';
 const ROLE_PHOTOS_LEGACY_KEY = 'douha_role_photos_v1';
@@ -1003,6 +1007,28 @@ function safeRemoveLocalStorage(key) {
   } catch (error) {
     console.error(`Falha ao remover ${key} do localStorage:`, error);
     return false;
+  }
+}
+
+function loadCachedAgendaEvents() {
+  try {
+    const raw = sessionStorage.getItem(AGENDA_CACHE_KEY) || localStorage.getItem(AGENDA_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((item, idx) => normalizeAgendaItem(item, idx)).filter((item) => item.id);
+  } catch {
+    return [];
+  }
+}
+
+function persistCachedAgendaEvents(events) {
+  try {
+    const payload = JSON.stringify(Array.isArray(events) ? events : []);
+    sessionStorage.setItem(AGENDA_CACHE_KEY, payload);
+    safeSetLocalStorage(AGENDA_CACHE_KEY, payload);
+  } catch (error) {
+    console.warn('Falha ao cachear agenda:', error);
   }
 }
 
@@ -5668,7 +5694,10 @@ function AdminPage({
 }
 
 export default function App() {
-  const [agendaEvents, setAgendaEvents] = useState(() => [...defaultAgenda]);
+  const [agendaEvents, setAgendaEvents] = useState(() => {
+    const cached = loadCachedAgendaEvents();
+    return cached.length ? cached : [...defaultAgenda];
+  });
   const [sitePhotos, setSitePhotos] = useState(() => loadStoredPhotos());
   const [rolePhotos, setRolePhotos] = useState(() => loadStoredRolePhotos());
   const [editorialPosts, setEditorialPosts] = useState(() => [...defaultEditorialPosts]);
@@ -5707,6 +5736,16 @@ export default function App() {
 
   useEffect(() => {
     let active = true;
+    let pollTimer = null;
+    let consecutiveFailures = 0;
+
+    const scheduleNextPoll = (delayMs) => {
+      if (!active) return;
+      if (pollTimer) window.clearTimeout(pollTimer);
+      pollTimer = window.setTimeout(() => {
+        loadAgendaFromSupabase();
+      }, delayMs);
+    };
 
     const loadAgendaFromSupabase = async () => {
       if (!isSupabaseConfigured || !supabase) {
@@ -5715,7 +5754,6 @@ export default function App() {
             ? `Configuração Supabase inválida: ${supabaseConfigError}`
             : 'Supabase não configurado. Agenda vazia.',
         );
-        setAgendaEvents([]);
         return;
       }
       try {
@@ -5724,29 +5762,45 @@ export default function App() {
         const selectWithoutSoldOut =
           'id, date, time, lineup, poster, ticket_url, photos_url, publish_at, reservations_enabled, reservation_layout, created_at';
         let soldOutSchemaWarning = '';
-        let firstAttempt = await supabase
-          .from(SUPABASE_EVENTS_TABLE)
-          .select(fullSelect)
-          .order('created_at', { ascending: true });
+        let firstAttempt = await withTimeout(
+          supabase
+            .from(SUPABASE_EVENTS_TABLE)
+            .select(fullSelect)
+            .order('created_at', { ascending: true }),
+          AGENDA_FETCH_TIMEOUT_MS,
+          'Timeout ao carregar agenda do Supabase.',
+        );
         if (firstAttempt.error && isMissingSoldOutColumnError(firstAttempt.error.message)) {
           soldOutSchemaWarning =
             'Ingressos esgotados: rode supabase/migrations/011_douha_events_sold_out.sql no Supabase.';
-          firstAttempt = await supabase
-            .from(SUPABASE_EVENTS_TABLE)
-            .select(selectWithoutSoldOut)
-            .order('created_at', { ascending: true });
+          firstAttempt = await withTimeout(
+            supabase
+              .from(SUPABASE_EVENTS_TABLE)
+              .select(selectWithoutSoldOut)
+              .order('created_at', { ascending: true }),
+            AGENDA_FETCH_TIMEOUT_MS,
+            'Timeout ao carregar agenda do Supabase.',
+          );
         }
         let rowsData = firstAttempt.data;
         if (firstAttempt.error && isMissingPublishAtColumnError(firstAttempt.error.message)) {
-          const fallback = await supabase
-            .from(SUPABASE_EVENTS_TABLE)
-            .select('id, date, time, lineup, poster, ticket_url, photos_url, reservations_enabled, reservation_layout, created_at')
-            .order('created_at', { ascending: true });
-          if (fallback.error && isMissingReservationColumnsError(fallback.error.message)) {
-            const fallback2 = await supabase
+          const fallback = await withTimeout(
+            supabase
               .from(SUPABASE_EVENTS_TABLE)
-              .select('id, date, time, lineup, poster, ticket_url, photos_url, created_at')
-              .order('created_at', { ascending: true });
+              .select('id, date, time, lineup, poster, ticket_url, photos_url, reservations_enabled, reservation_layout, created_at')
+              .order('created_at', { ascending: true }),
+            AGENDA_FETCH_TIMEOUT_MS,
+            'Timeout ao carregar agenda do Supabase.',
+          );
+          if (fallback.error && isMissingReservationColumnsError(fallback.error.message)) {
+            const fallback2 = await withTimeout(
+              supabase
+                .from(SUPABASE_EVENTS_TABLE)
+                .select('id, date, time, lineup, poster, ticket_url, photos_url, created_at')
+                .order('created_at', { ascending: true }),
+              AGENDA_FETCH_TIMEOUT_MS,
+              'Timeout ao carregar agenda do Supabase.',
+            );
             if (fallback2.error) throw fallback2.error;
             rowsData = fallback2.data || [];
           } else if (fallback.error) {
@@ -5760,10 +5814,14 @@ export default function App() {
             );
           }
         } else if (firstAttempt.error && isMissingPhotosUrlColumnError(firstAttempt.error.message)) {
-          const fallback = await supabase
-            .from(SUPABASE_EVENTS_TABLE)
-            .select('id, date, time, lineup, poster, ticket_url, created_at')
-            .order('created_at', { ascending: true });
+          const fallback = await withTimeout(
+            supabase
+              .from(SUPABASE_EVENTS_TABLE)
+              .select('id, date, time, lineup, poster, ticket_url, created_at')
+              .order('created_at', { ascending: true }),
+            AGENDA_FETCH_TIMEOUT_MS,
+            'Timeout ao carregar agenda do Supabase.',
+          );
           if (fallback.error) throw fallback.error;
           rowsData = (fallback.data || []).map((row) => ({ ...row, photos_url: '' }));
           if (active) {
@@ -5772,10 +5830,14 @@ export default function App() {
             );
           }
         } else if (firstAttempt.error && isMissingReservationColumnsError(firstAttempt.error.message)) {
-          const fallback = await supabase
-            .from(SUPABASE_EVENTS_TABLE)
-            .select('id, date, time, lineup, poster, ticket_url, photos_url, created_at')
-            .order('created_at', { ascending: true });
+          const fallback = await withTimeout(
+            supabase
+              .from(SUPABASE_EVENTS_TABLE)
+              .select('id, date, time, lineup, poster, ticket_url, photos_url, created_at')
+              .order('created_at', { ascending: true }),
+            AGENDA_FETCH_TIMEOUT_MS,
+            'Timeout ao carregar agenda do Supabase.',
+          );
           if (fallback.error) throw fallback.error;
           rowsData = fallback.data || [];
           if (active) {
@@ -5789,19 +5851,31 @@ export default function App() {
         if (!active) return;
         const mapped = Array.isArray(rowsData) ? rowsData.map((row, idx) => mapDbEventToAgendaItem(row, idx)) : [];
         setAgendaEvents(mapped);
+        persistCachedAgendaEvents(mapped);
+        consecutiveFailures = 0;
         if (!firstAttempt.error) setAgendaSyncError(soldOutSchemaWarning);
+        scheduleNextPoll(AGENDA_POLL_OK_MS);
       } catch (error) {
         if (!active) return;
-        setAgendaEvents([]);
+        consecutiveFailures += 1;
+        // Não zera a agenda: mantém cache/último sucesso pra não sumir o calendário no site.
+        const cached = loadCachedAgendaEvents();
+        if (cached.length) {
+          setAgendaEvents((prev) => (prev?.length ? prev : cached));
+        }
         setAgendaSyncError(`Não foi possível carregar a agenda. Detalhe: ${error.message || 'erro desconhecido'}`);
+        const backoff = Math.min(
+          AGENDA_POLL_FAIL_MS * Math.max(1, consecutiveFailures),
+          10 * 60 * 1000,
+        );
+        scheduleNextPoll(backoff);
       }
     };
 
     loadAgendaFromSupabase();
-    const pollId = window.setInterval(loadAgendaFromSupabase, 60000);
     return () => {
       active = false;
-      window.clearInterval(pollId);
+      if (pollTimer) window.clearTimeout(pollTimer);
     };
   }, []);
 
